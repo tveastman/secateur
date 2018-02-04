@@ -1,0 +1,7 @@
+social-auth-app-django
+django
+python-twitter
+pip-tools
+psycopg2
+ipython
+django-q

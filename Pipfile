@@ -1,0 +1,22 @@
+[[source]]
+
+name = "pypi"
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+
+
+[dev-packages]
+
+
+
+[requires]
+
+python_version = "3.5"
+
+
+[packages]
+
+django = "*"
+python-twitter = "*"
+"psycopg2" = "*"
+social-auth-app-django = "*"
