@@ -1,19 +1,16 @@
 from django.contrib import admin
-
 from . import models
+# Register your models here.
 
 
-@admin.register(models.Twitter)
-class TwitterAdmin(admin.ModelAdmin):
-    readonly_fields = [
-        'screen_name', 'user_id', 'profile_updated', 'friends_updated',
-        'followers_updated', 'blocks_updated', 'mutes_updated',
-        'blocks', 'mutes']
-    list_display = ['user_id', 'screen_name', 'profile_updated']
-    ordering = ['screen_name']
-    search_fields = ['user_id', 'screen_name']
+@admin.register(models.Account)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ('user_id', 'screen_name')
+    readonly_fields = ('user_id', 'screen_name', 'profile_updated', 'profile')
 
-@admin.register(models.Snip)
-class SnipAdmin(admin.ModelAdmin):
-    list_display = ['twitter', 'user', 'type', 'until']
-    list_filter = ['user', 'type']
+@admin.register(models.Relationship)
+class RelationshipAdmin(admin.ModelAdmin):
+    list_display = ('subject', 'type', 'object', 'updated')
+    list_filter = ('type',)
+    date_hierarchy = 'updated'
+    readonly_fields = ('subject', 'type', 'object', 'updated')
