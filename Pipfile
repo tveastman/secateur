@@ -13,11 +13,11 @@ python_version = "3.5"
 [packages]
 
 django = "*"
-"psycopg2" = "*"
 social-auth-app-django = "*"
 python-twitter = "*"
 django-q = "*"
 honcho = "*"
+"psycopg2-binary" = "*"
 
 
 [dev-packages]

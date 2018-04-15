@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+
+import sys
+import logging
+import argparse
+import datetime
+
+import django
+django.setup()
+
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('secateur').setLevel(logging.DEBUG)
+log = logging.getLogger(__name__)
+
+import django_q
+
+import secateur.tasks
+import secateur.models
+
+parser = argparse.ArgumentParser("Secateur CLI")
+parser.add_argument(
+    '--as', dest='secateur_username', type=str, nargs=1, required=True
+)
+parser.add_argument(
+    '--update-user', dest='update_user', action='store_true',
+    help="Update the user's lists."
+)
+parser.add_argument(
+    '--block-followers', dest='block_followers', action='store_true',
+    help='Block all followers of the specified accounts.',
+)
+parser.add_argument(
+    '--block', dest='block', action='store_true',
+    help='Block the specified accounts.',
+)
+parser.add_argument(
+    '--weeks', dest='weeks', type=int, nargs=1, metavar='W', default=12,
+    help='How many weeks to cut the account.'
+)
+parser.add_argument('accounts', metavar='ACCOUNT', nargs='*', type=str)
+args = parser.parse_args()
+log.debug('args: %s', args)
+
+user = secateur.models.User.objects.get(username=args.secateur_username[0])
+duration = datetime.timedelta(days=args.weeks * 7)
+log.debug('Duration = %r', duration)
+
+if args.update_user:
+    secateur.tasks.twitter_update_mutes(user)
+    secateur.tasks.twitter_update_blocks(user)
+
+for account_screen_name in args.accounts:
+    account = user.get_account_by_screen_name(account_screen_name)
+    log.debug('Found account: %s', account)
+    if args.block_followers:
+        type = secateur.models.Cut.BLOCK
+        secateur.tasks.twitter_cut_followers(
+            secateur_user=user,
+            account=account,
+            type=type,
+            duration=duration,
+        )
+    if args.block:
+        type = secateur.models.Cut.BLOCK
+        user.cut(
+            accounts=[account],
+            type=type,
+            duration=duration,
+            action=True
+        )

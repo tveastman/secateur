@@ -110,7 +110,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Pacific/Auckland'
 
 USE_I18N = True
 
@@ -156,7 +156,9 @@ SOCIAL_AUTH_PIPELINE = (
 Q_CLUSTER = {
     'name': 'secateur',
     'orm': 'default',
-    'poll': 1,
+    'poll': 2,
+    'catch_up': False,
+    'ack_failures': True,
 }
 
 
@@ -165,6 +167,9 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {},
+    'root': {
+        'level': 'DEBUG',
+    },
     'loggers': {
         'django': {
             'level': 'INFO',
