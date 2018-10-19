@@ -30,11 +30,15 @@ parser.add_argument(
     help='Block all followers of the specified accounts.',
 )
 parser.add_argument(
+    '--update-followers', dest='update_followers', action='store_true',
+    help='Update follower lists of the specified accounts.',
+)
+parser.add_argument(
     '--block', dest='block', action='store_true',
     help='Block the specified accounts.',
 )
 parser.add_argument(
-    '--weeks', dest='weeks', type=int, nargs=1, metavar='W', default=12,
+    '--weeks', dest='weeks', type=int, metavar='W', default=12,
     help='How many weeks to cut the account.'
 )
 parser.add_argument('accounts', metavar='ACCOUNT', nargs='*', type=str)
@@ -52,6 +56,11 @@ if args.update_user:
 for account_screen_name in args.accounts:
     account = user.get_account_by_screen_name(account_screen_name)
     log.debug('Found account: %s', account)
+    if args.update_followers:
+        secateur.tasks.update_followers.delay(
+            secateur_user_pk=user.pk,
+            user_id=account.user_id
+        )
     if args.block_followers:
         type = secateur.models.Cut.BLOCK
         secateur.tasks.twitter_cut_followers(

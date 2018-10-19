@@ -59,7 +59,8 @@ class User(AuthUser):
             return queryset.get()
         else:
             logger.debug('Fetching user %s from Twitter API.', screen_name)
-            return tasks.twitter_update_account(self, screen_name=screen_name)
+            return Account.get_account(
+                tasks.get_user.delay(self.pk, screen_name=screen_name).get())
 
     def cut(self, accounts, type, duration=None, now=None, action=False):
         if now is None:
@@ -224,6 +225,7 @@ class Account(models.Model):
                     }
                 )
             return cls.objects.filter(user_id__in=ids)
+        raise Exception
 
     @property
     def blocks(self):

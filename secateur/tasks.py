@@ -3,6 +3,7 @@
 from functools import partial
 import logging
 import random
+import pprint
 
 from django.utils import timezone
 from django_q.tasks import async, schedule
@@ -11,20 +12,46 @@ from twitter.error import TwitterError
 
 from . import models
 from . import utils
+from .celery import app
 
 logger = logging.getLogger(__name__)
 
-
-def twitter_update_account(secateur_user, user_id=None, screen_name=None):
-    secateur_user.refresh_from_db()
+@app.task
+def get_user(secateur_user_pk, user_id=None, screen_name=None):
+    secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
 
-    logger.info('Twitter API: Calling GetUser(user_id=%r, screen_name=%r)', user_id, screen_name)
-    twitter_user = api.GetUser(user_id=user_id, screen_name=screen_name)
+    twitter_user = api.GetUser(
+        user_id=user_id, screen_name=screen_name,
+        include_entities=False
+    )
 
-    return models.Account.get_account(twitter_user)
+    account = models.Account.get_account(twitter_user)
+    return account.pk
 
-def twitter_paged_call_iterator(api_function, accounts_handlers, finish_handlers, cursor=-1, max_pages=20):
+@app.task
+def update_followers(secateur_user_pk, user_id=None, cursor=-1, now=None):
+    if now is None:
+        now = timezone.now()
+    secateur_user = models.User.objects.get(pk=secateur_user_pk)
+    api = secateur_user.api
+
+    account = models.Account.get_account(user_id)
+
+    next_cursor, previous_cursor, data = api.GetFollowerIDsPaged(
+        user_id=user_id,
+        cursor=cursor
+    )
+    accounts = models.Account.get_accounts(*data)
+    account.add_followers(accounts, updated=now)
+    if not next_cursor:
+        account.remove_followers_older_than(now)
+    else:
+        update_followers.delay(
+            secateur_user_pk, user_id=user_id, cursor=next_cursor, now=now)
+
+
+def twitter_paged_call_iterator(api_function, accounts_handlers, finish_handlers, cursor=-1, max_pages=50):
     try:
         next_cursor, previous_cursor, data = api_function(cursor=cursor)
     except TwitterError as e:
