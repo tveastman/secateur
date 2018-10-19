@@ -1,28 +1,21 @@
 [[source]]
-
 url = "https://pypi.python.org/simple"
 name = "pypi"
 verify_ssl = true
 
-
 [requires]
-
-python_version = "3.5"
-
+python_version = "3"
 
 [packages]
-
 django = "*"
 social-auth-app-django = "*"
 python-twitter = "*"
-django-q = "*"
 honcho = "*"
 "psycopg2-binary" = "*"
-
+celery = {extras = ["redis"]}
+django-q = "*"
 
 [dev-packages]
-
 pytest = "*"
 pytest-django = "*"
-ipython = "*"
 pytest-watch = "*"
