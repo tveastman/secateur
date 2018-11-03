@@ -6,7 +6,6 @@ import random
 import pprint
 
 from django.utils import timezone
-from django_q.tasks import async, schedule
 
 from twitter.error import TwitterError
 
@@ -15,6 +14,12 @@ from . import utils
 from .celery import app
 
 logger = logging.getLogger(__name__)
+
+def _twitter_retry_timeout(retries=0):
+    # Wait 15 minutes, plus a randomised exponential backoff in 15 minute chunks
+    base = 15 * 60
+    exponential_backoff = (2 ** retries) * 15 * 60
+    return base + random.randint(0, exponential_backoff)
 
 @app.task
 def get_user(secateur_user_pk, user_id=None, screen_name=None):
@@ -25,53 +30,67 @@ def get_user(secateur_user_pk, user_id=None, screen_name=None):
         user_id=user_id, screen_name=screen_name,
         include_entities=False
     )
-
     account = models.Account.get_account(twitter_user)
-    return account.pk
 
 @app.task
-def update_followers(secateur_user_pk, user_id=None, cursor=-1, now=None):
-    if now is None:
-        now = timezone.now()
+def block(secateur_user_pk, user_id=None, screen_name=None, until=None):
+    secateur_user = models.User.objects.get(pk=secateur_user_pk)
+    api = secateur_user.api
+    now = timezone.now()
+
+    ## TODO: Grab the relationship here to lock the API call and not call if
+    ## already blocked
+
+    blocked_user = api.CreateBlock(
+        user_id=user_id,
+        screen_name=screen_name,
+        include_entities=False,
+        skip_status=True
+    )
+    logger.debug('Return from API: %r', blocked_user)
+    blocked_account = models.Account.get_account(blocked_user)
+    secateur_user.account.add_blocks([blocked_account], updated=now, until=until)
+    logger.info('%s has blocked %s %s', secateur_user, blocked_account,
+        'until {}'.format(until) if until else ''
+    )
+
+@app.task
+def unblock(secateur_user_pk, user_id=None, screen_name=None):
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
 
-    account = models.Account.get_account(user_id)
-
-    next_cursor, previous_cursor, data = api.GetFollowerIDsPaged(
+    unblocked_user = self.api.DestroyBlock(
         user_id=user_id,
-        cursor=cursor
+        screen_name=screen_name,
+        include_entities=False,
+        skip_status=True
     )
-    accounts = models.Account.get_accounts(*data)
-    account.add_followers(accounts, updated=now)
-    if not next_cursor:
-        account.remove_followers_older_than(now)
-    else:
-        update_followers.delay(
-            secateur_user_pk, user_id=user_id, cursor=next_cursor, now=now)
+    unblocked_account = Account.get_account(unblocked_user)
+    Relationship.objects.filter(
+        subject=self.account,
+        type=Relationship.BLOCKS,
+        object=unblocked_user
+    ).delete()
+    logger.debug('%s has unblocked %s', secateur_user, blocked_account)
 
-
-def twitter_paged_call_iterator(api_function, accounts_handlers, finish_handlers, cursor=-1, max_pages=50):
+@app.task(bind=True)
+def twitter_paged_call_iterator(self, api_function, accounts_handlers, finish_handlers, cursor=-1, max_pages=100):
     try:
+        logger.debug("Calling %r with cursor page %r", api_function, cursor)
         next_cursor, previous_cursor, data = api_function(cursor=cursor)
+        if data:
+            logger.debug('Received %r results', len(data))
     except TwitterError as e:
-        if e.message == [{'code': 88, 'message': 'Rate limit exceeded'}]:
-            schedule(
-                'secateur.tasks.twitter_paged_call_iterator',
-                api_function=api_function, accounts_handlers=accounts_handlers,
-                finish_handlers=finish_handlers, cursor=cursor, max_pages=max_pages,
-                schedule_type='O', repeats=0,
-                next_run=timezone.now() + timezone.timedelta(seconds=60 * 15)
-            )
-            return
+        if utils.twitter_error_code(e) == 88:  # Rate limit exceeded
+            logger.warning("Rate limit exceeded, scheduling a retry.")
+            self.retry(countdown=_twitter_retry_timeout(self.request.retries))
         else:
             raise
     accounts = models.Account.get_accounts(*data)
     for accounts_handler in accounts_handlers:
         accounts_handler(accounts)
     if next_cursor and max_pages:
-        async(
-            twitter_paged_call_iterator, api_function,
+        twitter_paged_call_iterator.delay(api_function,
             accounts_handlers, finish_handlers, cursor=next_cursor, max_pages=max_pages - 1
         )
     if not next_cursor:
@@ -94,7 +113,7 @@ def twitter_update_followers(secateur_user, account=None):
     api_function = partial(api.GetFollowerIDsPaged, user_id=account.user_id)
     accounts_handlers = [partial(account.add_followers, updated=now)]
     finish_handlers = [partial(account.remove_followers_older_than, now)]
-    async(twitter_paged_call_iterator, api_function, accounts_handlers, finish_handlers)
+    twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 def twitter_update_friends(secateur_user, account=None):
     """Trigger django-q tasks to update the friends list of a twitter account.
@@ -109,7 +128,7 @@ def twitter_update_friends(secateur_user, account=None):
     api_function = partial(api.GetFriendIDsPaged, user_id=account.user_id)
     accounts_handlers = [partial(account.add_friends, updated=now)]
     finish_handlers = [partial(account.remove_friends_older_than, now)]
-    async(twitter_paged_call_iterator, api_function, accounts_handlers, finish_handlers)
+    twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 def twitter_update_blocks(secateur_user):
     """Trigger django-q tasks to update the block list of a secateur user."""
@@ -120,7 +139,7 @@ def twitter_update_blocks(secateur_user):
     api_function = partial(api.GetBlocksIDsPaged)
     accounts_handlers = [partial(account.add_blocks, updated=now)]
     finish_handlers = [partial(account.remove_blocks_older_than, now)]
-    async(twitter_paged_call_iterator, api_function, accounts_handlers, finish_handlers)
+    twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 def twitter_update_mutes(secateur_user):
     """Trigger django-q tasks to update the mute list of a secateur user."""
@@ -131,28 +150,31 @@ def twitter_update_mutes(secateur_user):
     api_function = partial(api.GetMutesIDsPaged)
     accounts_handlers = [partial(account.add_mutes, updated=now)]
     finish_handlers = [partial(account.remove_mutes_older_than, now)]
-    async(twitter_paged_call_iterator, api_function, accounts_handlers, finish_handlers)
+    twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
-def twitter_cut_followers(secateur_user, account, type, duration=None, now=None):
-    if now is None:
-        now = timezone.now()
+def _block_multiple(accounts, secateur_user_pk, until):
+    for account in accounts:
+        block.delay(secateur_user_pk=secateur_user_pk, user_id=account.user_id, until=until)
+
+def twitter_block_followers(secateur_user, account, until):
     api = secateur_user.api
+    now = timezone.now()
 
     api_function = partial(api.GetFollowerIDsPaged, user_id=account.user_id)
     accounts_handlers = [
         partial(account.add_followers, updated=now),
         partial(
-            secateur_user.cut,
-            type=type, duration=duration, now=now, action=True
+            _block_multiple, secateur_user_pk=secateur_user.pk, until=until
         )
     ]
     finish_handlers = [partial(account.remove_followers_older_than, now)]
-    async(twitter_paged_call_iterator, api_function, accounts_handlers, finish_handlers)
+    twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
-
+@app.task
 def action_cuts():
     for pk in models.Cut.actionable().values_list('pk', flat=True):
         action_cut(pk)
 
+@app.task
 def action_cut(pk):
-    async(models.Cut.action, pk)
+    models.Cut.action(pk)

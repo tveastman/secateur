@@ -10,7 +10,6 @@ from django.utils import timezone
 from django.utils.functional import cached_property
 from django.db import models
 from django.db import transaction
-from django.db.models import Q
 from django.db.models import F
 
 import twitter
@@ -59,8 +58,8 @@ class User(AuthUser):
             return queryset.get()
         else:
             logger.debug('Fetching user %s from Twitter API.', screen_name)
-            return Account.get_account(
-                tasks.get_user.delay(self.pk, screen_name=screen_name).get())
+            tasks.get_user(self.pk, screen_name=screen_name)
+            return Account.objects.get(screen_name=screen_name)
 
     def cut(self, accounts, type, duration=None, now=None, action=False):
         if now is None:
@@ -84,19 +83,7 @@ class User(AuthUser):
             )
             logger.debug('%s %s', obj, 'created' if created else 'updated')
             if action:
-                tasks.action_cut(obj.pk)
-
-    def block(self, screen_name=None, user_id=None):
-        now = timezone.now()
-        blocked_user = self.api.CreateBlock(
-            user_id=user_id,
-            screen_name=screen_name,
-            include_entities=False,
-            skip_status=True
-        )
-        blocked_account = Account.get_account(blocked_user)
-        self.account.add_blocks([blocked_account], updated=now)
-        logger.debug('%s has blocked %s', self, blocked_account)
+                tasks.action_cut.delay(obj.pk)
 
     def unblock(self, screen_name=None, user_id=None):
         now = timezone.now()
@@ -255,12 +242,13 @@ class Account(models.Model):
             relationship_object_set__subject_id=self,
         )
 
-    def add_blocks(self, new_blocks, updated):
+    def add_blocks(self, new_blocks, updated, until=None):
         return Relationship.add_relationships(
             subjects=[self],
             type=Relationship.BLOCKS,
             objects=new_blocks,
-            updated=updated
+            updated=updated,
+            until=until
         )
 
     def remove_blocks_older_than(self, updated):
@@ -340,6 +328,7 @@ class Relationship(models.Model):
     type = models.IntegerField(choices=TYPE_CHOICES, editable=False)
     object = models.ForeignKey(Account, on_delete=models.CASCADE, editable=False, related_name='relationship_object_set')
     updated = models.DateTimeField(editable=False)
+    until = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return '{subject} {type} {object}'.format(
@@ -348,7 +337,7 @@ class Relationship(models.Model):
 
     @classmethod
     @transaction.atomic
-    def add_relationships(cls, type, subjects, objects, updated):
+    def add_relationships(cls, type, subjects, objects, updated, until=None):
         existing = cls.objects.filter(
             type=type, subject__in=subjects, object__in=objects
         )
@@ -358,10 +347,13 @@ class Relationship(models.Model):
             for subject in subjects:
                 if (subject.pk, object.pk) not in existing_set:
                     to_create.append(
-                        cls(type=type, subject=subject, object=object, updated=updated)
+                        cls(type=type, subject=subject, object=object, updated=updated, until=until)
                     )
         cls.objects.bulk_create(to_create)
-        existing.update(updated=updated)
+        if until:
+            existing.update(updated=updated, until=until)
+        else:
+            existing.update(updated=updated)
         return cls.objects.filter(type=type, subject__in=subjects, object__in=objects)
 
     @classmethod
@@ -378,7 +370,7 @@ class Cut(models.Model):
     TYPE_CHOICES = (
         (BLOCK, 'block'),
         # Mute not implemented yet
-        #(MUTE, 'mute'),
+        (MUTE, 'mute'),
     )
 
     class Meta:

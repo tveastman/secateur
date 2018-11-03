@@ -17,7 +17,7 @@ class AccountAdmin(admin.ModelAdmin):
 
 @admin.register(models.Relationship)
 class RelationshipAdmin(admin.ModelAdmin):
-    list_display = ('subject', 'type', 'object', 'updated')
+    list_display = ('subject', 'type', 'object', 'until', 'updated')
     list_filter = ('type',)
     date_hierarchy = 'updated'
     readonly_fields = ('subject', 'type', 'object', 'updated')

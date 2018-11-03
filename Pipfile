@@ -13,7 +13,7 @@ python-twitter = "*"
 honcho = "*"
 "psycopg2-binary" = "*"
 celery = {extras = ["redis"]}
-django-q = "*"
+redis = "*"
 
 [dev-packages]
 pytest = "*"

@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'django_q',
     'social_django',
 
     'secateur',
@@ -152,16 +151,6 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.debug.debug'
 )
 
-# DJANGO Q
-Q_CLUSTER = {
-    'name': 'secateur',
-    'orm': 'default',
-    'poll': 2,
-    'catch_up': False,
-    'ack_failures': True,
-}
-
-
 # LOGGING
 LOGGING = {
     'version': 1,
@@ -192,3 +181,6 @@ CELERY_RESULT_BACKEND = 'redis://'
 CELERY_IMPORTS = [
     'secateur.tasks'
 ]
+CELERY_TASK_SERIALIZER = 'pickle'
+#CELERY_RESULT_SERIALIZER = 'pickle'
+CELERY_ACCEPT_CONTENT = ['pickle']

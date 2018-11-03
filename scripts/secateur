@@ -6,20 +6,20 @@ import argparse
 import datetime
 
 import django
+from django.utils import timezone
+
 django.setup()
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('secateur').setLevel(logging.DEBUG)
 log = logging.getLogger(__name__)
 
-import django_q
-
 import secateur.tasks
 import secateur.models
 
 parser = argparse.ArgumentParser("Secateur CLI")
 parser.add_argument(
-    '--as', dest='secateur_username', type=str, nargs=1, required=True
+    '--as', dest='secateur_username', type=str, required=True
 )
 parser.add_argument(
     '--update-user', dest='update_user', action='store_true',
@@ -28,6 +28,10 @@ parser.add_argument(
 parser.add_argument(
     '--block-followers', dest='block_followers', action='store_true',
     help='Block all followers of the specified accounts.',
+)
+parser.add_argument(
+    '--mute-followers', dest='mute_followers', action='store_true',
+    help='Mute all followers of the specified accounts.',
 )
 parser.add_argument(
     '--update-followers', dest='update_followers', action='store_true',
@@ -45,13 +49,19 @@ parser.add_argument('accounts', metavar='ACCOUNT', nargs='*', type=str)
 args = parser.parse_args()
 log.debug('args: %s', args)
 
-user = secateur.models.User.objects.get(username=args.secateur_username[0])
+user = secateur.models.User.objects.get(username=args.secateur_username)
 duration = datetime.timedelta(days=args.weeks * 7)
-log.debug('Duration = %r', duration)
+until = timezone.now() + duration
+log.debug('duration = %r', duration)
+log.debug('until = %r', until)
+
 
 if args.update_user:
-    secateur.tasks.twitter_update_mutes(user)
-    secateur.tasks.twitter_update_blocks(user)
+    secateur.tasks.twitter_update_mutes.delay(user)
+    secateur.tasks.twitter_update_blocks.delay(user)
+    secateur.tasks.twitter_update_followers.delay(user)
+    secateur.tasks.twitter_update_friends.delay(user)
+
 
 for account_screen_name in args.accounts:
     account = user.get_account_by_screen_name(account_screen_name)
@@ -62,18 +72,23 @@ for account_screen_name in args.accounts:
             user_id=account.user_id
         )
     if args.block_followers:
-        type = secateur.models.Cut.BLOCK
+        secateur.tasks.twitter_block_followers(
+            secateur_user=user,
+            account=account,
+            until=until
+        )
+    if args.block:
+        secateur.tasks.block.delay(
+            secateur_user_pk=user.pk,
+            user_id=account.user_id,
+            until=until
+        )
+
+    if args.mute_followers:
+        type = secateur.models.Cut.MUTE
         secateur.tasks.twitter_cut_followers(
             secateur_user=user,
             account=account,
             type=type,
             duration=duration,
-        )
-    if args.block:
-        type = secateur.models.Cut.BLOCK
-        user.cut(
-            accounts=[account],
-            type=type,
-            duration=duration,
-            action=True
         )
