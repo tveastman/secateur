@@ -53,7 +53,13 @@ parser.add_argument(
     "--block", dest="block", action="store_true", help="Block the specified accounts."
 )
 parser.add_argument(
+    "--mute", dest="mute", action="store_true", help="Mute the specified accounts."
+)
+parser.add_argument(
     "--unblock", dest="unblock", action="store_true", help="Unblock the specified accounts."
+)
+parser.add_argument(
+    "--unmute", dest="unmute", action="store_true", help="Unmute the specified accounts."
 )
 parser.add_argument(
     "--weeks",
@@ -95,15 +101,18 @@ for account_screen_name in args.accounts:
             secateur_user=user, account=account, until=until
         )
     if args.block:
-        secateur.tasks.block.delay(
-            secateur_user_pk=user.pk, user_id=account.user_id, until=until
+        secateur.tasks.create_relationship.delay(
+            secateur_user_pk=user.pk, type=2, user_id=account.user_id, until=until
+        )
+    if args.mute:
+        secateur.tasks.create_relationship.delay(
+            secateur_user_pk=user.pk, type=3, user_id=account.user_id, until=until
         )
     if args.unblock:
-        secateur.tasks.unblock.delay(
-            secateur_user_pk=user.pk, user_id=account.user_id
+        secateur.tasks.destroy_relationship.delay(
+            secateur_user_pk=user.pk, type=2, user_id=account.user_id
         )
-    if args.mute_followers:
-        type = secateur.models.Cut.MUTE
-        secateur.tasks.twitter_cut_followers(
-            secateur_user=user, account=account, type=type, duration=duration
+    if args.unmute:
+        secateur.tasks.destroy_relationship.delay(
+            secateur_user_pk=user.pk, type=3, user_id=account.user_id
         )

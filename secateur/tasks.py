@@ -18,6 +18,13 @@ from .celery import app
 logger = logging.getLogger(__name__)
 
 
+# These have to match the ones for the Relationship model.
+# TODO: just get the model to use the same enum
+class RelationshipType(enum.IntEnum):
+    BLOCK = 2
+    MUTE = 3
+
+
 def _twitter_retry_timeout(retries=0):
     # Wait 15 minutes, plus a randomised exponential backoff in 15 minute chunks
     base = 15 * 60
@@ -36,74 +43,111 @@ def get_user(secateur_user_pk, user_id=None, screen_name=None):
     account = models.Account.get_account(twitter_user)
 
 
-@app.task
-def block(secateur_user_pk, user_id=None, screen_name=None, until=None):
+@app.task(bind=True)
+def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=None, until=None):
+    ## SANITY CHECKS
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
+
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
     now = timezone.now()
+    type = RelationshipType(type)
+    if type is RelationshipType.BLOCK:
+        past_tense_verb = 'blocked'
+        api_function = api.CreateBlock
+    elif type is RelationshipType.MUTE:
+        past_tense_verb = 'muted'
+        api_function = api.CreateMute
+    else:
+        raise ValueError("Don't know how to handle type %r", type)
 
-    existing_block_qs = models.Relationship.objects.filter(
+    ## CHECK IF THIS RELATIONSHIP ALREADY EXISTS
+    existing_rel_qs = models.Relationship.objects.filter(
         subject=secateur_user.account,
-        type=models.Relationship.BLOCKS,
+        type=type,
     )
     if screen_name:
-        existing_block_qs = existing_block_qs.filter(object__screen_name=screen_name)
+        existing_rel_qs = existing_rel_qs.filter(object__screen_name=screen_name)
     else:
-        existing_block_qs = existing_block_qs.filter(object__user_id=user_id)
-    updated_existing = existing_block_qs.update(until=until)
+        existing_rel_qs = existing_rel_qs.filter(object__user_id=user_id)
+    updated_existing = existing_rel_qs.update(until=until)
     if updated_existing:
         logger.info(
-            "%s has already blocked %s.",
+            "%s has already %s %s.",
             secateur_user.account,
+            past_tense_verb,
             user_id if user_id else screen_name
         )
         return
 
-    blocked_user = api.CreateBlock(
-        user_id=user_id,
-        screen_name=screen_name,
-        include_entities=False,
-        skip_status=True,
+    ## CALL THE TWITTER API
+    try:
+        api_result = api_function(
+            user_id=user_id,
+            screen_name=screen_name,
+            include_entities=False,
+            skip_status=True,
+        )
+    except TwitterError as e:
+        if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
+            logger.warning("Rate limit exceeded, scheduling a retry.")
+            self.retry(countdown=_twitter_retry_timeout(self.request.retries))
+        else:
+            raise
+
+    ## UPDATE DATABASE
+    account = models.Account.get_account(api_result)
+    models.Relationship.add_relationships(
+        type=type, subjects=[secateur_user.account], objects=[account],
+        updated=now, until=until
     )
-    logger.debug("Return from API: %r", blocked_user)
-    blocked_account = models.Account.get_account(blocked_user)
-    secateur_user.account.add_blocks([blocked_account], updated=now, until=until)
     logger.info(
-        "%s has blocked %s %s",
+        "%s has %s %s %s",
         secateur_user,
-        blocked_account,
+        past_tense_verb,
+        account,
         "until {}".format(until) if until else "",
     )
 
 
-@app.task
-def unblock(secateur_user_pk, user_id=None, screen_name=None):
+@app.task(bind=True)
+def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name=None):
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
 
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
 
-    existing_block_qs = models.Relationship.objects.filter(
+    type = RelationshipType(type)
+    if type is RelationshipType.BLOCK:
+        past_tense_verb = 'unblocked'
+        api_function = api.DestroyBlock
+    elif type is RelationshipType.MUTE:
+        past_tense_verb = 'unmuted'
+        api_function = api.DestroyMute
+    else:
+        raise ValueError("Don't know how to handle type %r", type)
+
+    existing_qs = models.Relationship.objects.filter(
         subject=secateur_user.account,
-        type=models.Relationship.BLOCKS,
+        type=type,
     )
     if screen_name:
-        existing_block_qs = existing_block_qs.filter(object__screen_name=screen_name)
+        existing_qs = existing_qs.filter(object__screen_name=screen_name)
     else:
-        existing_block_qs = existing_block_qs.filter(object__user_id=user_id)
-    if not existing_block_qs:
+        existing_qs = existing_qs.filter(object__user_id=user_id)
+    if not existing_qs:
         logger.info(
-            "%s has not blocked %s.",
+            "%s has already %s %s.",
             secateur_user.account,
+            past_tense_verb,
             user_id if user_id else screen_name
         )
         return
 
-    unblocked_account = models.Account.get_account(
-        api.DestroyBlock(
+    account = models.Account.get_account(
+        api_function(
             user_id=user_id,
             screen_name=screen_name,
             include_entities=False,
@@ -111,9 +155,9 @@ def unblock(secateur_user_pk, user_id=None, screen_name=None):
         )
     )
     models.Relationship.objects.filter(
-        subject=secateur_user.account, type=models.Relationship.BLOCKS, object=unblocked_account
+        subject=secateur_user.account, type=type, object=account
     ).delete()
-    logger.info("%s has unblocked %s", secateur_user, unblocked_account)
+    logger.info("%s has %s %s", secateur_user, past_tense_verb, account)
 
 
 @app.task(bind=True)
@@ -231,14 +275,15 @@ def unblock_expired(secateur_user, now=None):
         now = timezone.now()
 
     expired_blocks = models.Relationship.objects.filter(
+        Q(type=models.Relationship.BLOCKS),
         subject=secateur_user.account,
-        type=models.Relationship.BLOCKS,
-        until__lt=now
+        until__lt=now,
     ).select_related('object')
 
     for expired_block in expired_blocks[:500]:
         blocked_account = expired_block.object
-        unblock.delay(
+        destroy_relationship.delay(
             secateur_user_pk=secateur_user.pk,
+            type=2,
             user_id=blocked_account.user_id
         )
