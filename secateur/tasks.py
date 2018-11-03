@@ -4,13 +4,15 @@ from functools import partial
 import logging
 import random
 import pprint
+import enum
 
 from django.utils import timezone
+from django.db.models import Q
 
 from twitter.error import TwitterError
+from .utils import ErrorCode
 
 from . import models
-from . import utils
 from .celery import app
 
 logger = logging.getLogger(__name__)
@@ -36,12 +38,28 @@ def get_user(secateur_user_pk, user_id=None, screen_name=None):
 
 @app.task
 def block(secateur_user_pk, user_id=None, screen_name=None, until=None):
+    if screen_name is None and user_id is None:
+        raise ValueError("Must provide either user_id or screen_name.")
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
     now = timezone.now()
 
-    ## TODO: Grab the relationship here to lock the API call and not call if
-    ## already blocked
+    existing_block_qs = models.Relationship.objects.filter(
+        subject=secateur_user.account,
+        type=models.Relationship.BLOCKS,
+    )
+    if screen_name:
+        existing_block_qs = existing_block_qs.filter(object__screen_name=screen_name)
+    else:
+        existing_block_qs = existing_block_qs.filter(object__user_id=user_id)
+    updated_existing = existing_block_qs.update(until=until)
+    if updated_existing:
+        logger.info(
+            "%s has already blocked %s.",
+            secateur_user.account,
+            user_id if user_id else screen_name
+        )
+        return
 
     blocked_user = api.CreateBlock(
         user_id=user_id,
@@ -62,20 +80,40 @@ def block(secateur_user_pk, user_id=None, screen_name=None, until=None):
 
 @app.task
 def unblock(secateur_user_pk, user_id=None, screen_name=None):
+    if screen_name is None and user_id is None:
+        raise ValueError("Must provide either user_id or screen_name.")
+
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
 
-    unblocked_user = self.api.DestroyBlock(
-        user_id=user_id,
-        screen_name=screen_name,
-        include_entities=False,
-        skip_status=True,
+    existing_block_qs = models.Relationship.objects.filter(
+        subject=secateur_user.account,
+        type=models.Relationship.BLOCKS,
     )
-    unblocked_account = Account.get_account(unblocked_user)
-    Relationship.objects.filter(
-        subject=self.account, type=Relationship.BLOCKS, object=unblocked_user
+    if screen_name:
+        existing_block_qs = existing_block_qs.filter(object__screen_name=screen_name)
+    else:
+        existing_block_qs = existing_block_qs.filter(object__user_id=user_id)
+    if not existing_block_qs:
+        logger.info(
+            "%s has not blocked %s.",
+            secateur_user.account,
+            user_id if user_id else screen_name
+        )
+        return
+
+    unblocked_account = models.Account.get_account(
+        api.DestroyBlock(
+            user_id=user_id,
+            screen_name=screen_name,
+            include_entities=False,
+            skip_status=True,
+        )
+    )
+    models.Relationship.objects.filter(
+        subject=secateur_user.account, type=models.Relationship.BLOCKS, object=unblocked_account
     ).delete()
-    logger.debug("%s has unblocked %s", secateur_user, blocked_account)
+    logger.info("%s has unblocked %s", secateur_user, unblocked_account)
 
 
 @app.task(bind=True)
@@ -88,7 +126,7 @@ def twitter_paged_call_iterator(
         if data:
             logger.debug("Received %r results", len(data))
     except TwitterError as e:
-        if utils.twitter_error_code(e) == 88:  # Rate limit exceeded
+        if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             logger.warning("Rate limit exceeded, scheduling a retry.")
             self.retry(countdown=_twitter_retry_timeout(self.request.retries))
         else:
@@ -167,7 +205,7 @@ def twitter_update_mutes(secateur_user):
     finish_handlers = [partial(account.remove_mutes_older_than, now)]
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
-
+# Used as a partial() in twitter_block_followers()
 def _block_multiple(accounts, secateur_user_pk, until):
     for account in accounts:
         block.delay(
@@ -188,12 +226,19 @@ def twitter_block_followers(secateur_user, account, until):
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 
-@app.task
-def action_cuts():
-    for pk in models.Cut.actionable().values_list("pk", flat=True):
-        action_cut(pk)
+def unblock_expired(secateur_user, now=None):
+    if now is None:
+        now = timezone.now()
 
+    expired_blocks = models.Relationship.objects.filter(
+        subject=secateur_user.account,
+        type=models.Relationship.BLOCKS,
+        until__lt=now
+    ).select_related('object')
 
-@app.task
-def action_cut(pk):
-    models.Cut.action(pk)
+    for expired_block in expired_blocks[:500]:
+        blocked_account = expired_block.object
+        unblock.delay(
+            secateur_user_pk=secateur_user.pk,
+            user_id=blocked_account.user_id
+        )

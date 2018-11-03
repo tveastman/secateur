@@ -44,7 +44,16 @@ parser.add_argument(
     help="Update follower lists of the specified accounts.",
 )
 parser.add_argument(
+    "--unblock-expired",
+    dest="unblock_expired",
+    action="store_true",
+    help="Unblock accounts that have reached their timeout.",
+)
+parser.add_argument(
     "--block", dest="block", action="store_true", help="Block the specified accounts."
+)
+parser.add_argument(
+    "--unblock", dest="unblock", action="store_true", help="Unblock the specified accounts."
 )
 parser.add_argument(
     "--weeks",
@@ -66,17 +75,19 @@ log.debug("until = %r", until)
 
 
 if args.update_user:
-    secateur.tasks.twitter_update_mutes.delay(user)
-    secateur.tasks.twitter_update_blocks.delay(user)
-    secateur.tasks.twitter_update_followers.delay(user)
-    secateur.tasks.twitter_update_friends.delay(user)
+    secateur.tasks.twitter_update_mutes(user)
+    secateur.tasks.twitter_update_blocks(user)
+    secateur.tasks.twitter_update_followers(user)
+    secateur.tasks.twitter_update_friends(user)
 
+if args.unblock_expired:
+    secateur.tasks.unblock_expired(user)
 
 for account_screen_name in args.accounts:
     account = user.get_account_by_screen_name(account_screen_name)
     log.debug("Found account: %s", account)
     if args.update_followers:
-        secateur.tasks.update_followers.delay(
+        secateur.tasks.update_followers(
             secateur_user_pk=user.pk, user_id=account.user_id
         )
     if args.block_followers:
@@ -87,7 +98,10 @@ for account_screen_name in args.accounts:
         secateur.tasks.block.delay(
             secateur_user_pk=user.pk, user_id=account.user_id, until=until
         )
-
+    if args.unblock:
+        secateur.tasks.unblock.delay(
+            secateur_user_pk=user.pk, user_id=account.user_id
+        )
     if args.mute_followers:
         type = secateur.models.Cut.MUTE
         secateur.tasks.twitter_cut_followers(

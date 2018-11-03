@@ -24,12 +24,3 @@ class RelationshipAdmin(admin.ModelAdmin):
     list_filter = ("type",)
     date_hierarchy = "updated"
     readonly_fields = ("subject", "type", "object", "updated")
-
-
-@admin.register(models.Cut)
-class CutAdmin(admin.ModelAdmin):
-    list_display = ("user", "account", "type", "until", "activated")
-    list_filter = ("user", "type", "activated")
-    date_hierarchy = "until"
-    autocomplete_fields = ("user", "account")
-    readonly_fields = ("activated",)

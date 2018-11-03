@@ -15,7 +15,6 @@ from django.db.models import F
 import twitter
 
 from . import tasks
-from .utils import twitter_error_code
 
 
 logger = logging.getLogger(__name__)
@@ -61,45 +60,6 @@ class User(AuthUser):
             logger.debug("Fetching user %s from Twitter API.", screen_name)
             tasks.get_user(self.pk, screen_name=screen_name)
             return Account.objects.get(screen_name=screen_name)
-
-    def cut(self, accounts, type, duration=None, now=None, action=False):
-        if now is None:
-            now = timezone.now()
-        if duration is None:
-            duration = timezone.timedelta(days=7 * 6)  # three months
-
-        for account in accounts:
-            extra_duration = timezone.timedelta(
-                seconds=random.random() * duration.total_seconds() * 0.1
-            )
-            until = now + duration + extra_duration
-
-            obj, created = Cut.objects.update_or_create(
-                user=self, account=account, type=type, defaults={"until": until}
-            )
-            logger.debug("%s %s", obj, "created" if created else "updated")
-            if action:
-                tasks.action_cut.delay(obj.pk)
-
-    def unblock(self, screen_name=None, user_id=None):
-        now = timezone.now()
-        logger.debug(
-            "self.api.DestroyBlock(self=%r, user_id=%r, screen_name=%r)",
-            self,
-            user_id,
-            screen_name,
-        )
-        unblocked_user = self.api.DestroyBlock(
-            user_id=user_id,
-            screen_name=screen_name,
-            include_entities=False,
-            skip_status=True,
-        )
-        unblocked_user = Account.get_account(unblocked_user)
-        Relationship.objects.filter(
-            subject=self.account, type=Relationship.BLOCKS, object=unblocked_user
-        ).delete()
-        logger.debug("%s unblocked %s", self, unblocked_user)
 
     def mute(self, screen_name=None, user_id=None):
         now = timezone.now()
@@ -362,105 +322,3 @@ class Relationship(models.Model):
         if relationships:
             logger.debug("Removing relationships: {}".format(relationships))
         return relationships.delete()
-
-
-class Cut(models.Model):
-    BLOCK = 1
-    MUTE = 2
-    TYPE_CHOICES = (
-        (BLOCK, "block"),
-        # Mute not implemented yet
-        (MUTE, "mute"),
-    )
-
-    class Meta:
-        unique_together = ("user", "account", "type")
-
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    type = models.IntegerField(choices=TYPE_CHOICES)
-    until = models.DateTimeField()
-    activated = models.BooleanField(default=False, editable=False)
-
-    def __str__(self):
-        return "%s %s %s" % (
-            self.user,
-            "blocking" if self.type == self.BLOCK else "muting",
-            self.account,
-        )
-
-    @classmethod
-    def actionable(cls, now=None):
-        """Returns a queryset of all Cuts that need to be actioned."""
-        if now is None:
-            now = timezone.now()
-        qs = cls.objects.filter(
-            Q(activated=True, until__lt=now) | Q(activated=False, until__gt=now)
-        )
-        return qs
-
-    @staticmethod
-    @transaction.atomic
-    def action(cut_pk, now=None):
-        """Action a cut -- either mute, unmute, block, or unblock.
-
-        This method runs with locked rows in a transaction, which should
-        prevent two of the same call happening to the twitter API at once.
-
-        Effectively I'm using the database lock to lock the Twitter API calls.
-        """
-        if now is None:
-            now = timezone.now()
-
-        cut_qs = Cut.objects.filter(pk=cut_pk).select_for_update()
-        if not cut_qs:
-            logger.debug("Cut with pk %r doesn't exist.", cut_pk)
-            return
-        cut = cut_qs.get()
-        if cut.type == Cut.BLOCK:
-            if not cut.activated and now < cut.until:
-                cut._activate_block()
-            elif cut.activated and cut.until < now:
-                cut._deactivate_block()
-
-    def _deactivate_block(self):
-        if self.type != self.BLOCK:
-            raise ValueError("Called _deactivate_block() when type = MUTE")
-        try:
-            self.user.unblock(user_id=self.account.user_id)
-        except twitter.TwitterError as e:
-            if twitter_error_code(e) == 34:
-                # A 34 means that this account doesn't seem to exist anymore.
-                # deleting self.account will cascade to all connected objects,
-                # which may not be what I want. I don't know how and when
-                # suspended accounts come back. Alternatively, maybe what I
-                # should do is just add more time to self.until so that it
-                # tries again, say, a week later.
-                logger.warning(
-                    "TwitterError 34: Deleting account object %s", self.account
-                )
-                self.account.delete()
-                return
-            else:
-                # Any other twitter errors we'll allow to bubble up.
-                # TODO: Maybe we should add time to 'until' so it doesn't get
-                #       retried right away.
-                raise
-        self.delete()
-
-    def _activate_block(self):
-        if self.type != self.BLOCK:
-            raise ValueError("Called _activate_block() when type = MUTE")
-        try:
-            self.user.block(user_id=self.account.user_id)
-        except twitter.TwitterError as e:
-            if twitter_error_code(e) == 50:
-                logger.warning(
-                    "TwitterError 50: Deleting account object %s", self.account
-                )
-                self.account.delete()
-                return
-            else:
-                raise
-        self.activated = True
-        self.save(update_fields=["activated"])
