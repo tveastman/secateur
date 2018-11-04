@@ -127,9 +127,8 @@ class Account(models.Model):
         This method unmagically does the right thing with whatever you pass it.
         """
         if not args:
-            raise ValueError(
-                "get_accounts() requires ints or instances of twitter.models.User"
-            )
+            # If we didn't get anything, return an empty queryset.
+            return cls.objects.none()
         if isinstance(args[0], int):
             if len(args) == 1:
                 # The simplest case, make one and return it.

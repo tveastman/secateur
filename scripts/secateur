@@ -98,7 +98,11 @@ for account_screen_name in args.accounts:
         )
     if args.block_followers:
         secateur.tasks.twitter_block_followers(
-            secateur_user=user, account=account, until=until
+            secateur_user=user, type=2, account=account, until=until
+        )
+    if args.mute_followers:
+        secateur.tasks.twitter_block_followers(
+            secateur_user=user, type=3, account=account, until=until
         )
     if args.block:
         secateur.tasks.create_relationship.delay(

@@ -118,7 +118,7 @@ AUTHENTICATION_BACKENDS = (
 )
 SOCIAL_AUTH_TWITTER_KEY = os.environ.get("CONSUMER_KEY")
 SOCIAL_AUTH_TWITTER_SECRET = os.environ.get("CONSUMER_SECRET")
-LOGIN_URL = "/login/"
+LOGIN_URL = "/login/twitter/"
 LOGIN_REDIRECT_URL = "/"
 SOCIAL_AUTH_STRATEGY = "social_django.strategy.DjangoStrategy"
 SOCIAL_AUTH_STORAGE = "social_django.models.DjangoStorage"
@@ -158,3 +158,14 @@ CELERY_IMPORTS = ["secateur.tasks"]
 CELERY_TASK_SERIALIZER = "pickle"
 # CELERY_RESULT_SERIALIZER = 'pickle'
 CELERY_ACCEPT_CONTENT = ["pickle"]
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/2",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": "secateur:",
+    }
+}

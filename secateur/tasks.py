@@ -1,6 +1,7 @@
 """django-q tasks"""
 
 from functools import partial
+from datetime import timedelta
 import logging
 import random
 import pprint
@@ -8,6 +9,7 @@ import enum
 
 from django.utils import timezone
 from django.db.models import Q
+from django.core.cache import cache
 
 from twitter.error import TwitterError
 from .utils import ErrorCode
@@ -25,9 +27,7 @@ class RelationshipType(enum.IntEnum):
     MUTE = 3
 
 
-def _twitter_retry_timeout(retries=0):
-    # Wait 15 minutes, plus a randomised exponential backoff in 15 minute chunks
-    base = 15 * 60
+def _twitter_retry_timeout(base=900, retries=0):
     exponential_backoff = (2 ** retries) * 15 * 60
     return base + random.randint(0, exponential_backoff)
 
@@ -56,9 +56,11 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
     if type is RelationshipType.BLOCK:
         past_tense_verb = 'blocked'
         api_function = api.CreateBlock
+        rate_limit_key = '{}:{}:rate-limit'.format(secateur_user.username, 'create_block')
     elif type is RelationshipType.MUTE:
         past_tense_verb = 'muted'
         api_function = api.CreateMute
+        rate_limit_key = '{}:{}:rate-limit'.format(secateur_user.username, 'create_mute')
     else:
         raise ValueError("Don't know how to handle type %r", type)
 
@@ -81,6 +83,13 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
         )
         return
 
+    ## CHECK CACHED RATE LIMIT
+    rate_limited = cache.get(rate_limit_key)
+    if rate_limited:
+        time_remaining = (rate_limited - now).total_seconds()
+        logger.warning("Locally cached rate limit exceeded ('%s')", rate_limited)
+        self.retry(countdown=_twitter_retry_timeout(time_remaining, self.request.retries))
+
     ## CALL THE TWITTER API
     try:
         api_result = api_function(
@@ -91,7 +100,8 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
         )
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
-            logger.warning("Rate limit exceeded, scheduling a retry.")
+            logger.warning("API rate limit exceeded.")
+            cache.set(rate_limit_key, now, 15 * 60)
             self.retry(countdown=_twitter_retry_timeout(self.request.retries))
         else:
             raise
@@ -118,14 +128,17 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
 
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
+    now = timezone.now()
 
     type = RelationshipType(type)
     if type is RelationshipType.BLOCK:
         past_tense_verb = 'unblocked'
         api_function = api.DestroyBlock
+        rate_limit_key = '{}:{}:rate-limit'.format(secateur_user.username, 'destroy_block')
     elif type is RelationshipType.MUTE:
         past_tense_verb = 'unmuted'
         api_function = api.DestroyMute
+        rate_limit_key = '{}:{}:rate-limit'.format(secateur_user.username, 'destroy_mute')
     else:
         raise ValueError("Don't know how to handle type %r", type)
 
@@ -146,14 +159,42 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
         )
         return
 
-    account = models.Account.get_account(
-        api_function(
-            user_id=user_id,
-            screen_name=screen_name,
-            include_entities=False,
-            skip_status=True,
+    rate_limited = cache.get(rate_limit_key)
+    if rate_limited:
+        time_remaining = (rate_limited - now).total_seconds()
+        logger.warning("Locally cached rate limit exceeded ('%s')", rate_limited)
+        self.retry(countdown=_twitter_retry_timeout(time_remaining, self.request.retries))
+
+    ## CALL THE TWITTER API
+    try:
+        account = models.Account.get_account(
+            api_function(
+                user_id=user_id,
+                screen_name=screen_name,
+                include_entities=False,
+                skip_status=True,
+            )
         )
-    )
+    except TwitterError as e:
+        code = ErrorCode.from_exception(e)
+        if code is ErrorCode.RATE_LIMITED_EXCEEDED:
+            logger.warning("API rate limit exceeded.")
+            cache.set(rate_limit_key, now, 15 * 60)
+            self.retry(countdown=_twitter_retry_timeout(self.request.retries))
+        elif code is ErrorCode.NOT_MUTING_SPECIFIED_USER:
+            logger.warning("API: not muting specified user, removing relationship.")
+            existing_qs.delete()
+            return
+        elif code is ErrorCode.PAGE_DOES_NOT_EXIST:
+            # This error shows up when trying to unblock an account that's been deleted.
+            # So we'll remove the account entirely.
+            logger.warning("API: Page does not exist (user deleted?)")
+            # This deletion cascades to the relationship and the profile.
+            existing_qs.get().object.delete()
+            return
+        else:
+            raise
+
     models.Relationship.objects.filter(
         subject=secateur_user.account, type=type, object=account
     ).delete()
@@ -172,7 +213,7 @@ def twitter_paged_call_iterator(
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             logger.warning("Rate limit exceeded, scheduling a retry.")
-            self.retry(countdown=_twitter_retry_timeout(self.request.retries))
+            self.retry(countdown=_twitter_retry_timeout(900, self.request.retries))
         else:
             raise
     accounts = models.Account.get_accounts(*data)
@@ -250,21 +291,24 @@ def twitter_update_mutes(secateur_user):
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 # Used as a partial() in twitter_block_followers()
-def _block_multiple(accounts, secateur_user_pk, until):
+def _block_multiple(accounts, type, secateur_user_pk, until):
     for account in accounts:
-        block.delay(
-            secateur_user_pk=secateur_user_pk, user_id=account.user_id, until=until
-        )
+        create_relationship.apply_async([], {
+            "secateur_user_pk": secateur_user_pk,
+            "type": type,
+            "user_id": account.user_id,
+            "until": until
+        }, countdown=random.randint(1, 60 * 15))
 
 
-def twitter_block_followers(secateur_user, account, until):
+def twitter_block_followers(secateur_user, type, account, until):
     api = secateur_user.api
     now = timezone.now()
 
     api_function = partial(api.GetFollowerIDsPaged, user_id=account.user_id)
     accounts_handlers = [
         partial(account.add_followers, updated=now),
-        partial(_block_multiple, secateur_user_pk=secateur_user.pk, until=until),
+        partial(_block_multiple, type=type, secateur_user_pk=secateur_user.pk, until=until),
     ]
     finish_handlers = [partial(account.remove_followers_older_than, now)]
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
@@ -275,15 +319,15 @@ def unblock_expired(secateur_user, now=None):
         now = timezone.now()
 
     expired_blocks = models.Relationship.objects.filter(
-        Q(type=models.Relationship.BLOCKS),
+        Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
         subject=secateur_user.account,
         until__lt=now,
     ).select_related('object')
 
-    for expired_block in expired_blocks[:500]:
+    for expired_block in expired_blocks.iterator():
         blocked_account = expired_block.object
-        destroy_relationship.delay(
-            secateur_user_pk=secateur_user.pk,
-            type=2,
-            user_id=blocked_account.user_id
-        )
+        destroy_relationship.apply_async([], {
+            "secateur_user_pk": secateur_user.pk,
+            "type": expired_block.type,
+            "user_id": blocked_account.user_id
+        }, countdown=random.randint(1, 60 * 15))
