@@ -10,8 +10,7 @@ from . import models
 
 class TestAccounts(TestCase):
     def test_get_accounts_no_args(self):
-        with pytest.raises(ValueError):
-            result = models.Account.get_accounts()
+        assert list(models.Account.get_accounts()) == []
 
     def test_get_accounts_some_combinations(self):
         result = models.Account.get_accounts(1)
