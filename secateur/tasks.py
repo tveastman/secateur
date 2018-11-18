@@ -28,6 +28,8 @@ class RelationshipType(enum.IntEnum):
 
 
 def _twitter_retry_timeout(base=900, retries=0):
+    """
+    """
     exponential_backoff = (2 ** retries) * 15 * 60
     return base + random.randint(0, exponential_backoff)
 
@@ -216,6 +218,7 @@ def twitter_paged_call_iterator(
             self.retry(countdown=_twitter_retry_timeout(900, self.request.retries))
         else:
             raise
+
     accounts = models.Account.get_accounts(*data)
     for accounts_handler in accounts_handlers:
         accounts_handler(accounts)
@@ -298,7 +301,11 @@ def _block_multiple(accounts, type, secateur_user_pk, until):
             "type": type,
             "user_id": account.user_id,
             "until": until
-        }, countdown=random.randint(1, 60 * 15))
+        },
+        # I can't decide if there should be a timeout here. Probably what ought
+        # to happen instead is that blocks are handled by a different celery
+        # queue, so they can start right away and not block paged_iterator tasks.
+        countdown=random.randint(1, 60 * 15))
 
 
 def twitter_block_followers(secateur_user, type, account, until):
