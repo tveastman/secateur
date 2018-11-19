@@ -160,6 +160,9 @@ CELERY_IMPORTS = ["secateur.tasks"]
 CELERY_TASK_SERIALIZER = "pickle"
 # CELERY_RESULT_SERIALIZER = 'pickle'
 CELERY_ACCEPT_CONTENT = ["pickle"]
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'visibility_timeout': 60 * 60  * 24
+}
 
 CACHES = {
     "default": {

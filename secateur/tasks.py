@@ -6,6 +6,7 @@ import logging
 import random
 import pprint
 import enum
+import datetime
 
 from django.utils import timezone
 from django.db.models import Q
@@ -29,9 +30,26 @@ class RelationshipType(enum.IntEnum):
 
 def _twitter_retry_timeout(base=900, retries=0):
     """
+    Twitter calculates all its rate limiting in 15 minute blocks. If we
+    hit a rate limit we need to wait at least till the next 15 minute block.
+
+    We use an expoenential backoff to choose a 15 minute 'slot' in which to
+    schedule our retry.
     """
-    exponential_backoff = (2 ** retries) * 15 * 60
-    return base + random.randint(0, exponential_backoff)
+    # Pick a slot using binary exponential backoff.
+    # We limit slots to sometime in the next 23 hours so we don't fall afowl
+    # of redis' visibility_timeout. If we use rabbitmq we can get rid of this
+    # cap.
+    max_slot = min(2 ** retries - 1, 23 * 4)
+    slot = random.randint(0, max_slot)
+    # Each slot is a 15 minute window, pick a random second within
+    # that 15 minute window.
+    seconds = random.randint(slot * 15 * 60, (slot + 1) * 15 * 60)
+    timeout = base + seconds
+    logger.debug("retry timeout: base=%r retries=%r, slot=%r, seconds=%r timeout=%r",
+        base, retries, slot, seconds, timeout
+    )
+    return timeout
 
 
 @app.task
@@ -45,7 +63,7 @@ def get_user(secateur_user_pk, user_id=None, screen_name=None):
     account = models.Account.get_account(twitter_user)
 
 
-@app.task(bind=True)
+@app.task(bind=True, max_retries=15)
 def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=None, until=None):
     ## SANITY CHECKS
     if screen_name is None and user_id is None:
@@ -81,7 +99,7 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
             "%s has already %s %s.",
             secateur_user.account,
             past_tense_verb,
-            user_id if user_id else screen_name
+            existing_rel_qs.get().object
         )
         return
 
@@ -89,8 +107,8 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
     rate_limited = cache.get(rate_limit_key)
     if rate_limited:
         time_remaining = (rate_limited - now).total_seconds()
-        logger.warning("Locally cached rate limit exceeded ('%s')", rate_limited)
-        self.retry(countdown=_twitter_retry_timeout(time_remaining, self.request.retries))
+        logger.debug("Locally cached rate limit exceeded (%s seconds remaining)", time_remaining)
+        self.retry(countdown=_twitter_retry_timeout(base=time_remaining+5, retries=self.request.retries))
 
     ## CALL THE TWITTER API
     try:
@@ -103,8 +121,12 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             logger.warning("API rate limit exceeded.")
-            cache.set(rate_limit_key, now, 15 * 60)
-            self.retry(countdown=_twitter_retry_timeout(self.request.retries))
+            cache.set(
+                rate_limit_key,
+                now + datetime.timedelta(seconds=15*60),
+                15 * 60
+            )
+            self.retry(countdown=_twitter_retry_timeout(retries=self.request.retries))
         else:
             raise
 
@@ -123,7 +145,7 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
     )
 
 
-@app.task(bind=True)
+@app.task(bind=True, max_retries=15)
 def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name=None):
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
@@ -164,8 +186,8 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
     rate_limited = cache.get(rate_limit_key)
     if rate_limited:
         time_remaining = (rate_limited - now).total_seconds()
-        logger.warning("Locally cached rate limit exceeded ('%s')", rate_limited)
-        self.retry(countdown=_twitter_retry_timeout(time_remaining, self.request.retries))
+        logger.debug("Locally cached rate limit exceeded ('%s')", rate_limited)
+        self.retry(countdown=_twitter_retry_timeout(base=time_remaining, retries=self.request.retries))
 
     ## CALL THE TWITTER API
     try:
@@ -181,8 +203,9 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
         code = ErrorCode.from_exception(e)
         if code is ErrorCode.RATE_LIMITED_EXCEEDED:
             logger.warning("API rate limit exceeded.")
-            cache.set(rate_limit_key, now, 15 * 60)
-            self.retry(countdown=_twitter_retry_timeout(self.request.retries))
+            wait = 15  * 60
+            cache.set(rate_limit_key, now + datetime.timedelta(seconds=wait), wait)
+            self.retry(countdown=_twitter_retry_timeout(retries=self.request.retries))
         elif code is ErrorCode.NOT_MUTING_SPECIFIED_USER:
             logger.warning("API: not muting specified user, removing relationship.")
             existing_qs.delete()
@@ -215,7 +238,7 @@ def twitter_paged_call_iterator(
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             logger.warning("Rate limit exceeded, scheduling a retry.")
-            self.retry(countdown=_twitter_retry_timeout(900, self.request.retries))
+            self.retry(countdown=_twitter_retry_timeout(base=900, retries=self.request.retries))
         else:
             raise
 
@@ -305,7 +328,7 @@ def _block_multiple(accounts, type, secateur_user_pk, until):
         # I can't decide if there should be a timeout here. Probably what ought
         # to happen instead is that blocks are handled by a different celery
         # queue, so they can start right away and not block paged_iterator tasks.
-        countdown=random.randint(1, 60 * 15))
+        countdown=random.randint(1, 60 * 15), max_retries=10)
 
 
 def twitter_block_followers(secateur_user, type, account, until):
@@ -337,4 +360,4 @@ def unblock_expired(secateur_user, now=None):
             "secateur_user_pk": secateur_user.pk,
             "type": expired_block.type,
             "user_id": blocked_account.user_id
-        }, countdown=random.randint(1, 60 * 15))
+        }, countdown=random.randint(1, 60 * 15), max_retries=15)
