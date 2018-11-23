@@ -17,6 +17,7 @@ redis = "==2.10.6"
 django-redis = "*"
 gunicorn = "*"
 whitenoise = "*"
+eventlet = "*"
 
 [dev-packages]
 pytest = "*"
