@@ -20,7 +20,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path("__admin__/", admin.site.urls),
     path("", views.Home.as_view()),
+    path("block-accounts/", views.BlockAccounts.as_view()),
     url("", include("social_django.urls", namespace="social")),
 ]

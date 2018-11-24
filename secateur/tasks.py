@@ -73,6 +73,7 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
     api = secateur_user.api
     now = timezone.now()
     type = RelationshipType(type)
+
     if type is RelationshipType.BLOCK:
         past_tense_verb = 'blocked'
         api_function = api.CreateBlock
@@ -228,7 +229,7 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
 
 @app.task(bind=True)
 def twitter_paged_call_iterator(
-    self, api_function, accounts_handlers, finish_handlers, cursor=-1, max_pages=100
+    self, api_function, accounts_handlers, finish_handlers, cursor=-1, max_pages=100, current_page=1
 ):
     try:
         logger.debug("Calling %r with cursor page %r", api_function, cursor)
@@ -252,6 +253,7 @@ def twitter_paged_call_iterator(
             finish_handlers,
             cursor=next_cursor,
             max_pages=max_pages - 1,
+            current_page=current_page + 1
         )
     if not next_cursor:
         # We only run the finish_handler if we actually made it to the end of the list.
@@ -328,7 +330,8 @@ def _block_multiple(accounts, type, secateur_user_pk, until):
         # I can't decide if there should be a timeout here. Probably what ought
         # to happen instead is that blocks are handled by a different celery
         # queue, so they can start right away and not block paged_iterator tasks.
-        countdown=random.randint(1, 60 * 15), max_retries=10)
+        countdown=random.randint(1, 60 * 15),
+        max_retries=20)
 
 
 def twitter_block_followers(secateur_user, type, account, until):

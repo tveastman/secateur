@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 
+#import logging
+
+#logging.basicConfig(level=logging.DEBUG)
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -112,7 +116,6 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-
 # DJANGO SOCIAL AUTH TWITTER SUPPORT
 AUTHENTICATION_BACKENDS = (
     "social_core.backends.twitter.TwitterOAuth",
@@ -141,12 +144,13 @@ SOCIAL_AUTH_PIPELINE = (
 )
 
 # LOGGING
-LOGGING = {
+_LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {},
     "root": {"level": "DEBUG"},
     "loggers": {
+        "secateur": {"level": "DEBUG"},
         "django": {"level": "INFO", "propagate": True},
         "requests_oauthlib": {"level": "INFO"},
         "urllib3": {"level": "INFO"},
