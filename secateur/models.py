@@ -1,10 +1,11 @@
 import os
 import logging
 import random
+from pprint import pformat
 
 logging.basicConfig(level=logging.DEBUG)
 
-from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
 from django.utils.functional import cached_property
@@ -20,12 +21,7 @@ from . import tasks
 logger = logging.getLogger(__name__)
 
 
-class User(AuthUser):
-    """A Secateur User"""
-
-    class Meta:
-        proxy = True
-
+class User(AbstractUser):
     @cached_property
     def twitter_social_auth(self):
         """Get the social_auth object for this user."""
@@ -61,43 +57,27 @@ class User(AuthUser):
             tasks.get_user(self.pk, screen_name=screen_name)
             return Account.objects.get(screen_name=screen_name)
 
-    def mute(self, screen_name=None, user_id=None):
-        now = timezone.now()
-        muted_user = self.api.CreateMute(
-            user_id=user_id,
-            screen_name=screen_name,
-            include_entities=False,
-            skip_status=True,
-        )
-        self.account.add_mutes([Account.get_account(muted_user)], updated=now)
-
-    def unmute(self, screen_name=None, user_id=None):
-        now = timezone.now()
-        unmuted_user = self.api.DestroyMute(
-            user_id=user_id,
-            screen_name=screen_name,
-            include_entities=False,
-            skip_status=True,
-        )
-        unmuted_user = Account.get_account(unmuted_user)
-        Relationship.objects.filter(
-            subject=self.account, type=Relationship.MUTES, object=unmuted_user
-        ).delete()
-
 
 class Profile(models.Model):
     user_id = models.BigIntegerField(primary_key=True, editable=False)
-    json = JSONField()
+    json = JSONField(editable=False)
+
+    @property
+    def description(self):
+        return self.json['description']
 
 
 class Account(models.Model):
     """A Twitter account"""
 
     class Meta:
-        indexes = (models.Index(fields=["screen_name"]),)
+        indexes = (
+            models.Index(fields=["screen_name"]),
+        )
 
     user_id = models.BigIntegerField(primary_key=True, editable=False)
     screen_name = models.CharField(max_length=30, null=True, editable=False)
+    screen_name_lower = models.CharField(max_length=30, null=True, editable=False)
     profile = models.OneToOneField(
         Profile, on_delete=models.CASCADE, null=True, editable=False
     )
@@ -151,28 +131,30 @@ class Account(models.Model):
                 cls.objects.bulk_create(cls(user_id=user_id) for user_id in to_create)
                 # finally, return an un-materialized queryset of all the new objects.
                 return cls.objects.filter(user_id__in=args)
-        elif isinstance(args[0], twitter.models.User):
-            # If we're dealing with User objects, we need need to do it the boring
+        elif isinstance(args[0], dict):
+            # If we're dealing with dicts, we need need to do it the boring
             # way with a couple SQL queries per object. I'd sure love to make this
             # cleverer.
             if now is None:
                 now = timezone.now()
             ids = []
             for arg in args:
-                ids.append(arg.id)
+                id = int(arg['id_str'])
+                ids.append(id)
                 profile, profile_updated = Profile.objects.update_or_create(
-                    user_id=arg.id, defaults={"json": arg.AsDict()}
+                    user_id=id, defaults={"json": arg}
                 )
                 account, account_updated = cls.objects.update_or_create(
-                    user_id=arg.id,
+                    user_id=id,
                     defaults={
-                        "screen_name": arg.screen_name,
+                        "screen_name": arg['screen_name'],
+                        "screen_name_lower": arg['screen_name'].lower(),
                         "profile_updated": now,
                         "profile": profile,
                     },
                 )
             return cls.objects.filter(user_id__in=ids)
-        raise Exception
+        raise Exception("Couldn't handle argument %r" % args)
 
     @property
     def blocks(self):

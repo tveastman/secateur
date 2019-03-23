@@ -116,6 +116,8 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+AUTH_USER_MODEL = 'secateur.User'
+
 # DJANGO SOCIAL AUTH TWITTER SUPPORT
 AUTHENTICATION_BACKENDS = (
     "social_core.backends.twitter.TwitterOAuth",

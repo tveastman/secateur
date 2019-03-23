@@ -33,7 +33,7 @@ def _twitter_retry_timeout(base=900, retries=0):
     Twitter calculates all its rate limiting in 15 minute blocks. If we
     hit a rate limit we need to wait at least till the next 15 minute block.
 
-    We use an expoenential backoff to choose a 15 minute 'slot' in which to
+    We use an exponential backoff to choose a 15 minute 'slot' in which to
     schedule our retry.
     """
     # Pick a slot using binary exponential backoff.
@@ -58,9 +58,10 @@ def get_user(secateur_user_pk, user_id=None, screen_name=None):
     api = secateur_user.api
 
     twitter_user = api.GetUser(
-        user_id=user_id, screen_name=screen_name, include_entities=False
+        user_id=user_id, screen_name=screen_name, include_entities=False, return_json=True
     )
     account = models.Account.get_account(twitter_user)
+    return account
 
 
 @app.task(bind=True, max_retries=15)

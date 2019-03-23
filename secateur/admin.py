@@ -1,21 +1,17 @@
+from pprint import pformat
+
 from django.contrib import admin
 from . import models
+from django.contrib.auth.admin import UserAdmin
+from django.utils.html import format_html, escape
 
-# Register your models here.
-
-
-@admin.register(models.User)
-class UserAdmin(admin.ModelAdmin):
-    search_fields = ("username",)
-    fields = ["username"]
-    readonly_fields = ["username"]
-
+admin.site.register(models.User, UserAdmin)
 
 @admin.register(models.Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ("user_id", "screen_name")
-    search_fields = ("user_id", "screen_name")
-    readonly_fields = ("user_id", "screen_name", "profile_updated", "profile")
+    search_fields = ("user_id", "screen_name_lower")
+    readonly_fields = ("user_id", "screen_name", "screen_name_lower", "profile_updated", "profile")
 
 
 @admin.register(models.Relationship)
@@ -24,3 +20,13 @@ class RelationshipAdmin(admin.ModelAdmin):
     list_filter = ("type",)
     date_hierarchy = "updated"
     readonly_fields = ("subject", "type", "object", "updated")
+
+@admin.register(models.Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    readonly_fields = ("description", "formatted_json")
+
+    def formatted_json(self, obj):
+        return format_html(
+            "<pre>{}</pre>",
+            pformat(obj.json),
+        )
