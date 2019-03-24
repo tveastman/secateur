@@ -6,6 +6,7 @@ class ErrorCode(Enum):
     USER_NOT_FOUND = 50
     NOT_MUTING_SPECIFIED_USER = 272
     PAGE_DOES_NOT_EXIST = 34
+    INVALID_OR_EXPIRED_TOKEN = 89
 
     @classmethod
     def from_exception(cls, twitter_error_exception):

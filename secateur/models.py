@@ -49,13 +49,12 @@ class User(AbstractUser):
         return api
 
     def get_account_by_screen_name(self, screen_name):
-        queryset = Account.objects.filter(screen_name=screen_name)
+        queryset = Account.objects.filter(screen_name_lower=screen_name.lower())
         if queryset:
             return queryset.get()
         else:
             logger.debug("Fetching user %s from Twitter API.", screen_name)
-            tasks.get_user(self.pk, screen_name=screen_name)
-            return Account.objects.get(screen_name=screen_name)
+            return tasks.get_user(self.pk, screen_name=screen_name)
 
 
 class Profile(models.Model):
