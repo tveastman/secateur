@@ -119,6 +119,7 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
             screen_name=screen_name,
             include_entities=False,
             skip_status=True,
+            return_json=True
         )
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
