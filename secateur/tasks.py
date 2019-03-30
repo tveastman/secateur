@@ -118,9 +118,8 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
             user_id=user_id,
             screen_name=screen_name,
             include_entities=False,
-            skip_status=True,
-            return_json=True
-        )
+            skip_status=True
+        ).AsDict()
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             logger.warning("API rate limit exceeded.")
