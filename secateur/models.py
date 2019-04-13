@@ -1,6 +1,7 @@
 import os
 import logging
 import random
+from functools import partialmethod
 from pprint import pformat
 
 logging.basicConfig(level=logging.DEBUG)
@@ -57,13 +58,44 @@ class User(AbstractUser):
             return tasks.get_user(self.pk, screen_name=screen_name)
 
 
+def json_getter(property_name):
+    """Returns a class property that dereferences the json dictionary."""
+    def f(self):
+        return self.json.get(property_name)
+    f.__name__ = property_name
+    return property(f)
+
+
 class Profile(models.Model):
     user_id = models.BigIntegerField(primary_key=True, editable=False)
     json = JSONField(editable=False)
 
-    @property
-    def description(self):
-        return self.json['description']
+    @classmethod
+    def update(cls, twitter_user, now):
+        """Create or update Profile/Account objects from a twitter.User instance.
+
+        Returns a tuple of (profile, account) model instances."""
+        id = twitter_user.id
+        profile, profile_updated = cls.objects.update_or_create(
+            user_id=id, defaults={"json": twitter_user.AsDict()}
+        )
+        account, account_updated = Account.objects.update_or_create(
+            user_id=id,
+            defaults={
+                "screen_name": twitter_user.screen_name,
+                "screen_name_lower": twitter_user.screen_name.lower(),
+                "profile_updated": now,
+                "profile": profile,
+            },
+        )
+        return profile, account
+
+
+for attribute_name in [
+        'description', 'screen_name', 'location', 'name',
+        'followers_count', 'friends_count', 'statuses_count', 'favourites_count'
+    ]:
+    setattr(Profile, attribute_name, json_getter(attribute_name))
 
 
 class Account(models.Model):
@@ -130,30 +162,18 @@ class Account(models.Model):
                 cls.objects.bulk_create(cls(user_id=user_id) for user_id in to_create)
                 # finally, return an un-materialized queryset of all the new objects.
                 return cls.objects.filter(user_id__in=args)
-        elif isinstance(args[0], dict):
+        elif isinstance(args[0], twitter.User):
             # If we're dealing with dicts, we need need to do it the boring
             # way with a couple SQL queries per object. I'd sure love to make this
             # cleverer.
             if now is None:
                 now = timezone.now()
             ids = []
-            for arg in args:
-                id = int(arg['id_str'])
-                ids.append(id)
-                profile, profile_updated = Profile.objects.update_or_create(
-                    user_id=id, defaults={"json": arg}
-                )
-                account, account_updated = cls.objects.update_or_create(
-                    user_id=id,
-                    defaults={
-                        "screen_name": arg['screen_name'],
-                        "screen_name_lower": arg['screen_name'].lower(),
-                        "profile_updated": now,
-                        "profile": profile,
-                    },
-                )
+            for twitter_user in args:
+                profile, account = Profile.update(twitter_user, now)
+                ids.append(account.user_id)
             return cls.objects.filter(user_id__in=ids)
-        raise Exception("Couldn't handle argument %r" % args)
+        raise Exception("Couldn't handle arguments %r" % (args,))
 
     @property
     def blocks(self):

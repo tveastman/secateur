@@ -23,6 +23,7 @@ class RelationshipAdmin(admin.ModelAdmin):
 
 @admin.register(models.Profile)
 class ProfileAdmin(admin.ModelAdmin):
+    list_display = ("screen_name", "name", "description")
     readonly_fields = ("description", "formatted_json")
     search_fields = ("json__description",)
 

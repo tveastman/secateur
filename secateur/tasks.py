@@ -58,7 +58,7 @@ def get_user(secateur_user_pk, user_id=None, screen_name=None):
     api = secateur_user.api
 
     twitter_user = api.GetUser(
-        user_id=user_id, screen_name=screen_name, include_entities=False, return_json=True
+        user_id=user_id, screen_name=screen_name, include_entities=False
     )
     account = models.Account.get_account(twitter_user)
     return account
@@ -119,7 +119,7 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
             screen_name=screen_name,
             include_entities=False,
             skip_status=True
-        ).AsDict()
+        )
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             logger.warning("API rate limit exceeded.")
