@@ -9,9 +9,9 @@ admin.site.register(models.User, UserAdmin)
 
 @admin.register(models.Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ("user_id", "screen_name")
+    list_display = ("user_id", "screen_name", "name")
     search_fields = ("user_id", "screen_name_lower")
-    readonly_fields = ("user_id", "screen_name", "screen_name_lower", "profile_updated", "profile")
+    readonly_fields = ("user_id", "screen_name", "name", "screen_name_lower", "profile_updated", "profile")
 
 
 @admin.register(models.Relationship)

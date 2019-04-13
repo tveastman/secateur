@@ -13,7 +13,7 @@ python-twitter = "*"
 honcho = "*"
 "psycopg2-binary" = "*"
 celery = {extras = ["redis"]}
-redis = "==2.10.6"
+redis = "*"
 django-redis = "*"
 gunicorn = "*"
 whitenoise = "*"

@@ -84,6 +84,7 @@ class Profile(models.Model):
             defaults={
                 "screen_name": twitter_user.screen_name,
                 "screen_name_lower": twitter_user.screen_name.lower(),
+                "name": twitter_user.name,
                 "profile_updated": now,
                 "profile": profile,
             },
@@ -109,6 +110,7 @@ class Account(models.Model):
     user_id = models.BigIntegerField(primary_key=True, editable=False)
     screen_name = models.CharField(max_length=30, null=True, editable=False)
     screen_name_lower = models.CharField(max_length=30, null=True, editable=False)
+    name = models.CharField(max_length=60, null=True, editable=False)
     profile = models.OneToOneField(
         Profile, on_delete=models.CASCADE, null=True, editable=False
     )
