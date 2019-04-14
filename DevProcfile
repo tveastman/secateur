@@ -1,0 +1,2 @@
+web: ./manage.py runserver 5000
+celery: celery -A secateur worker -l info

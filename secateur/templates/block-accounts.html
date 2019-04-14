@@ -1,9 +1,11 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Block accounts{% endblock %}
 
 {% block content %}
-<form method="POST">
-  {{ form.as_p }}
-  {% csrf_token %}
-  <input type="submit">
-</form>
+  <form method="POST">{% csrf_token %}
+    {% bootstrap_form form layout='inline' show_help=True %}
+    {% buttons submit='Submit' reset="Cancel" %}{% endbuttons %}
+  </form>
 {% endblock %}

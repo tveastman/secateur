@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "social_django",
+    "bootstrap4",
     "secateur",
 ]
 
@@ -127,6 +128,7 @@ SOCIAL_AUTH_TWITTER_KEY = os.environ.get("CONSUMER_KEY")
 SOCIAL_AUTH_TWITTER_SECRET = os.environ.get("CONSUMER_SECRET")
 LOGIN_URL = "/login/twitter/"
 LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = '/'
 SOCIAL_AUTH_STRATEGY = "social_django.strategy.DjangoStrategy"
 SOCIAL_AUTH_STORAGE = "social_django.models.DjangoStorage"
 SOCIAL_AUTH_PIPELINE = (
@@ -179,4 +181,8 @@ CACHES = {
         },
         "KEY_PREFIX": "secateur:",
     }
+}
+
+BOOTSTRAP4 = {
+    'include_jquery': True,
 }

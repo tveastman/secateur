@@ -1,15 +1,40 @@
-<html>
-<body>
-{% if messages %}
-<h3>Messages</h3>
-<ul class="messages">
-    {% for message in messages %}
-    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-    {% endfor %}
-</ul>
-{% endif %}
+{% extends 'bootstrap.html' %}
 
-{% block content %}{% endblock %}
+{% load bootstrap4 %}
 
-</body>
-</html>
+{% block bootstrap4_content %}
+  <header>
+    <nav class="navbar navbar-expand navbar-light bg-light">
+      <a class="navbar-brand" href="#">Secateur</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="navbar-collapse" id="navbarText">
+        <ul class="navbar-nav ml-auto">
+          {% if user.is_authenticated %}
+            <li class="nav-item dropdown">
+              <a href="#" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                {{ user.username }}
+              <a>
+              <div class="dropdown-menu"  aria-labelledby="navbarDropdown">
+                <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
+              </div>
+            </li>
+          {% else %}
+            <li class="nav-item"><a href="{% url "social:begin" "twitter" %}">Log in (via Twitter)</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </nav>
+  <header>
+
+  <main role="main" class="container">
+      <h1 class="mt-5">{% block title %}(no title){% endblock %}</h1>
+
+      {% autoescape off %}{% bootstrap_messages %}{% endautoescape %}
+
+      {% block content %}(no content){% endblock %}
+  </main>
+
+{% endblock %}

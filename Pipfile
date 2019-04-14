@@ -18,6 +18,7 @@ django-redis = "*"
 gunicorn = "*"
 whitenoise = "*"
 eventlet = "*"
+django-bootstrap4 = "*"
 
 [dev-packages]
 pytest = "*"
