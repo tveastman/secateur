@@ -5,12 +5,24 @@
 {% block bootstrap4_content %}
   <header>
     <nav class="navbar navbar-expand navbar-light bg-light">
-      <a class="navbar-brand" href="#">Secateur</a>
+      <a class="navbar-brand" href="{% url "home" %}"}">Secateur</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
       <div class="navbar-collapse" id="navbarText">
+        <ul class="navbar-nav">
+          {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url "block-accounts" %}">Block accounts</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url "log-messages" %}">Log</a>
+            </li>
+          {% endif %}
+        </ul>
+
+
         <ul class="navbar-nav ml-auto">
           {% if user.is_authenticated %}
             <li class="nav-item dropdown">
@@ -22,7 +34,7 @@
               </div>
             </li>
           {% else %}
-            <li class="nav-item"><a href="{% url "social:begin" "twitter" %}">Log in (via Twitter)</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url "social:begin" "twitter" %}">Log in (via Twitter)</a></li>
           {% endif %}
         </ul>
       </div>

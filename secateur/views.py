@@ -3,6 +3,7 @@ import datetime
 
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
+from django.views.generic.list import ListView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
@@ -17,6 +18,15 @@ logger = logging.getLogger(__name__)
 class Home(TemplateView):
     template_name = "home.html"
 
+@method_decorator(login_required, name='dispatch')
+class LogMessages(ListView):
+    template_name = "log-messages.html"
+    model = models.LogMessage
+    paginate_by = 50
+
+    def get_queryset(self):
+        user = models.User.objects.get(pk=self.request.user.pk)
+        return models.LogMessage.objects.filter(user=user).order_by('-time')
 
 @method_decorator(login_required, name='dispatch')
 class BlockAccounts(FormView):
@@ -26,7 +36,7 @@ class BlockAccounts(FormView):
 
     def form_valid(self, form):
         user = models.User.objects.get(pk=self.request.user.pk)
- 
+
         account = user.get_account_by_screen_name(form.cleaned_data['screen_name'])
         messages.add_message(self.request, messages.INFO, "Retrieved account %s from Twitter" % (account,))
 

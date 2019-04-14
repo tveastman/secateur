@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+{% load humanize %}
+
+{% block title %}Twitter API Log{% endblock %}
+
+{% block content %}
+
+  {% bootstrap_pagination page_obj %}
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>time</th>
+        <th>message</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for log_message in object_list %}
+        <tr>
+          <td>{{ log_message.time|naturaltime }}</td>
+          <td>{{ log_message.message }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% bootstrap_pagination page_obj %}
+
+{% endblock %}

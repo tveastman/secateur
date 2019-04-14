@@ -24,7 +24,7 @@ class RelationshipAdmin(admin.ModelAdmin):
 @admin.register(models.Profile)
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ("screen_name", "name", "description")
-    readonly_fields = ("description", "formatted_json")
+    readonly_fields = ("screen_name", "name", "description", "location", "formatted_json")
     search_fields = ("json__description",)
 
     def formatted_json(self, obj):
@@ -32,3 +32,9 @@ class ProfileAdmin(admin.ModelAdmin):
             "<pre>{}</pre>",
             pformat(obj.json),
         )
+
+@admin.register(models.LogMessage)
+class LogMessageAdmin(admin.ModelAdmin):
+    list_display = ("time", "user", "message")
+    list_filter = ("user",)
+    date_hierarchy = "time"

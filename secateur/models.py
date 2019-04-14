@@ -324,3 +324,14 @@ class Relationship(models.Model):
         if relationships:
             logger.debug("Removing relationships: {}".format(relationships))
         return relationships.delete()
+
+
+class LogMessage(models.Model):
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    time = models.DateTimeField()
+    message = models.CharField(max_length=100)
+
+    class Meta:
+        indexes = (
+            models.Index(fields=["user", "-time"]),
+        )

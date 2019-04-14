@@ -138,13 +138,17 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
         type=type, subjects=[secateur_user.account], objects=[account],
         updated=now, until=until
     )
-    logger.info(
-        "%s has %s %s %s",
-        secateur_user,
+    log_message = "{} {}{}".format(
         past_tense_verb,
         account,
-        "until {}".format(until) if until else "",
+        " until {}".format(until.strftime("%-d %B")) if until else ""
     )
+    models.LogMessage.objects.create(
+        user=secateur_user,
+        time=now,
+        message=log_message
+    )
+    logger.info("%s has %s", secateur_user, log_message)
 
 
 @app.task(bind=True, max_retries=15)
@@ -225,7 +229,16 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
     models.Relationship.objects.filter(
         subject=secateur_user.account, type=type, object=account
     ).delete()
-    logger.info("%s has %s %s", secateur_user, past_tense_verb, account)
+    log_message = "{} {}".format(
+        past_tense_verb,
+        account
+    )
+    models.LogMessage.objects.create(
+        user=secateur_user,
+        time=now,
+        message=log_message
+    )
+    logger.info("%s has %s", secateur_user, log_message)
 
 
 @app.task(bind=True)
