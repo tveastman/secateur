@@ -12,83 +12,226 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-        ('auth', '0009_alter_user_last_name_max_length'),
-    ]
+    dependencies = [("auth", "0009_alter_user_last_name_max_length")]
 
     operations = [
         migrations.CreateModel(
-            name='User',
+            name="User",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('password', models.CharField(max_length=128, verbose_name='password')),
-                ('last_login', models.DateTimeField(blank=True, null=True, verbose_name='last login')),
-                ('is_superuser', models.BooleanField(default=False, help_text='Designates that this user has all permissions without explicitly assigning them.', verbose_name='superuser status')),
-                ('username', models.CharField(error_messages={'unique': 'A user with that username already exists.'}, help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.', max_length=150, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator()], verbose_name='username')),
-                ('first_name', models.CharField(blank=True, max_length=30, verbose_name='first name')),
-                ('last_name', models.CharField(blank=True, max_length=150, verbose_name='last name')),
-                ('email', models.EmailField(blank=True, max_length=254, verbose_name='email address')),
-                ('is_staff', models.BooleanField(default=False, help_text='Designates whether the user can log into this admin site.', verbose_name='staff status')),
-                ('is_active', models.BooleanField(default=True, help_text='Designates whether this user should be treated as active. Unselect this instead of deleting accounts.', verbose_name='active')),
-                ('date_joined', models.DateTimeField(default=django.utils.timezone.now, verbose_name='date joined')),
-                ('groups', models.ManyToManyField(blank=True, help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.', related_name='user_set', related_query_name='user', to='auth.Group', verbose_name='groups')),
-                ('user_permissions', models.ManyToManyField(blank=True, help_text='Specific permissions for this user.', related_name='user_set', related_query_name='user', to='auth.Permission', verbose_name='user permissions')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("password", models.CharField(max_length=128, verbose_name="password")),
+                (
+                    "last_login",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="last login"
+                    ),
+                ),
+                (
+                    "is_superuser",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates that this user has all permissions without explicitly assigning them.",
+                        verbose_name="superuser status",
+                    ),
+                ),
+                (
+                    "username",
+                    models.CharField(
+                        error_messages={
+                            "unique": "A user with that username already exists."
+                        },
+                        help_text="Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.",
+                        max_length=150,
+                        unique=True,
+                        validators=[
+                            django.contrib.auth.validators.UnicodeUsernameValidator()
+                        ],
+                        verbose_name="username",
+                    ),
+                ),
+                (
+                    "first_name",
+                    models.CharField(
+                        blank=True, max_length=30, verbose_name="first name"
+                    ),
+                ),
+                (
+                    "last_name",
+                    models.CharField(
+                        blank=True, max_length=150, verbose_name="last name"
+                    ),
+                ),
+                (
+                    "email",
+                    models.EmailField(
+                        blank=True, max_length=254, verbose_name="email address"
+                    ),
+                ),
+                (
+                    "is_staff",
+                    models.BooleanField(
+                        default=False,
+                        help_text="Designates whether the user can log into this admin site.",
+                        verbose_name="staff status",
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Designates whether this user should be treated as active. Unselect this instead of deleting accounts.",
+                        verbose_name="active",
+                    ),
+                ),
+                (
+                    "date_joined",
+                    models.DateTimeField(
+                        default=django.utils.timezone.now, verbose_name="date joined"
+                    ),
+                ),
+                (
+                    "groups",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.Group",
+                        verbose_name="groups",
+                    ),
+                ),
+                (
+                    "user_permissions",
+                    models.ManyToManyField(
+                        blank=True,
+                        help_text="Specific permissions for this user.",
+                        related_name="user_set",
+                        related_query_name="user",
+                        to="auth.Permission",
+                        verbose_name="user permissions",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'user',
-                'verbose_name_plural': 'users',
-                'abstract': False,
+                "verbose_name": "user",
+                "verbose_name_plural": "users",
+                "abstract": False,
             },
-            managers=[
-                ('objects', django.contrib.auth.models.UserManager()),
+            managers=[("objects", django.contrib.auth.models.UserManager())],
+        ),
+        migrations.CreateModel(
+            name="Account",
+            fields=[
+                (
+                    "user_id",
+                    models.BigIntegerField(
+                        editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                (
+                    "screen_name",
+                    models.CharField(editable=False, max_length=30, null=True),
+                ),
+                (
+                    "screen_name_lower",
+                    models.CharField(editable=False, max_length=30, null=True),
+                ),
+                ("profile_updated", models.DateTimeField(editable=False, null=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Account',
+            name="Profile",
             fields=[
-                ('user_id', models.BigIntegerField(editable=False, primary_key=True, serialize=False)),
-                ('screen_name', models.CharField(editable=False, max_length=30, null=True)),
-                ('screen_name_lower', models.CharField(editable=False, max_length=30, null=True)),
-                ('profile_updated', models.DateTimeField(editable=False, null=True)),
+                (
+                    "user_id",
+                    models.BigIntegerField(
+                        editable=False, primary_key=True, serialize=False
+                    ),
+                ),
+                (
+                    "json",
+                    django.contrib.postgres.fields.jsonb.JSONField(editable=False),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Profile',
+            name="Relationship",
             fields=[
-                ('user_id', models.BigIntegerField(editable=False, primary_key=True, serialize=False)),
-                ('json', django.contrib.postgres.fields.jsonb.JSONField(editable=False)),
-            ],
-        ),
-        migrations.CreateModel(
-            name='Relationship',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.IntegerField(choices=[(1, 'follows'), (2, 'blocks'), (3, 'mutes')], editable=False)),
-                ('updated', models.DateTimeField(editable=False)),
-                ('until', models.DateTimeField(blank=True, null=True)),
-                ('object', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='relationship_object_set', to='secateur.Account')),
-                ('subject', models.ForeignKey(editable=False, on_delete=django.db.models.deletion.CASCADE, related_name='relationship_subject_set', to='secateur.Account')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "type",
+                    models.IntegerField(
+                        choices=[(1, "follows"), (2, "blocks"), (3, "mutes")],
+                        editable=False,
+                    ),
+                ),
+                ("updated", models.DateTimeField(editable=False)),
+                ("until", models.DateTimeField(blank=True, null=True)),
+                (
+                    "object",
+                    models.ForeignKey(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="relationship_object_set",
+                        to="secateur.Account",
+                    ),
+                ),
+                (
+                    "subject",
+                    models.ForeignKey(
+                        editable=False,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="relationship_subject_set",
+                        to="secateur.Account",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='account',
-            name='profile',
-            field=models.OneToOneField(editable=False, null=True, on_delete=django.db.models.deletion.CASCADE, to='secateur.Profile'),
+            model_name="account",
+            name="profile",
+            field=models.OneToOneField(
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                to="secateur.Profile",
+            ),
         ),
         migrations.AddIndex(
-            model_name='relationship',
-            index=models.Index(fields=['type', 'subject'], name='secateur_re_type_2c4b68_idx'),
+            model_name="relationship",
+            index=models.Index(
+                fields=["type", "subject"], name="secateur_re_type_2c4b68_idx"
+            ),
         ),
         migrations.AddIndex(
-            model_name='relationship',
-            index=models.Index(fields=['type', 'object'], name='secateur_re_type_2db0bf_idx'),
+            model_name="relationship",
+            index=models.Index(
+                fields=["type", "object"], name="secateur_re_type_2db0bf_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='relationship',
-            unique_together={('type', 'subject', 'object')},
+            name="relationship", unique_together={("type", "subject", "object")}
         ),
         migrations.AddIndex(
-            model_name='account',
-            index=models.Index(fields=['screen_name'], name='secateur_ac_screen__f4a619_idx'),
+            model_name="account",
+            index=models.Index(
+                fields=["screen_name"], name="secateur_ac_screen__f4a619_idx"
+            ),
         ),
     ]

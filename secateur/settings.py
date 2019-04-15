@@ -12,9 +12,9 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 
-#import logging
+# import logging
 
-#logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.DEBUG)
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -116,9 +116,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-AUTH_USER_MODEL = 'secateur.User'
+AUTH_USER_MODEL = "secateur.User"
 
 # DJANGO SOCIAL AUTH TWITTER SUPPORT
 AUTHENTICATION_BACKENDS = (
@@ -129,7 +129,7 @@ SOCIAL_AUTH_TWITTER_KEY = os.environ.get("CONSUMER_KEY")
 SOCIAL_AUTH_TWITTER_SECRET = os.environ.get("CONSUMER_SECRET")
 LOGIN_URL = "/login/twitter/"
 LOGIN_REDIRECT_URL = "/"
-LOGOUT_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = "/"
 SOCIAL_AUTH_STRATEGY = "social_django.strategy.DjangoStrategy"
 SOCIAL_AUTH_STORAGE = "social_django.models.DjangoStorage"
 SOCIAL_AUTH_PIPELINE = (
@@ -169,21 +169,15 @@ CELERY_IMPORTS = ["secateur.tasks"]
 CELERY_TASK_SERIALIZER = "pickle"
 # CELERY_RESULT_SERIALIZER = 'pickle'
 CELERY_ACCEPT_CONTENT = ["pickle"]
-CELERY_BROKER_TRANSPORT_OPTIONS = {
-    'visibility_timeout': 60 * 60  * 24
-}
+CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 60 * 60 * 24}
 
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/2",
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient"
-        },
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "secateur:",
     }
 }
 
-BOOTSTRAP4 = {
-    'include_jquery': True,
-}
+BOOTSTRAP4 = {"include_jquery": True}

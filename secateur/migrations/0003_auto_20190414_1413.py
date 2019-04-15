@@ -7,22 +7,37 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('secateur', '0002_account_name'),
-    ]
+    dependencies = [("secateur", "0002_account_name")]
 
     operations = [
         migrations.CreateModel(
-            name='LogMessage',
+            name="LogMessage",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('time', models.DateTimeField()),
-                ('message', models.TextField()),
-                ('user', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("time", models.DateTimeField()),
+                ("message", models.TextField()),
+                (
+                    "user",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.AddIndex(
-            model_name='logmessage',
-            index=models.Index(fields=['user', '-time'], name='secateur_lo_user_id_e2e246_idx'),
+            model_name="logmessage",
+            index=models.Index(
+                fields=["user", "-time"], name="secateur_lo_user_id_e2e246_idx"
+            ),
         ),
     ]

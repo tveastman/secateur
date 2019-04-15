@@ -21,6 +21,7 @@ from . import tasks
 
 logger = logging.getLogger(__name__)
 
+
 class TwitterApiDisabled(Exception):
     pass
 
@@ -67,8 +68,10 @@ class User(AbstractUser):
 
 def json_getter(property_name):
     """Returns a class property that dereferences the json dictionary."""
+
     def f(self):
         return self.json.get(property_name)
+
     f.__name__ = property_name
     return property(f)
 
@@ -100,9 +103,15 @@ class Profile(models.Model):
 
 
 for attribute_name in [
-        'description', 'screen_name', 'location', 'name',
-        'followers_count', 'friends_count', 'statuses_count', 'favourites_count'
-    ]:
+    "description",
+    "screen_name",
+    "location",
+    "name",
+    "followers_count",
+    "friends_count",
+    "statuses_count",
+    "favourites_count",
+]:
     setattr(Profile, attribute_name, json_getter(attribute_name))
 
 
@@ -110,9 +119,7 @@ class Account(models.Model):
     """A Twitter account"""
 
     class Meta:
-        indexes = (
-            models.Index(fields=["screen_name"]),
-        )
+        indexes = (models.Index(fields=["screen_name"]),)
 
     user_id = models.BigIntegerField(primary_key=True, editable=False)
     screen_name = models.CharField(max_length=30, null=True, editable=False)
@@ -339,6 +346,4 @@ class LogMessage(models.Model):
     message = models.CharField(max_length=100)
 
     class Meta:
-        indexes = (
-            models.Index(fields=["user", "-time"]),
-        )
+        indexes = (models.Index(fields=["user", "-time"]),)

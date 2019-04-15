@@ -15,10 +15,12 @@ from . import models
 
 logger = logging.getLogger(__name__)
 
+
 class Home(TemplateView):
     template_name = "home.html"
 
-@method_decorator(login_required, name='dispatch')
+
+@method_decorator(login_required, name="dispatch")
 class LogMessages(ListView):
     template_name = "log-messages.html"
     model = models.LogMessage
@@ -26,9 +28,10 @@ class LogMessages(ListView):
 
     def get_queryset(self):
         user = models.User.objects.get(pk=self.request.user.pk)
-        return models.LogMessage.objects.filter(user=user).order_by('-time')
+        return models.LogMessage.objects.filter(user=user).order_by("-time")
 
-@method_decorator(login_required, name='dispatch')
+
+@method_decorator(login_required, name="dispatch")
 class BlockAccounts(FormView):
     form_class = forms.BlockAccountsForm
     template_name = "block-accounts.html"
@@ -42,67 +45,78 @@ class BlockAccounts(FormView):
         user = models.User.objects.get(pk=self.request.user.pk)
         user_account = user.account
 
-        account = user.get_account_by_screen_name(form.cleaned_data['screen_name'])
-        #messages.add_message(self.request, messages.INFO, "Retrieved account %s from Twitter" % (account,))
+        account = user.get_account_by_screen_name(form.cleaned_data["screen_name"])
+        # messages.add_message(self.request, messages.INFO, "Retrieved account %s from Twitter" % (account,))
         profile = account.profile
         if not profile:
             account = tasks.get_user(user.pk, user_id=account.pk)
             profile = account.profile
-            logger.debug('Retrieved account %s and profile %s', account, profile)
-        messages.add_message(self.request, messages.INFO, "Retrieved account %s from Twitter" % (account,))
+            logger.debug("Retrieved account %s and profile %s", account, profile)
+        messages.add_message(
+            self.request,
+            messages.INFO,
+            "Retrieved account %s from Twitter" % (account,),
+        )
 
         ## SAFETY GUARDS
-        followers_count = profile.json.get('followers_count', 0)
-        if form.cleaned_data['block_followers'] and followers_count > TOO_MANY_TO_BLOCK:
+        followers_count = profile.json.get("followers_count", 0)
+        if form.cleaned_data["block_followers"] and followers_count > TOO_MANY_TO_BLOCK:
             messages.add_message(
-                self.request, messages.ERROR,
+                self.request,
+                messages.ERROR,
                 "Sorry, {} has too many followers to block them all (max is {} for now)".format(
-                account, TOO_MANY_TO_BLOCK
-                )
+                    account, TOO_MANY_TO_BLOCK
+                ),
             )
             return super().form_valid(form)
-        if form.cleaned_data['mute_followers'] and followers_count > TOO_MANY_TO_MUTE:
+        if form.cleaned_data["mute_followers"] and followers_count > TOO_MANY_TO_MUTE:
             messages.add_message(
-                self.request, messages.ERROR,
+                self.request,
+                messages.ERROR,
                 "Sorry, {} has too many followers to mute them all (max is {} for now)".format(
-                account, TOO_MANY_TO_MUTE
-                )
+                    account, TOO_MANY_TO_MUTE
+                ),
             )
             return super().form_valid(form)
 
         if account == user_account:
-            messages.add_message(self.request, messages.ERROR, "You don't want to block your own account or followers.")
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                "You don't want to block your own account or followers.",
+            )
             return super().form_valid(form)
 
         WEEK = datetime.timedelta(days=7)
-        duration = form.cleaned_data['duration'] * WEEK
+        duration = form.cleaned_data["duration"] * WEEK
         until = timezone.now() + duration
 
-        if form.cleaned_data['block_account']:
+        if form.cleaned_data["block_account"]:
             tasks.create_relationship.delay(
                 secateur_user_pk=user.pk,
                 type=models.Relationship.BLOCKS,
                 user_id=account.user_id,
-                until=until)
-        if form.cleaned_data['mute_account']:
+                until=until,
+            )
+        if form.cleaned_data["mute_account"]:
             tasks.create_relationship.delay(
                 secateur_user_pk=user.pk,
                 type=models.Relationship.MUTES,
                 user_id=account.user_id,
-                until=until
+                until=until,
             )
-        if form.cleaned_data['mute_followers']:
+        if form.cleaned_data["mute_followers"]:
             tasks.twitter_block_followers(
                 secateur_user=user,
                 type=models.Relationship.MUTES,
                 account=account,
-                until=until
+                until=until,
             )
-        if form.cleaned_data['block_followers']:
+        if form.cleaned_data["block_followers"]:
             tasks.twitter_block_followers(
                 secateur_user=user,
                 type=models.Relationship.BLOCKS,
                 account=account,
-                until=until
+                until=until,
             )
         return super().form_valid(form)

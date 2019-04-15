@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('secateur', '0003_auto_20190414_1413'),
-    ]
+    dependencies = [("secateur", "0003_auto_20190414_1413")]
 
     operations = [
         migrations.AlterField(
-            model_name='logmessage',
-            name='message',
+            model_name="logmessage",
+            name="message",
             field=models.CharField(max_length=100),
-        ),
+        )
     ]

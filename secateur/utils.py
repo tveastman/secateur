@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class ErrorCode(Enum):
     RATE_LIMITED_EXCEEDED = 88
     USER_SUSPENDED = 63

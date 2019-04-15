@@ -6,14 +6,17 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('secateur', '0005_user_is_twitter_api_enabled'),
-    ]
+    dependencies = [("secateur", "0005_user_is_twitter_api_enabled")]
 
     operations = [
         migrations.AlterField(
-            model_name='account',
-            name='profile',
-            field=models.OneToOneField(editable=False, null=True, on_delete=django.db.models.deletion.SET_NULL, to='secateur.Profile'),
-        ),
+            model_name="account",
+            name="profile",
+            field=models.OneToOneField(
+                editable=False,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="secateur.Profile",
+            ),
+        )
     ]
