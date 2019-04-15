@@ -35,7 +35,7 @@ class RelationshipAdmin(admin.ModelAdmin):
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ("screen_name", "name", "description")
     readonly_fields = ("screen_name", "name", "description", "location", "formatted_json")
-    search_fields = ("json__description",)
+    search_fields = ("json__description", "json__screen_name")
 
     def formatted_json(self, obj):
         return format_html(

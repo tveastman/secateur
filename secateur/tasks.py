@@ -56,14 +56,15 @@ def _twitter_retry_timeout(base=900, retries=0):
 def get_user(secateur_user_pk, user_id=None, screen_name=None):
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
-    if api is None:
-        logger.error("Twitter API not enabled for user: %s", secateur_user)
-        return
-
     twitter_user = api.GetUser(
         user_id=user_id, screen_name=screen_name, include_entities=False
     )
     account = models.Account.get_account(twitter_user)
+    models.LogMessage.objects.create(
+        user=secateur_user,
+        time=timezone.now(),
+        message="Retrieved profile for {}".format(account)
+    )
     return account
 
 

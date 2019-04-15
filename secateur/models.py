@@ -119,7 +119,7 @@ class Account(models.Model):
     screen_name_lower = models.CharField(max_length=30, null=True, editable=False)
     name = models.CharField(max_length=60, null=True, editable=False)
     profile = models.OneToOneField(
-        Profile, on_delete=models.CASCADE, null=True, editable=False
+        Profile, on_delete=models.SET_NULL, null=True, editable=False
     )
     profile_updated = models.DateTimeField(null=True, editable=False)
 
