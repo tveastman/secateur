@@ -6,8 +6,7 @@
 
 {% block content %}
 
-  {% bootstrap_pagination page_obj %}
-
+  {% bootstrap_pagination page_obj pages_to_show=5 %}
   <table class="table">
     <thead>
       <tr>
@@ -24,6 +23,6 @@
       {% endfor %}
     </tbody>
   </table>
-  {% bootstrap_pagination page_obj %}
+  {% bootstrap_pagination page_obj pages_to_show=5 %}
 
 {% endblock %}

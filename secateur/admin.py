@@ -5,7 +5,16 @@ from . import models
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html, escape
 
-admin.site.register(models.User, UserAdmin)
+
+class SecateurUserAdmin(UserAdmin):
+    fieldsets = UserAdmin.fieldsets + (
+        ('Secateur', {'fields': ('is_twitter_api_enabled',)}),
+    )
+    list_display = (
+        'username', 'first_name', 'last_name',
+        'is_twitter_api_enabled', 'is_staff'
+    )
+admin.site.register(models.User, SecateurUserAdmin)
 
 @admin.register(models.Account)
 class AccountAdmin(admin.ModelAdmin):
@@ -16,6 +25,7 @@ class AccountAdmin(admin.ModelAdmin):
 
 @admin.register(models.Relationship)
 class RelationshipAdmin(admin.ModelAdmin):
+    search_fields = ("object__screen_name_lower", "subject__screen_name_lower")
     list_display = ("subject", "type", "object", "until", "updated")
     list_filter = ("type",)
     date_hierarchy = "updated"

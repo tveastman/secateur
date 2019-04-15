@@ -21,8 +21,13 @@ from . import tasks
 
 logger = logging.getLogger(__name__)
 
+class TwitterApiDisabled(Exception):
+    pass
+
 
 class User(AbstractUser):
+    is_twitter_api_enabled = models.BooleanField(default=False)
+
     @cached_property
     def twitter_social_auth(self):
         """Get the social_auth object for this user."""
@@ -39,6 +44,8 @@ class User(AbstractUser):
 
     @cached_property
     def api(self):
+        if not self.is_twitter_api_enabled:
+            raise TwitterApiDisabled()
         access_token = self.twitter_social_auth.extra_data.get("access_token")
         api = twitter.Api(
             consumer_key=os.environ.get("CONSUMER_KEY"),

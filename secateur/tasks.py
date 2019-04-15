@@ -56,6 +56,9 @@ def _twitter_retry_timeout(base=900, retries=0):
 def get_user(secateur_user_pk, user_id=None, screen_name=None):
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
+    if api is None:
+        logger.error("Twitter API not enabled for user: %s", secateur_user)
+        return
 
     twitter_user = api.GetUser(
         user_id=user_id, screen_name=screen_name, include_entities=False
@@ -72,6 +75,9 @@ def create_relationship(self, secateur_user_pk, type, user_id=None, screen_name=
 
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
+    if api is None:
+        logger.error("Twitter API not enabled for user: %s", secateur_user)
+        return
     now = timezone.now()
     type = RelationshipType(type)
 
@@ -158,6 +164,9 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
 
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
+    if api is None:
+        logger.error("Twitter API not enabled for user: %s", secateur_user)
+        return
     now = timezone.now()
 
     type = RelationshipType(type)
@@ -284,6 +293,7 @@ def twitter_update_followers(secateur_user, account=None):
     """
     now = timezone.now()
     api = secateur_user.api
+
     if account is None:
         account = secateur_user.account
 
@@ -334,18 +344,19 @@ def twitter_update_mutes(secateur_user):
 
 # Used as a partial() in twitter_block_followers()
 def _block_multiple(accounts, type, secateur_user_pk, until):
-    for account in accounts:
+    for i, account in enumerate(accounts):
         create_relationship.apply_async([], {
-            "secateur_user_pk": secateur_user_pk,
-            "type": type,
-            "user_id": account.user_id,
-            "until": until
-        },
-        # I can't decide if there should be a timeout here. Probably what ought
-        # to happen instead is that blocks are handled by a different celery
-        # queue, so they can start right away and not block paged_iterator tasks.
-        countdown=random.randint(1, 60 * 15),
-        max_retries=20)
+                "secateur_user_pk": secateur_user_pk,
+                "type": type,
+                "user_id": account.user_id,
+                "until": until
+            },
+            # I can't decide if there should be a timeout here. Probably what ought
+            # to happen instead is that blocks are handled by a different celery
+            # queue, so they can start right away and not block paged_iterator tasks.
+            countdown=1 + int(i * (60 * 15 / 5000)),
+            max_retries=20
+        )
 
 
 def twitter_block_followers(secateur_user, type, account, until):

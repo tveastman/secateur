@@ -93,8 +93,8 @@ for account_screen_name in args.accounts:
     account = user.get_account_by_screen_name(account_screen_name)
     log.debug("Found account: %s", account)
     if args.update_followers:
-        secateur.tasks.update_followers(
-            secateur_user_pk=user.pk, user_id=account.user_id
+        secateur.tasks.twitter_update_followers(
+            secateur_user=user, account=account
         )
     if args.block_followers:
         secateur.tasks.twitter_block_followers(
