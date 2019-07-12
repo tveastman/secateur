@@ -87,7 +87,7 @@ if args.update_user:
     secateur.tasks.twitter_update_friends(user)
 
 if args.unblock_expired:
-    secateur.tasks.unblock_expired(user)
+    secateur.tasks.unblock_expired.delay()
 
 for account_screen_name in args.accounts:
     account = user.get_account_by_screen_name(account_screen_name)

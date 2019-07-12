@@ -10,6 +10,7 @@ rsync -av --files-from=${FILE_LIST} . ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIR
 
 ssh ${DEPLOY_USER}@${DEPLOY_HOST} "
    cd ${DEPLOY_DIRECTORY}
+   ${DEPLOY_PIPENV} install
    ${DEPLOY_PIPENV} run ./manage.py migrate
    ${DEPLOY_PIPENV} run ./manage.py collectstatic --noinput
    systemctl --user restart secateur

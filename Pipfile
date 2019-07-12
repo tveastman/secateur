@@ -19,6 +19,7 @@ gunicorn = "*"
 whitenoise = "*"
 eventlet = "*"
 django-bootstrap4 = "*"
+django-celery-beat = "*"
 
 [dev-packages]
 pytest = "*"

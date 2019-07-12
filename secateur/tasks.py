@@ -399,25 +399,29 @@ def twitter_block_followers(secateur_user, type, account, until):
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 
-def unblock_expired(secateur_user, now=None):
+@app.task
+def unblock_expired(now=None):
     if now is None:
         now = timezone.now()
 
-    expired_blocks = models.Relationship.objects.filter(
-        Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
-        subject=secateur_user.account,
-        until__lt=now,
-    ).select_related("object")
+    ## TODO: This nested loop will suck once there's a lot of users. Flatten it
+    ##       into one query to iterate over.
+    for secateur_user in models.User.objects.filter(is_twitter_api_enabled=True):
+        expired_blocks = models.Relationship.objects.filter(
+            Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
+            subject=secateur_user.account,
+            until__lt=now,
+        ).select_related("object")
 
-    for expired_block in expired_blocks.iterator():
-        blocked_account = expired_block.object
-        destroy_relationship.apply_async(
-            [],
-            {
-                "secateur_user_pk": secateur_user.pk,
-                "type": expired_block.type,
-                "user_id": blocked_account.user_id,
-            },
-            countdown=random.randint(1, 60 * 15),
-            max_retries=15,
-        )
+        for expired_block in expired_blocks.iterator():
+            blocked_account = expired_block.object
+            destroy_relationship.apply_async(
+                [],
+                {
+                    "secateur_user_pk": secateur_user.pk,
+                    "type": expired_block.type,
+                    "user_id": blocked_account.user_id,
+                },
+                countdown=random.randint(1, 60 * 15),
+                max_retries=15,
+            )
