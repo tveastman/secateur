@@ -61,9 +61,15 @@ def _twitter_retry_timeout(base=900, retries=0):
 def get_user(secateur_user_pk, user_id=None, screen_name=None):
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
-    twitter_user = api.GetUser(
-        user_id=user_id, screen_name=screen_name, include_entities=False
-    )
+    try:
+        twitter_user = api.GetUser(
+            user_id=user_id, screen_name=screen_name, include_entities=False
+        )
+    except TwitterError as e:
+        if ErrorCode.from_exception(e) == ErrorCode.USER_SUSPENDED:
+            return None
+        else:
+            raise
     account = models.Account.get_account(twitter_user)
     models.LogMessage.objects.create(
         user=secateur_user,

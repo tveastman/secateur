@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.utils import timezone
+from django.urls import reverse_lazy
 
 from . import forms
 from . import tasks
@@ -32,10 +33,39 @@ class LogMessages(ListView):
 
 
 @method_decorator(login_required, name="dispatch")
+class Search(FormView):
+    form_class = forms.Search
+    template_name = "search.html"
+    success_url = reverse_lazy("search")
+
+    ## TODO: check user has API enabled.
+
+    def form_valid(self, form):
+        screen_name = form.cleaned_data["screen_name"]
+        screen_name_lower = screen_name.lower()
+        account = None
+
+        # First search our local database.
+        try:
+            account = models.Account.objects.get(screen_name_lower=screen_name_lower)
+        except models.Account.DoesNotExist as e:
+            logger.debug("Account not found for user: %s", screen_name_lower)
+        if account is None:
+            account = tasks.get_user(self.request.user.pk, screen_name=screen_name_lower)
+
+        messages.add_message(
+            self.request,
+            messages.INFO,
+            f"Result: {account}"
+        )
+        return super().form_valid(form)
+
+
+@method_decorator(login_required, name="dispatch")
 class BlockAccounts(FormView):
     form_class = forms.BlockAccountsForm
     template_name = "block-accounts.html"
-    success_url = "/block-accounts/"
+    success_url = reverse_lazy("block-accounts")
 
     def form_valid(self, form):
         # These limitations will go somewhere better later. On the user model

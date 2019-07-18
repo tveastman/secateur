@@ -13,3 +13,7 @@ class BlockAccountsForm(forms.Form):
     mute_account = forms.BooleanField(required=False)
     block_followers = forms.BooleanField(required=False)
     mute_followers = forms.BooleanField(required=False)
+
+
+class Search(forms.Form):
+    screen_name = forms.CharField(help_text="Username")

@@ -24,7 +24,8 @@ from . import views
 urlpatterns = [
     path("__admin__/", admin.site.urls),
     path("", views.Home.as_view(), name="home"),
-    path("block-accounts/", views.BlockAccounts.as_view(), name="block-accounts"),
+    path("block/", views.BlockAccounts.as_view(), name="block-accounts"),
+    path("search/", views.Search.as_view(), name="search"),
     path("log-messages/", views.LogMessages.as_view(), name="log-messages"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     url("", include("social_django.urls", namespace="social")),

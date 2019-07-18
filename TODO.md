@@ -11,6 +11,7 @@ DONE
 
 NOW
 ===
+- Add a search page to look up a user.
 
 
 NEXT
@@ -19,6 +20,7 @@ NEXT
 
 BACKLOG
 =======
+- Add an account detail view.
 - Set up a dockerfile to build an image for the app
 - Set up a docker-compose to build a dev environment
 - Login page
