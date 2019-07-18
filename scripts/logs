@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -eux
+
+ssh ${DEPLOY_USER}@${DEPLOY_HOST} journalctl -f -o cat
