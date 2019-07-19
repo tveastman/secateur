@@ -8,5 +8,5 @@ def test_home(client):
 
 def test_block(client, admin_user):
     client.login(username="admin", password="password")
-    r = client.get("/block-accounts/")
+    r = client.get("/block/")
     assert r.status_code == 200

@@ -1,0 +1,47 @@
+version: "3.7"
+volumes:
+  postgres:
+  redis:
+networks:
+  secateur:
+services:
+  app:
+    build: .
+    env_file:
+      - ./.env
+    command: ./manage.py runserver 0.0.0.0:5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      secateur:
+    volumes:
+      - .:/app:cached
+  celery:
+    build: .
+    env_file:
+      - ./.env
+    command: celery -A secateur worker -l info
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      secateur:
+    volumes:
+      - .:/app:cached
+  postgres:
+    image: postgres
+    env_file:
+      - ./.env
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      secateur:
+  redis:
+    image: redis
+    volumes:
+      - redis:/data
+    networks:
+      secateur:

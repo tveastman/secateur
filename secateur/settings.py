@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
+import sys
 
 # import logging
 
@@ -24,13 +25,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split()
-
 
 # Application definition
 
@@ -83,7 +83,7 @@ WSGI_APPLICATION = "secateur.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
-DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": "secateur"}}
+DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": os.environ.get('PGDATABASE', 'secateur')}}
 
 
 # Password validation
@@ -164,8 +164,8 @@ _LOGGING = {
     },
 }
 
-CELERY_BROKER_URL = "redis://"
-CELERY_RESULT_BACKEND = "redis://"
+CELERY_BROKER_URL = "redis://redis"
+CELERY_RESULT_BACKEND = "redis://redis"
 CELERY_IMPORTS = ["secateur.tasks"]
 CELERY_TASK_SERIALIZER = "pickle"
 # CELERY_RESULT_SERIALIZER = 'pickle'
