@@ -10,9 +10,7 @@ services:
     image: secateur
     env_file:
       - .env
-    environment:
-      - DEBUG=True
-    command: sh -c "./manage.py migrate && ./manage.py runserver 0.0.0.0:5000"
+    command: sh -c "./manage.py migrate && gunicorn -b 0.0.0.0:5000 -k eventlet --log-level debug secateur.wsgi"
     ports:
       - "5000:5000"
     depends_on:
@@ -20,9 +18,10 @@ services:
       - postgres
     networks:
       secateur:
-    volumes:
-      - .:/app:cached
     init: true
+    read_only: true
+    tmpfs:
+      - /tmp
   celery:
     build: .
     image: secateur
@@ -30,31 +29,12 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- celery -A secateur worker -l info
+    command: celery -A secateur worker -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --beat
     depends_on:
       - redis
       - postgres
     networks:
       secateur:
-    volumes:
-      - .:/app:cached
-    init: true
-    read_only: true
-  tests:
-    build: .
-    image: secateur
-    env_file:
-      - ./.env
-    environment:
-      - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." pytest
-    depends_on:
-      - redis
-      - postgres
-    networks:
-      secateur:
-    volumes:
-      - .:/app:cached
     init: true
     read_only: true
   postgres:

@@ -7,9 +7,9 @@ from django.utils.html import format_html, escape
 
 
 class SecateurUserAdmin(UserAdmin):
-    fieldsets = UserAdmin.fieldsets + (
+    fieldsets = (
         ("Secateur", {"fields": ("is_twitter_api_enabled",)}),
-    )
+    ) + UserAdmin.fieldsets
     list_display = (
         "username",
         "first_name",

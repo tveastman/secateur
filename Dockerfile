@@ -9,4 +9,4 @@ RUN pipenv install --dev --deploy --system --ignore-pipfile
 COPY --chown=app . /app
 WORKDIR /app
 USER app
-RUN python -m compileall . && python manage.py  collectstatic --settings=secateur.settings_build --noinput --no-color
+RUN python -m compileall . && python manage.py collectstatic --noinput --no-color

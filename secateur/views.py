@@ -51,13 +51,11 @@ class Search(FormView):
         except models.Account.DoesNotExist as e:
             logger.debug("Account not found for user: %s", screen_name_lower)
         if account is None:
-            account = tasks.get_user(self.request.user.pk, screen_name=screen_name_lower)
+            account = tasks.get_user(
+                self.request.user.pk, screen_name=screen_name_lower
+            )
 
-        messages.add_message(
-            self.request,
-            messages.INFO,
-            f"Result: {account}"
-        )
+        messages.add_message(self.request, messages.INFO, f"Result: {account}")
         return super().form_valid(form)
 
 

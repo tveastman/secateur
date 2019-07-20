@@ -7,6 +7,8 @@ DONE
 - Gunicorn
 - A daily scheduled job for triggering unblocking.
 - Add a mechanism to make sure secateur doesn't do anything if the user account no longer works.
+- Set up a dockerfile to build an image for the app
+- Set up a docker-compose to build a dev environment
 
 
 NOW
@@ -16,13 +18,11 @@ NOW
 
 NEXT
 ====
+- Add an account detail view.
 
 
 BACKLOG
 =======
-- Add an account detail view.
-- Set up a dockerfile to build an image for the app
-- Set up a docker-compose to build a dev environment
 - Login page
 - Add a random margin to the blocking duration.
 - move all the celery tasks into celery.py

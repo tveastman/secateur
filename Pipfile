@@ -20,6 +20,8 @@ whitenoise = "*"
 eventlet = "*"
 django-bootstrap4 = "*"
 django-celery-beat = "*"
+watchdog = "*"
+dj-database-url = "*"
 
 [dev-packages]
 pytest = "*"

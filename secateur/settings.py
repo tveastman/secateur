@@ -12,10 +12,9 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 import sys
+import secrets
 
-# import logging
-
-# logging.basicConfig(level=logging.DEBUG)
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,12 +24,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY")
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", secrets.token_urlsafe(30))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "").split()
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split()
 
 # Application definition
 
@@ -79,12 +78,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "secateur.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/2.0/ref/settings/#databases
-
-DATABASES = {"default": {"ENGINE": "django.db.backends.postgresql", "NAME": os.environ.get('PGDATABASE', 'secateur')}}
-
+DATABASES = {
+    "default": dj_database_url.config(default='postgres://postgres@postgres/postgres', conn_max_age=600),
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
@@ -143,14 +139,14 @@ SOCIAL_AUTH_PIPELINE = (
     #    'social_core.pipeline.mail.mail_validation',
     "social_core.pipeline.user.create_user",
     "social_core.pipeline.social_auth.associate_user",
-    "social_core.pipeline.debug.debug",
     "social_core.pipeline.social_auth.load_extra_data",
     "social_core.pipeline.user.user_details",
-    "social_core.pipeline.debug.debug",
+    ## 'debug' puts PII in your log file, use with care.
+    #"social_core.pipeline.debug.debug",
 )
 
 # LOGGING
-_LOGGING = {
+LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {},
@@ -158,16 +154,18 @@ _LOGGING = {
     "loggers": {
         "secateur": {"level": "DEBUG"},
         "django": {"level": "INFO", "propagate": True},
-        "requests_oauthlib": {"level": "INFO"},
-        "urllib3": {"level": "INFO"},
-        "oauthlib": {"level": "INFO"},
+        "requests_oauthlib": {"level": "WARNING"},
+        "urllib3": {"level": "WARNING"},
+        "oauthlib": {"level": "WARNING"},
     },
 }
 
 CELERY_BROKER_URL = "redis://redis"
 CELERY_RESULT_BACKEND = "redis://redis"
 CELERY_IMPORTS = ["secateur.tasks"]
-CELERY_TASK_SERIALIZER = "pickle"
+CELERY_TASK_SERIALIZER = (
+    "pickle"
+)  # 'pickle' because I'm passing partial functions around.
 # CELERY_RESULT_SERIALIZER = 'pickle'
 CELERY_ACCEPT_CONTENT = ["pickle"]
 CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 60 * 60 * 24}
@@ -175,7 +173,7 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 60 * 60 * 24}
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/2",
+        "LOCATION": "redis://redis:6379/2",
         "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
         "KEY_PREFIX": "secateur:",
     }
