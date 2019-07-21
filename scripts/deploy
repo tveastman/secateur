@@ -8,10 +8,8 @@ cd $(dirname $0)/..
 git ls-files > ${FILE_LIST}
 rsync -av --files-from=${FILE_LIST} . ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIRECTORY}
 
-ssh ${DEPLOY_USER}@${DEPLOY_HOST} "
+ssh -t ${DEPLOY_USER}@${DEPLOY_HOST} "
    cd ${DEPLOY_DIRECTORY}
-   ${DEPLOY_PIPENV} install
-   ${DEPLOY_PIPENV} run ./manage.py migrate
-   ${DEPLOY_PIPENV} run ./manage.py collectstatic --noinput
-   systemctl --user restart secateur
+   sudo docker-compose -f docker-compose-live.yml build --pull
+   sudo docker-compose -f docker-compose-live.yml up -d
 "

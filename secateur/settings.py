@@ -30,6 +30,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", secrets.token_urlsafe(30))
 DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split()
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
@@ -154,9 +155,9 @@ LOGGING = {
     "loggers": {
         "secateur": {"level": "DEBUG"},
         "django": {"level": "INFO", "propagate": True},
-        "requests_oauthlib": {"level": "WARNING"},
-        "urllib3": {"level": "WARNING"},
-        "oauthlib": {"level": "WARNING"},
+        "requests_oauthlib": {"level": "INFO"},
+        "urllib3": {"level": "INFO"},
+        "oauthlib": {"level": "INFO"},
     },
 }
 
