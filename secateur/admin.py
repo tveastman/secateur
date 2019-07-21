@@ -17,6 +17,9 @@ class SecateurUserAdmin(UserAdmin):
         "is_twitter_api_enabled",
         "is_staff",
     )
+    list_editable = (
+        "is_twitter_api_enabled",
+    )
 
 
 admin.site.register(models.User, SecateurUserAdmin)

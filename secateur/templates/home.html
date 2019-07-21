@@ -6,4 +6,20 @@
   <p class='lead'>
     Yup, I still need to use this space to explain just what this thing is all about.
   </p>
+
+  {% if user.is_authenticated %}
+    {% if not user.is_twitter_api_enabled %}
+      <div class="alert alert-warning" role="alert">
+        <h4 class="alert-heading">An administrator needs to enable your account.</h4>
+        <p>
+          You've logged in to Secateur, but an administrator needs to enable your access
+          before you can use it to block or mute users. This is a safeguard while Secateur
+          is still, essentially, a pre-alpha spare-time project.
+        </p>
+        <p>
+          See the <a href="/contact/">contact page</a> for details.
+        </p>
+      </div>
+    {% endif %}
+  {% endif %}
 {% endblock %}

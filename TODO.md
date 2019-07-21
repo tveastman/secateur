@@ -11,11 +11,11 @@ DONE
 - Set up a docker-compose to build a dev environment
 - A 'disconnect from secateur' page that removes secateur's ability to act as you.
 - A management command that upgrades someone to superuser
+- A warning on the frontpage for when the twitter API hasn't been enabled for you.
 
 
 NOW
 ===
-- A warning on the frontpage for when the twitter API hasn't been enabled for you.
 
 
 NEXT
@@ -31,3 +31,6 @@ BACKLOG
 - Write copy for the frontpage explaining what the tool actually does.
 - Add a search bar.
 - Add a rest API
+- Replace the current blocking mechanism with a 'Job' model than can be used
+  to arbitrarily schedule block, unblock, mute, and unmute operations.
+-
