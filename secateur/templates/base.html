@@ -31,7 +31,7 @@
               <a>
               <div class="dropdown-menu"  aria-labelledby="navbarDropdown">
                 {% if user.is_staff %}
-                  <a href="{% url 'admin:index' %}" class="dropdown-item">Administration</a>
+                  <a href="{% url 'admin:index' %}" class="dropdown-item">Admin</a>
                 {% endif %}
                 <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
               </div>

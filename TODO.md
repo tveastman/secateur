@@ -9,22 +9,22 @@ DONE
 - Add a mechanism to make sure secateur doesn't do anything if the user account no longer works.
 - Set up a dockerfile to build an image for the app
 - Set up a docker-compose to build a dev environment
+- A 'disconnect from secateur' page that removes secateur's ability to act as you.
+- A management command that upgrades someone to superuser
 
 
 NOW
 ===
-- A 'disconnect from secateur' page that removes secateur's ability to act as you.
+- A warning on the frontpage for when the twitter API hasn't been enabled for you.
 
 
 NEXT
 ====
 - Add an account detail view.
 - Add a search page to look up a user.
-- A management command that upgrades someone to superuser
 
 BACKLOG
 =======
-- A warning on the frontpage for when the twitter API hasn't been enabled for you.
 - Login page
 - Add a random margin to the blocking duration.
 - move all the celery tasks into celery.py
