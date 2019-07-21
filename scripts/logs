@@ -2,4 +2,6 @@
 
 set -eux
 
-ssh ${DEPLOY_USER}@${DEPLOY_HOST} journalctl -f -o cat
+ssh -t ${DEPLOY_USER}@${DEPLOY_HOST} "
+  sudo docker-compose -f ${DEPLOY_DIRECTORY}/docker-compose-live.yml logs -f
+"

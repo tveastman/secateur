@@ -25,6 +25,16 @@ class SecateurUserAdmin(UserAdmin):
 admin.site.register(models.User, SecateurUserAdmin)
 
 
+def get_user(modeladmin, request, queryset):
+    # Let's not accidentally do the whole database.
+    TOO_MANY = 200
+    import secateur.tasks
+    for account in queryset[:TOO_MANY]:
+        secateur.tasks.get_user.delay(request.user.pk, account.user_id).forget()
+get_user.short_description = "Update profile from Twitter."
+
+
+
 @admin.register(models.Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ("user_id", "screen_name", "name")
@@ -37,6 +47,7 @@ class AccountAdmin(admin.ModelAdmin):
         "profile_updated",
         "profile",
     )
+    actions = [get_user]
 
 
 @admin.register(models.Relationship)
