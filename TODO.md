@@ -13,12 +13,12 @@ DONE
 - A management command that upgrades someone to superuser
 - A warning on the frontpage for when the twitter API hasn't been enabled for you.
 - An admin action that will call 'get_user' on accounts.
+- Add an account detail view.
+- Add a search page to look up a user.
 
 
 NOW
 ===
-- Add an account detail view.
-- Add a search page to look up a user.
 
 
 NEXT

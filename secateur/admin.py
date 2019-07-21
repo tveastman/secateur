@@ -17,9 +17,7 @@ class SecateurUserAdmin(UserAdmin):
         "is_twitter_api_enabled",
         "is_staff",
     )
-    list_editable = (
-        "is_twitter_api_enabled",
-    )
+    list_editable = ("is_twitter_api_enabled",)
 
 
 admin.site.register(models.User, SecateurUserAdmin)
@@ -29,10 +27,12 @@ def get_user(modeladmin, request, queryset):
     # Let's not accidentally do the whole database.
     TOO_MANY = 200
     import secateur.tasks
+
     for account in queryset[:TOO_MANY]:
         secateur.tasks.get_user.delay(request.user.pk, account.user_id).forget()
-get_user.short_description = "Update profile from Twitter."
 
+
+get_user.short_description = "Update profile from Twitter."
 
 
 @admin.register(models.Account)

@@ -68,6 +68,8 @@ def get_user(secateur_user_pk, user_id=None, screen_name=None):
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.USER_SUSPENDED:
             return None
+        elif ErrorCode.from_exception(e) == ErrorCode.USER_NOT_FOUND:
+            return None
         else:
             raise
     account = models.Account.get_account(twitter_user)

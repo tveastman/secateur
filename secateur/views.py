@@ -4,12 +4,13 @@ import datetime
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from django.views.generic.list import ListView
+from django.views.generic.detail import DetailView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.utils import timezone
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 
 import social_django.models
 
@@ -22,6 +23,14 @@ logger = logging.getLogger(__name__)
 
 class Home(TemplateView):
     template_name = "home.html"
+
+
+class Account(DetailView):
+    template_name = "account.html"
+    model = models.Account
+
+    def get_object(self):
+        return self.get_queryset().get(screen_name=self.kwargs["screen_name"])
 
 
 @method_decorator(login_required, name="dispatch")
@@ -58,7 +67,15 @@ class Search(FormView):
                 self.request.user.pk, screen_name=screen_name_lower
             )
 
-        messages.add_message(self.request, messages.INFO, f"Result: {account}")
+        if account is None:
+            messages.add_message(
+                self.request, messages.INFO, "No account by that name found."
+            )
+            return super().form_valid(form)
+
+        self.success_url = reverse(
+            "account", kwargs={"screen_name": account.screen_name}
+        )
         return super().form_valid(form)
 
 

@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}{{ account.name }}{% endblock %}
+{% block content %}
+
+<p>
+  <img src="{{ account.profile.json.profile_image_url_https }}" alt="">
+  </p>
+
+  <table class="table">
+    <tbody>
+      <tr>
+        <th scope="row">Screen_name</th>
+        <td>{{ account.screen_name }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Name</th>
+        <td>{{ account.name }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Description</th>
+        <td>{{ account.profile.json.description }}</td>
+      </tr>
+      <tr>
+        <th scope="row">Location</th>
+        <td>{{ account.profile.json.location }}</td>
+      </tr>
+    </tbody>
+  </table>
+{% endblock %}

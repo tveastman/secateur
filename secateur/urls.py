@@ -30,5 +30,6 @@ urlpatterns = [
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("disconnect/", views.Disconnect.as_view(), name="disconnect"),
     path("disconnected/", views.Disconnected.as_view(), name="disconnected"),
+    path("account/<slug:screen_name>/", views.Account.as_view(), name="account"),
     url("", include("social_django.urls", namespace="social")),
 ]
