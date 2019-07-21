@@ -5,10 +5,13 @@ from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from django.views.generic.list import ListView
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import logout
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.utils import timezone
 from django.urls import reverse_lazy
+
+import social_django.models
 
 from . import forms
 from . import tasks
@@ -60,9 +63,9 @@ class Search(FormView):
 
 
 @method_decorator(login_required, name="dispatch")
-class BlockAccounts(FormView):
+class Block(FormView):
     form_class = forms.BlockAccountsForm
-    template_name = "block-accounts.html"
+    template_name = "block.html"
     success_url = reverse_lazy("block-accounts")
 
     def form_valid(self, form):
@@ -148,3 +151,36 @@ class BlockAccounts(FormView):
                 until=until,
             )
         return super().form_valid(form)
+
+
+@method_decorator(login_required, name="dispatch")
+class Disconnect(FormView):
+    """Allow a user to erase their credentials on Secateur"""
+
+    form_class = forms.Disconnect
+    template_name = "disconnect.html"
+    success_url = reverse_lazy("disconnected")
+
+    def form_valid(self, form):
+        # The form has nothing in it, it's just intercepting POST requests.
+        # I guess I could an 'are you sure?' boolean in the form or something.
+
+        user = self.request.user
+        user_social_auth = user.social_auth.get()  # There can be only one
+
+        # Erase the oauth token we've got.
+        user_social_auth.extra_data = None
+        user_social_auth.save(update_fields=["extra_data"])
+
+        # Disable the twitter API.
+        user.is_twitter_api_enabled = False
+        user.save(update_fields=["is_twitter_api_enabled"])
+
+        # Log the user out.
+        logout(self.request)
+
+        return super().form_valid(form)
+
+
+class Disconnected(TemplateView):
+    template_name = "disconnected.html"

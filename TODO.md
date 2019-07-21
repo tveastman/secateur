@@ -13,20 +13,21 @@ DONE
 
 NOW
 ===
-- Add a search page to look up a user.
+- A 'disconnect from secateur' page that removes secateur's ability to act as you.
 
 
 NEXT
 ====
 - Add an account detail view.
-
+- Add a search page to look up a user.
+- A management command that upgrades someone to superuser
 
 BACKLOG
 =======
+- A warning on the frontpage for when the twitter API hasn't been enabled for you.
 - Login page
 - Add a random margin to the blocking duration.
 - move all the celery tasks into celery.py
 - Write copy for the frontpage explaining what the tool actually does.
 - Add a search bar.
 - Add a rest API
-- A 'disconnect from secateur' page that removes secateur's ability to act as you.

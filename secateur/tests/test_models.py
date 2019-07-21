@@ -5,7 +5,7 @@ from django.utils import timezone
 
 import twitter.models
 
-from . import models
+from secateur import models
 
 
 class TestAccounts(TestCase):

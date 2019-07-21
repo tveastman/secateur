@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Disconnected{% endblock %}
+{% block content %}
+  <p class='lead'>
+    You have disconnected your Twitter account from Secateur. Secateur can no longer block or unblock users on your behalf.
+  </p>
+
+  <p>
+    However, your Twitter account has still granted privileges to Secateur that, for security reasons, you should revoke. To remove Secateur from your Twitter account entirely:
+  </p>
+
+  <ol>
+    <li>Open your Twitter account's "Apps and devices" page.</li>
+    <li>Find 'secateur' under the section 'Apps connected to your Twitter account'</li>
+    <li>Click 'Revoke access'</li>
+  </ol>
+
+  <p>If you wish to resume using Secateur, you just have to login again.</p>
+
+  <p><a href="{% url 'home' %}">Return home.</a></p>
+
+{% endblock %}

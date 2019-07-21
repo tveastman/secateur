@@ -30,7 +30,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", secrets.token_urlsafe(30))
 DEBUG = os.environ.get("DEBUG", "false").lower() == "true"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split()
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Application definition
 
@@ -80,7 +80,9 @@ TEMPLATES = [
 WSGI_APPLICATION = "secateur.wsgi.application"
 
 DATABASES = {
-    "default": dj_database_url.config(default='postgres://postgres@postgres/postgres', conn_max_age=600),
+    "default": dj_database_url.config(
+        default="postgres://postgres@postgres/postgres", conn_max_age=600
+    )
 }
 
 # Password validation
@@ -143,7 +145,7 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.load_extra_data",
     "social_core.pipeline.user.user_details",
     ## 'debug' puts PII in your log file, use with care.
-    #"social_core.pipeline.debug.debug",
+    # "social_core.pipeline.debug.debug",
 )
 
 # LOGGING

@@ -1,6 +1,10 @@
 from django import forms
 
 
+class Disconnect(forms.Form):
+    pass
+
+
 class BlockAccountsForm(forms.Form):
     screen_name = forms.CharField(help_text="The Twitter username.")
     duration = forms.IntegerField(
