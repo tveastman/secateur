@@ -42,7 +42,7 @@ services:
       - /tmp
     restart: always
   postgres:
-    image: postgres
+    image: postgres:11
     env_file:
       - ./.env
     volumes:

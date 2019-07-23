@@ -58,7 +58,7 @@ services:
     init: true
     read_only: true
   postgres:
-    image: postgres
+    image: postgres:11
     env_file:
       - ./.env
     volumes:
