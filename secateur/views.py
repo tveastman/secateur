@@ -7,6 +7,7 @@ from django.views.generic.list import ListView
 from django.views.generic.detail import DetailView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import logout
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.utils import timezone
@@ -33,19 +34,16 @@ class Account(DetailView):
         return self.get_queryset().get(screen_name=self.kwargs["screen_name"])
 
 
-@method_decorator(login_required, name="dispatch")
-class LogMessages(ListView):
+class LogMessages(LoginRequiredMixin, ListView):
     template_name = "log-messages.html"
     model = models.LogMessage
     paginate_by = 50
-
     def get_queryset(self):
         user = models.User.objects.get(pk=self.request.user.pk)
         return models.LogMessage.objects.filter(user=user).order_by("-time")
 
 
-@method_decorator(login_required, name="dispatch")
-class Search(FormView):
+class Search(LoginRequiredMixin, FormView):
     form_class = forms.Search
     template_name = "search.html"
     success_url = reverse_lazy("search")
@@ -79,8 +77,7 @@ class Search(FormView):
         return super().form_valid(form)
 
 
-@method_decorator(login_required, name="dispatch")
-class Block(FormView):
+class Block(LoginRequiredMixin, FormView):
     form_class = forms.BlockAccountsForm
     template_name = "block.html"
     success_url = reverse_lazy("block-accounts")
@@ -170,8 +167,7 @@ class Block(FormView):
         return super().form_valid(form)
 
 
-@method_decorator(login_required, name="dispatch")
-class Disconnect(FormView):
+class Disconnect(LoginRequiredMixin, FormView):
     """Allow a user to erase their credentials on Secateur"""
 
     form_class = forms.Disconnect

@@ -34,4 +34,5 @@ BACKLOG
 - Add a search bar.
 - Add a rest API
 - Replace the current blocking mechanism with a 'Job' model than can be used
-  to arbitrarily schedule block, unblock, mute, and unmute operations.
+  to arbitrarily schedule block, unblock, mute, and unmute operations. This
+  would make the whole thing a whole lot more RESTful.

@@ -4,8 +4,6 @@ import random
 from functools import partialmethod
 from pprint import pformat
 
-logging.basicConfig(level=logging.DEBUG)
-
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import JSONField
 from django.utils import timezone
