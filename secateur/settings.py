@@ -184,4 +184,26 @@ CACHES = {
     }
 }
 
-BOOTSTRAP4 = {"include_jquery": True}
+BOOTSTRAP4 = {
+    "include_jquery": True,
+    "css_url": {
+        "href": "/static/css/bootstrap.min.css",
+        "integrity": "sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB",
+        "crossorigin": "anonymous",
+    },
+    "javascript_url": {
+        "url": "/static/js/bootstrap.min.js",
+        "integrity": "sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T",
+        "crossorigin": "anonymous",
+    },
+    "jquery_url": {
+        "url": "/static/js/jquery-3.4.1.min.js",
+        "integrity": "sha384-vk5WoKIaW/vJyUAd9n/wmopsmNhiy+L2Z+SBxGYnUkunIxVxAv/UtMOhba/xskxh",
+        "crossorigin": "anonymous",
+    },
+    "popper_url": {
+        "url": "/static/js/popper.min.js",
+        "integrity": "sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49",
+        "crossorigin": "anonymous",
+    },
+}
