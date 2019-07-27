@@ -21,6 +21,7 @@ django-bootstrap4 = "*"
 django-celery-beat = "*"
 watchdog = "*"
 dj-database-url = "*"
+django-csp = "*"
 
 [dev-packages]
 pytest = "*"

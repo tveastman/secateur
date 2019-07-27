@@ -59,6 +59,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.contrib.flatpages.middleware.FlatpageFallbackMiddleware",
+    "csp.middleware.CSPMiddleware",
 ]
 
 ROOT_URLCONF = "secateur.urls"
@@ -207,3 +208,5 @@ BOOTSTRAP4 = {
         "crossorigin": "anonymous",
     },
 }
+
+CSP_IMG_SRC = ["'self'", "pbs.twimg.com"]
