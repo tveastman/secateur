@@ -1,10 +1,8 @@
 """django-q tasks"""
 
 from functools import partial
-from datetime import timedelta
 import logging
 import random
-import pprint
 import enum
 import datetime
 

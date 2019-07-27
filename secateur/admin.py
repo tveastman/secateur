@@ -3,7 +3,7 @@ from pprint import pformat
 from django.contrib import admin
 from . import models
 from django.contrib.auth.admin import UserAdmin
-from django.utils.html import format_html, escape
+from django.utils.html import format_html
 
 
 class SecateurUserAdmin(UserAdmin):
