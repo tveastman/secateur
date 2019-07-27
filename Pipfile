@@ -10,7 +10,6 @@ python_version = "3"
 django = "*"
 social-auth-app-django = "*"
 python-twitter = "*"
-honcho = "*"
 "psycopg2-binary" = "*"
 celery = {extras = ["redis"]}
 redis = "*"
