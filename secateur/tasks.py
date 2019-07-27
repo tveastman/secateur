@@ -1,22 +1,19 @@
 """django-q tasks"""
 
-from functools import partial
-from datetime import timedelta
+import datetime
+import enum
 import logging
 import random
-import pprint
-import enum
-import datetime
+from functools import partial
 
-from django.utils import timezone
-from django.db.models import Q
 from django.core.cache import cache
-
+from django.db.models import Q
+from django.utils import timezone
 from twitter.error import TwitterError
-from .utils import ErrorCode
 
 from . import models
 from .celery import app
+from .utils import ErrorCode
 
 logger = logging.getLogger(__name__)
 

@@ -1,23 +1,16 @@
-import logging
 import datetime
+import logging
 
-from django.views.generic.base import TemplateView
-from django.views.generic.edit import FormView
-from django.views.generic.list import ListView
-from django.views.generic.detail import DetailView
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.utils.decorators import method_decorator
 from django.contrib import messages
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.urls import reverse_lazy, reverse
+from django.utils.decorators import method_decorator
+from django.views.generic import DetailView, FormView, ListView, TemplateView
 
-import social_django.models
-
-from . import forms
-from . import tasks
-from . import models
+from . import forms, models, tasks
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +31,7 @@ class LogMessages(LoginRequiredMixin, ListView):
     template_name = "log-messages.html"
     model = models.LogMessage
     paginate_by = 50
+
     def get_queryset(self):
         user = models.User.objects.get(pk=self.request.user.pk)
         return models.LogMessage.objects.filter(user=user).order_by("-time")
@@ -58,7 +52,7 @@ class Search(LoginRequiredMixin, FormView):
         # First search our local database.
         try:
             account = models.Account.objects.get(screen_name_lower=screen_name_lower)
-        except models.Account.DoesNotExist as e:
+        except models.Account.DoesNotExist:
             logger.debug("Account not found for user: %s", screen_name_lower)
         if account is None:
             account = tasks.get_user(
