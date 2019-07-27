@@ -1,16 +1,16 @@
-import logging
 import datetime
+import logging
 
-from django.views.generic import DetailView, FormView, ListView, TemplateView
-from django.contrib.auth import logout
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.urls import reverse_lazy, reverse
+from django.utils.decorators import method_decorator
+from django.views.generic import DetailView, FormView, ListView, TemplateView
 
-from . import forms
-from . import tasks
-from . import models
+from . import forms, models, tasks
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,7 @@
 
+import twitter.models
 from django.test import TestCase
 from django.utils import timezone
-
-import twitter.models
-
 from secateur import models
 
 

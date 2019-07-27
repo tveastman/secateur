@@ -1,17 +1,14 @@
-import os
 import logging
-
-from django.contrib.auth.models import AbstractUser
-from django.contrib.postgres.fields import JSONField
-from django.utils import timezone
-from django.utils.functional import cached_property
-from django.db import models
-from django.db import transaction
+import os
 
 import twitter
+from django.contrib.auth.models import AbstractUser
+from django.contrib.postgres.fields import JSONField
+from django.db import models, transaction
+from django.utils import timezone
+from django.utils.functional import cached_property
 
 from . import tasks
-
 
 logger = logging.getLogger(__name__)
 
