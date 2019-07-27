@@ -8,9 +8,11 @@ People who want to use Secateur can either use the public app or, if their priva
 
 ## Setting up your own environment.
 
+Secateur is a Django web application built to be run in a docker environment along with a cache server (redis) and database server (postgres).
+
 To run your own instance of Secateur, you need the following:
 
-- recent versions of `docker` and `docker-compose`
+- recent versions of [https://docs.docker.com/install/](`docker`) and [https://docs.docker.com/compose/install/](`docker-compose`)
 - credentials for the [Twitter Developer API](https://developer.twitter.com/)
 
 If you have those, setting up your developer environment should be straightforward:
