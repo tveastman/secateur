@@ -154,7 +154,7 @@ SOCIAL_AUTH_PIPELINE = (
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {'console': {'class': 'logging.StreamHandler'}},
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
     "root": {"level": "DEBUG", "handlers": ["console"]},
     "loggers": {
         "secateur": {"level": "DEBUG"},
