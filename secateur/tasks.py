@@ -155,7 +155,9 @@ def create_relationship(
                 rate_limit_key, now + datetime.timedelta(seconds=15 * 60), 15 * 60
             )
             models.LogMessage.objects.create(
-                user=secateur_user, message="Rate limited: resuming in 15 minutes.", time=now
+                user=secateur_user,
+                message="Rate limited: resuming in 15 minutes.",
+                time=now,
             )
             self.retry(countdown=_twitter_retry_timeout(retries=self.request.retries))
         else:

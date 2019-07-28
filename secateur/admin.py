@@ -4,7 +4,18 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.html import format_html
 
+import social_django.admin
+
 from . import models
+
+
+## MONKEYPATCH: Hide the 'extra_data' field from the 'user social auth'
+## model. That's the field that has a user's oauth credentials in it,
+## They're sensitive and we don't want them to be exposed if anyone gets
+## access to an admin account. They'd still be exposed if an attacker
+## achieves code execution, but that's a higher bar than nabbing admin
+## access credentials.
+social_django.admin.UserSocialAuthOption.exclude = ["extra_data"]
 
 
 class SecateurUserAdmin(UserAdmin):
