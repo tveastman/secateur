@@ -4,7 +4,7 @@
 {% block title %}Secateur{% endblock %}
 {% block content %}
   <p class='lead'>
-    Yup, I still need to use this space to explain just what this thing is all about.
+    Use Secateur if you want to temporarily block or mute a Twitter account <em>and</em> all its followers.
   </p>
 
   {% if user.is_authenticated %}
@@ -22,4 +22,16 @@
       </div>
     {% endif %}
   {% endif %}
+
+  <h2>The basics</h2>
+  <ol>
+    <li><strong>Log in</strong> to secateur. Logging in connects Secateur to your Twitter account and gives it permission to block or unblock users on your behalf. </li>
+    <li>If you're logging in for the <strong>first time</strong>, you will also have to contact the <a href="/contact/">administrator</a> to ask them to enable your account. This is a safeguard while the project is young.</li>
+    <li>Use the <strong>'Block Accounts'</strong> page to select whether to block or mute a user and/or their followers, and select a time period (in weeks).</li>
+    <li>All operations Secateur takes on your behalf are logged on the 'Log' page.</li>
+  </ol>
+  <p>As you can see, the user interface at the moment is still entirely bare-bones. It will grow more usable and flexible over time.</p>
+
+  <h2>Disconnecting</h2>
+  To immediately prevent Secateur from acting on your behalf, use the 'Disconnect' link.
 {% endblock %}
