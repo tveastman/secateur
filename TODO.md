@@ -1,3 +1,5 @@
+Why use kanban when you can just move bullet points around a text file?
+
 DONE
 ====
 - Replace the user proxy model with an actual user model based on AbstractUser
@@ -15,6 +17,7 @@ DONE
 - An admin action that will call 'get_user' on accounts.
 - Add an account detail view.
 - Add a search page to look up a user.
+- Write copy for the frontpage explaining what the tool actually does.
 
 
 NOW
@@ -23,15 +26,16 @@ NOW
 
 NEXT
 ====
+- Add a search bar.
+- put a 'block/mute' form on an account profile page (where a search result sends you.)
 
 
 BACKLOG
 =======
+
 - Login page
 - Add a random margin to the blocking duration.
 - move all the celery tasks into celery.py
-- Write copy for the frontpage explaining what the tool actually does.
-- Add a search bar.
 - Add a rest API
 - Replace the current blocking mechanism with a 'Job' model than can be used
   to arbitrarily schedule block, unblock, mute, and unmute operations. This
