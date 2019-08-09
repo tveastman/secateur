@@ -435,3 +435,23 @@ def unblock_expired(now=None):
                 countdown=random.randint(1, 60 * 15),
                 max_retries=15,
             )
+
+
+def update_user_details(secateur_user):
+    """Update the details of a secateur user.
+
+    Fetches a user's friends, blocks and mutes lists, and
+    their own twitter profile.
+    """
+    account = secateur_user.account
+
+    get_user.delay(secateur_user.pk, user_id=account.pk).forget()
+
+    ## I'm not convinced I need to update these, and any secateur user
+    ## might have a lot of them.
+    twitter_update_mutes(secateur_user)
+    twitter_update_blocks(secateur_user)
+
+    ## Definitely need this one.
+    twitter_update_friends(secateur_user)
+    ## TODO: Add twitter list support.

@@ -18,6 +18,13 @@ from . import models
 social_django.admin.UserSocialAuthOption.exclude = ["extra_data"]
 
 
+def update_user_details(modeladmin, request, queryset):
+    import secateur.tasks
+
+    for secateur_user in queryset:
+        secateur.tasks.update_user_details(secateur_user)
+
+
 class SecateurUserAdmin(UserAdmin):
     fieldsets = (
         ("Secateur", {"fields": ("is_twitter_api_enabled",)}),
@@ -30,6 +37,7 @@ class SecateurUserAdmin(UserAdmin):
         "is_staff",
     )
     list_editable = ("is_twitter_api_enabled",)
+    actions = [update_user_details]
 
 
 admin.site.register(models.User, SecateurUserAdmin)

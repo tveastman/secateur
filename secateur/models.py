@@ -27,7 +27,7 @@ class User(AbstractUser):
 
     @cached_property
     def twitter_user_id(self):
-        return int(self.twitter_social_auth.extra_data["access_token"]["user_id"])
+        return int(self.twitter_social_auth.uid)
 
     @cached_property
     def account(self):
