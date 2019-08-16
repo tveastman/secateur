@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "social_django",
     "bootstrap4",
+    "request",
     "secateur",
 ]
 
@@ -56,6 +57,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "request.middleware.RequestMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.contrib.flatpages.middleware.FlatpageFallbackMiddleware",
@@ -210,3 +212,6 @@ BOOTSTRAP4 = {
 }
 
 CSP_IMG_SRC = ["'self'", "pbs.twimg.com"]
+CSP_EXCLUDE_URL_PREFIXES = (
+    "/admin/request/request/overview/",
+)

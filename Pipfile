@@ -22,6 +22,7 @@ django-celery-beat = "*"
 watchdog = "*"
 dj-database-url = "*"
 django-csp = "*"
+django-request = "*"
 
 [dev-packages]
 pytest = "*"
