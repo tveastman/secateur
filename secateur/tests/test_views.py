@@ -1,4 +1,4 @@
-def test_home(client):
+def test_home(client, db):
     r = client.get("/")
     assert r.status_code == 200
 
