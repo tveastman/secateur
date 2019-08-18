@@ -149,14 +149,14 @@ class Block(LoginRequiredMixin, FormView):
                 secateur_user=user,
                 type=models.Relationship.MUTES,
                 account=account,
-                until=until,
+                duration=duration,
             )
         if form.cleaned_data["block_followers"]:
             tasks.twitter_block_followers(
                 secateur_user=user,
                 type=models.Relationship.BLOCKS,
                 account=account,
-                until=until,
+                duration=duration,
             )
         return super().form_valid(form)
 

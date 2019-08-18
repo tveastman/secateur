@@ -13,7 +13,7 @@ from twitter.error import TwitterError
 
 from . import models
 from .celery import app
-from .utils import ErrorCode
+from .utils import ErrorCode, fudge_duration
 
 logger = logging.getLogger(__name__)
 
@@ -376,8 +376,11 @@ def twitter_update_mutes(secateur_user):
 
 
 # Used as a partial() in twitter_block_followers()
-def _block_multiple(accounts, type, secateur_user_pk, until):
+def _block_multiple(accounts, type, secateur_user_pk, duration):
     for i, account in enumerate(accounts):
+        ## Add a random 5% component to the block duration.
+        fudged_duration = fudge_duration(duration, 0.05)
+        until = timezone.now() + fudged_duration
         create_relationship.apply_async(
             [],
             {
@@ -394,7 +397,7 @@ def _block_multiple(accounts, type, secateur_user_pk, until):
         )
 
 
-def twitter_block_followers(secateur_user, type, account, until):
+def twitter_block_followers(secateur_user, type, account, duration):
     api = secateur_user.api
     now = timezone.now()
 
@@ -402,7 +405,7 @@ def twitter_block_followers(secateur_user, type, account, until):
     accounts_handlers = [
         partial(account.add_followers, updated=now),
         partial(
-            _block_multiple, type=type, secateur_user_pk=secateur_user.pk, until=until
+            _block_multiple, type=type, secateur_user_pk=secateur_user.pk, duration=duration
         ),
     ]
     finish_handlers = [partial(account.remove_followers_older_than, now)]
