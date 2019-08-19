@@ -23,6 +23,7 @@ watchdog = "*"
 dj-database-url = "*"
 django-csp = "*"
 django-request = "*"
+django-xff = "*"
 
 [dev-packages]
 pytest = "*"

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "162b539a988f2b1c619011d86b0bf085953e3d556787dcfc814620b6b45c3e24"
+            "sha256": "77257cea2eea68b34da81c2758da5491268445ee98d8cb82b0faddccb6ce3a74"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -132,6 +132,14 @@
                 "sha256:d9fdab77c443b78c362ffaeb50fe7d7b54692c89aaae8ca1cae67848139b82ac"
             ],
             "version": "==3.0"
+        },
+        "django-xff": {
+            "hashes": [
+                "sha256:46af595516c21966ce7d4233fe91f771c16285625566b49ac34e90737107111c",
+                "sha256:c352f06acc8e5be9c9ffb109635ddfcc952157aee86acf9064d2457c5f818803"
+            ],
+            "index": "pypi",
+            "version": "==1.3.0"
         },
         "dnspython": {
             "hashes": [
