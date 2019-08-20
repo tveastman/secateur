@@ -47,7 +47,7 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." pytest
+    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- pytest --cov-report=term-missing:skip-covered --cov=secateur
     depends_on:
       - redis
       - postgres
