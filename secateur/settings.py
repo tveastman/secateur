@@ -154,6 +154,7 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.user.user_details",
     ## 'debug' puts PII in your log file, use with care.
     # "social_core.pipeline.debug.debug",
+    "secateur.utils.pipeline_user_account_link",
 )
 
 # LOGGING
@@ -215,6 +216,4 @@ BOOTSTRAP4 = {
 }
 
 CSP_IMG_SRC = ["'self'", "pbs.twimg.com"]
-CSP_EXCLUDE_URL_PREFIXES = (
-    "/admin/request/request/overview/",
-)
+CSP_EXCLUDE_URL_PREFIXES = ("/admin/request/request/overview/",)

@@ -1,6 +1,12 @@
 from enum import Enum
+import logging
 import random
 import datetime
+
+import secateur.models
+
+logger = logging.getLogger(__name__)
+
 
 class ErrorCode(Enum):
     RATE_LIMITED_EXCEEDED = 88
@@ -24,3 +30,13 @@ def fudge_duration(duration, fraction):
     total_seconds = duration.total_seconds()
     max_fudge = int(total_seconds * fraction)
     return duration + datetime.timedelta(seconds=random.randint(0, max_fudge))
+
+
+def pipeline_user_account_link(*args, **kwargs):
+    """social auth pipeline: update secateur.models.User.account"""
+    user = kwargs["user"]
+    uid = kwargs["uid"]
+    account = secateur.models.Account.get_account(uid)
+    if user.account != account:
+        user.account = account
+        user.save(update_fields=("account",))

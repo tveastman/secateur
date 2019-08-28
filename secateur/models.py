@@ -19,6 +19,9 @@ class TwitterApiDisabled(Exception):
 
 class User(AbstractUser):
     is_twitter_api_enabled = models.BooleanField(default=False)
+    account = models.ForeignKey(
+        "Account", null=True, editable=False, on_delete=models.SET_NULL
+    )
 
     @cached_property
     def twitter_social_auth(self):
@@ -28,11 +31,6 @@ class User(AbstractUser):
     @cached_property
     def twitter_user_id(self):
         return int(self.twitter_social_auth.uid)
-
-    @cached_property
-    def account(self):
-        user_id = self.twitter_user_id
-        return Account.get_account(user_id)
 
     @cached_property
     def api(self):

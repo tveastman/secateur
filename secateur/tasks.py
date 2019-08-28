@@ -405,7 +405,10 @@ def twitter_block_followers(secateur_user, type, account, duration):
     accounts_handlers = [
         partial(account.add_followers, updated=now),
         partial(
-            _block_multiple, type=type, secateur_user_pk=secateur_user.pk, duration=duration
+            _block_multiple,
+            type=type,
+            secateur_user_pk=secateur_user.pk,
+            duration=duration,
         ),
     ]
     finish_handlers = [partial(account.remove_followers_older_than, now)]

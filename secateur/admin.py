@@ -27,16 +27,19 @@ def update_user_details(modeladmin, request, queryset):
 
 class SecateurUserAdmin(UserAdmin):
     fieldsets = (
-        ("Secateur", {"fields": ("is_twitter_api_enabled",)}),
+        ("Secateur", {"fields": ("is_twitter_api_enabled", "account")}),
     ) + UserAdmin.fieldsets
     list_display = (
         "username",
+        "account",
         "first_name",
         "last_name",
         "is_twitter_api_enabled",
         "is_staff",
     )
     list_editable = ("is_twitter_api_enabled",)
+    readonly_fields = ("account",) + UserAdmin.readonly_fields
+
     actions = [update_user_details]
 
 
