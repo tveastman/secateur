@@ -31,9 +31,9 @@ class SecateurUserAdmin(UserAdmin):
     ) + UserAdmin.fieldsets
     list_display = (
         "username",
-        "account",
         "first_name",
         "last_name",
+        "last_login",
         "is_twitter_api_enabled",
         "is_staff",
     )
