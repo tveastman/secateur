@@ -217,3 +217,10 @@ BOOTSTRAP4 = {
 
 CSP_IMG_SRC = ["'self'", "pbs.twimg.com"]
 CSP_EXCLUDE_URL_PREFIXES = ("/admin/request/request/overview/",)
+
+# By forcing people to log in if they haven't used the app for a day, we know
+# that User.last_login being old will accurately convey that they haven't used
+# the app for a while, we can remove the oauth credentials of anyone who
+# (a) hasn't used the app in a while, and (b) has no pending scheduled
+# operations (like unblocks or unmutes).
+SESSION_COOKIE_AGE = 60 * 60 * 18  # 18 hours: gotta log in every day.

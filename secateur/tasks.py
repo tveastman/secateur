@@ -461,3 +461,8 @@ def update_user_details(secateur_user):
     ## Definitely need this one.
     twitter_update_friends(secateur_user)
     ## TODO: Add twitter list support.
+
+
+@app.task
+def remove_unneeded_credentials():
+    models.User.remove_unneeded_credentials()
