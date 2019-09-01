@@ -24,7 +24,7 @@ If you have those, setting up your developer environment should be straightforwa
 2. Copy `.env-template` to `.env` and add your Twitter API credentials.
 3. Run `docker-compose up`.
 
-That, actually, ought to be all there is to it. Once the docker containers are running, you can go to `http://localhost:5000` and hopefully see the Secateur home page. If your Twitter Developer API stuff is set up, you should be able to log in to your own Secateur environment.
+Once the docker containers are running, you can go to `http://localhost:5000` and hopefully see the Secateur home page. If your Twitter Developer API stuff is set up, you should be able to log in to your own Secateur environment.
 
 Once you've logged in, you'll probably want to upgrade your account to be the superuser:
 
