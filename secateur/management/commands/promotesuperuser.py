@@ -12,5 +12,6 @@ class Command(BaseCommand):
         user = User.objects.get(username=options["username"])
         user.is_superuser = True
         user.is_staff = True
+        user.is_twitter_api_enabled = True
         user.save()
         print(f"Promoted user {user} to superuser.")

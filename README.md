@@ -26,6 +26,8 @@ If you have those, setting up your developer environment should be straightforwa
 
 Once the docker containers are running, you can go to `http://localhost:5000` and hopefully see the Secateur home page. If your Twitter Developer API stuff is set up, you should be able to log in to your own Secateur environment.
 
-Once you've logged in, you'll probably want to upgrade your account to be the superuser:
+Once you've logged in, you'll probably want to upgrade your account to be the superuser ,and enable Twitter API access (this is normally a manual step for your users, while secateur is still young):
 
-```$ docker-compose exec app ./manage.py promotesuperuser ${MY_TWITTER_ACCOUNT}```
+```
+$ docker-compose exec app ./manage.py promotesuperuser ${MY_TWITTER_ACCOUNT}
+```
