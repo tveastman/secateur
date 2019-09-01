@@ -5,7 +5,11 @@
 
 {% block content %}
   <form method="POST">{% csrf_token %}
-    {% bootstrap_form form layout='inline' show_help=True %}
+    {% bootstrap_form form layout='horizontal' show_help=True %}
     {% buttons submit='Submit' reset="Cancel" %}{% endbuttons %}
+    {% buttons %}
+      {% bootstrap_button "Submit" button_type="submit" button_class="btn-primary" %}
+      {% bootstrap_button "Cancel" button_type="link" href="/" button_class="btn-default" %}
+    {% endbuttons %}
   </form>
 {% endblock %}
