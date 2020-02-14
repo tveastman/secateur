@@ -1,4 +1,4 @@
-FROM python
+FROM python:3.7
 
 RUN useradd app
 # install pipenv and use pipenv to build the environment
