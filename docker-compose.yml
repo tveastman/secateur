@@ -70,6 +70,9 @@ services:
     tmpfs:
       - /run/
       - /tmp/
+    environment:
+      # This is NEVER OKAY in a production setup. But it's a reasonable compromise for a contained postgres on a dev machine, I supppppose
+      - POSTGRES_HOST_AUTH_METHOD=trust
   redis:
     image: redis
     volumes:
