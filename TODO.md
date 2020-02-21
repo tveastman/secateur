@@ -22,7 +22,7 @@ DONE
 
 NOW
 ===
-
+- Add a page that allows you to update the list of people you follow.
 
 NEXT
 ====
@@ -33,6 +33,7 @@ NEXT
 BACKLOG
 =======
 
+- add security.txt
 - Login page
 - Add a random margin to the blocking duration.
 - move all the celery tasks into celery.py

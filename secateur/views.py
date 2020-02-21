@@ -189,3 +189,27 @@ class Disconnect(LoginRequiredMixin, FormView):
 
 class Disconnected(TemplateView):
     template_name = "disconnected.html"
+
+
+class Following(LoginRequiredMixin, ListView):
+    template_name = "following.html"
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.account.friends
+
+
+class UpdateFollowing(LoginRequiredMixin, FormView):
+    form_class = forms.UpdateFollowing
+    template_name = "update-following.html"
+    success_url = reverse_lazy("home")
+
+    def form_valid(self, form):
+        user = self.request.user
+        tasks.twitter_update_friends(secateur_user=user, get_profiles=True)
+        messages.add_message(
+            self.request,
+            messages.INFO,
+            "The list of accounts you follow will update shortly. It may take some time to complete.",
+        )
+        return super().form_valid(form)

@@ -30,5 +30,7 @@ urlpatterns = [
     path("disconnect/", views.Disconnect.as_view(), name="disconnect"),
     path("disconnected/", views.Disconnected.as_view(), name="disconnected"),
     path("account/<slug:screen_name>/", views.Account.as_view(), name="account"),
+    path("following/", views.Following.as_view(), name="following"),
+    path("update-following/", views.UpdateFollowing.as_view(), name="update-following"),
     url("", include("social_django.urls", namespace="social")),
 ]

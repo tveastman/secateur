@@ -10,7 +10,7 @@ services:
     image: secateur
     env_file:
       - .env
-    command: sh -c "./manage.py migrate && gunicorn -b 0.0.0.0:5000 -k gthread --log-file=- --log-level info --capture-output secateur.wsgi"
+    command: sh -c "./manage.py migrate && gunicorn -b 0.0.0.0:5000 -k gthread --log-file=- --log-level info --access-logfile - --capture-output secateur.wsgi"
     ports:
       - "5000:5000"
     depends_on:

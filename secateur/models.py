@@ -153,7 +153,7 @@ class Account(models.Model):
 
     def __str__(self):
         return "{}".format(
-            self.screen_name if self.screen_name is not None else self.user_id
+            self.screen_name if self.screen_name is not None else f"id={self.user_id}"
         )
 
     @classmethod
@@ -213,6 +213,11 @@ class Account(models.Model):
         raise Exception("Couldn't handle arguments %r" % (args,))
 
     @property
+    def twitter_url(self):
+        """URL for this account on twitter.com"""
+        return f"https://twitter.com/i/user/{self.user_id}/"
+
+    @property
     def blocks(self):
         return Account.objects.filter(
             relationship_object_set__type=Relationship.BLOCKS,
@@ -239,6 +244,19 @@ class Account(models.Model):
             relationship_object_set__type=Relationship.MUTES,
             relationship_object_set__subject_id=self,
         )
+
+    def follows(self, user_id=None, screen_name=None):
+        """Return True if self follows the user specified in either user_id or screen_name"""
+        assert (
+            user_id is not None or screen_name is not None
+        ), "Must specify either user_id or screen_name"
+        assert (
+            user_id is None or screen_name is None
+        ), "Must not specify both user_id and screen_name"
+        if user_id is not None:
+            return self.friends.filter(user_id=user_id).exists()
+        else:
+            return self.friends.filter(screen_name=screen_name).exists()
 
     def add_blocks(self, new_blocks, updated, until=None):
         return Relationship.add_relationships(

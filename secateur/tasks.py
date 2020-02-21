@@ -127,6 +127,16 @@ def create_relationship(
         )
         return
 
+    if secateur_user.account.follows(user_id=user_id, screen_name=screen_name):
+        logger.info(
+            "%s follows %s and so %s won't be %s.",
+            secateur_user.account,
+            user_id,
+            user_id,
+            past_tense_verb,
+        )
+        return
+
     ## CHECK CACHED RATE LIMIT
     rate_limited = cache.get(rate_limit_key)
     if rate_limited:
@@ -335,7 +345,7 @@ def twitter_update_followers(secateur_user, account=None):
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 
-def twitter_update_friends(secateur_user, account=None):
+def twitter_update_friends(secateur_user, account=None, get_profiles=False):
     """Trigger django-q tasks to update the friends list of a twitter account.
 
     If the account is unspecified, it'll update the friends list of the user.
@@ -345,7 +355,10 @@ def twitter_update_friends(secateur_user, account=None):
     if account is None:
         account = secateur_user.account
 
-    api_function = partial(api.GetFriendIDsPaged, user_id=account.user_id)
+    if get_profiles:
+        api_function = partial(api.GetFriendsPaged, user_id=account.user_id)
+    else:
+        api_function = partial(api.GetFriendIDsPaged, user_id=account.user_id)
     accounts_handlers = [partial(account.add_friends, updated=now)]
     finish_handlers = [partial(account.remove_friends_older_than, now)]
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)

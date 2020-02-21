@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Update the list of accounts you follow{% endblock %}
+{% block content %}
+  <p class='lead'>
+    Allow secateur to retrieve the list of accounts you follow?
+  </p>
+
+  <form method="POST">{% csrf_token %}
+    {% bootstrap_form form layout='inline' show_help=True %}
+    <button type="submit" class="btn btn-lg">Update</button>
+  </form>
+
+{% endblock %}

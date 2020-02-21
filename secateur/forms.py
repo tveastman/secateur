@@ -21,3 +21,7 @@ class BlockAccountsForm(forms.Form):
 
 class Search(forms.Form):
     screen_name = forms.CharField(help_text="Username")
+
+
+class UpdateFollowing(forms.Form):
+    pass

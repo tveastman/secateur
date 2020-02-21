@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}People you follow{% endblock %}
+{% block content %}
+    <p class='lead'>
+        Secateur won't block someone if you follow them.
+    </p>
+
+    <p>
+         You can <a href="{% url "update-following" %}">update the list of people you follow here</a>. Secateur won't retrieve this list automatically, so you might want to push this button every once in a while if you've followed or unfollowed a bunch of people.
+    </p>
+
+    <p>Secateur won't block the following accounts:</p>
+    <ul>
+        {%  for object in object_list %}
+            <li>
+                <a href="{{ object.twitter_url }}">
+                    {{ object }}
+                </a>
+            </li>
+        {%  endfor %}
+    </ul>
+
+{% endblock %}
