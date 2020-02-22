@@ -21,7 +21,7 @@ class TwitterApiDisabled(Exception):
 
 
 class User(AbstractUser):
-    is_twitter_api_enabled = models.BooleanField(default=False)
+    is_twitter_api_enabled = models.BooleanField(default=True)
     account = models.ForeignKey(
         "Account", null=True, editable=False, on_delete=models.SET_NULL
     )
