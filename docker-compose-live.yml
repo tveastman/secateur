@@ -43,6 +43,7 @@ services:
     restart: always
   postgres:
     image: postgres:11
+    command: postgres -c 'shared_buffers=256MB'
     env_file:
       - ./.env
     volumes:
