@@ -18,11 +18,11 @@ DONE
 - Add an account detail view.
 - Add a search page to look up a user.
 - Write copy for the frontpage explaining what the tool actually does.
+- Add a page that allows you to update the list of people you follow.
 
 
 NOW
 ===
-- Add a page that allows you to update the list of people you follow.
 
 NEXT
 ====
