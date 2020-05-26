@@ -7,7 +7,7 @@ verify_ssl = true
 python_version = "3"
 
 [packages]
-django = "~=2.0"
+django = "==2.2.12"
 social-auth-app-django = "*"
 python-twitter = "*"
 "psycopg2-binary" = "*"
