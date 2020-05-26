@@ -131,7 +131,6 @@ AUTH_USER_MODEL = "secateur.User"
 # DJANGO SOCIAL AUTH TWITTER SUPPORT
 AUTHENTICATION_BACKENDS = (
     "social_core.backends.twitter.TwitterOAuth",
-    "django.contrib.auth.backends.ModelBackend",
 )
 SOCIAL_AUTH_TWITTER_KEY = os.environ.get("CONSUMER_KEY")
 SOCIAL_AUTH_TWITTER_SECRET = os.environ.get("CONSUMER_SECRET")
