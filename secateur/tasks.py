@@ -6,6 +6,7 @@ import logging
 import random
 from functools import partial
 
+from django.db import transaction
 from django.core.cache import cache
 from django.db.models import Q
 from django.utils import timezone
@@ -78,7 +79,8 @@ def get_user(secateur_user_pk, user_id=None, screen_name=None):
     return account
 
 
-@app.task(bind=True, max_retries=15)
+@app.task(bind=True, max_retries=15, rate_limit=10)
+@transaction.atomic
 def create_relationship(
     self, secateur_user_pk, type, user_id=None, screen_name=None, until=None
 ):
@@ -87,8 +89,9 @@ def create_relationship(
         raise ValueError("Must provide either user_id or screen_name.")
 
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
-    api = secateur_user.api
-    if api is None:
+    try:
+        api = secateur_user.api
+    except models.TwitterApiDisabled:
         logger.error("Twitter API not enabled for user: %s", secateur_user)
         return
     now = timezone.now()
@@ -191,14 +194,16 @@ def create_relationship(
     logger.info("%s has %s", secateur_user, log_message)
 
 
-@app.task(bind=True, max_retries=15)
+@app.task(bind=True, max_retries=15, rate_limit=10)
+@transaction.atomic
 def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name=None):
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
 
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
-    api = secateur_user.api
-    if api is None:
+    try:
+        api = secateur_user.api
+    except models.TwitterApiDisabled:
         logger.error("Twitter API not enabled for user: %s", secateur_user)
         return
     now = timezone.now()
