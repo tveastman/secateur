@@ -1,6 +1,10 @@
+from typing import Any, Optional
 import datetime
 import logging
 
+import django.db.models
+import django.forms
+import django.http
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -21,7 +25,9 @@ class Account(DetailView):
     template_name = "account.html"
     model = models.Account
 
-    def get_object(self):
+    def get_object(
+        self, queryset: Optional[django.db.models.query.QuerySet] = None
+    ) -> django.db.models.Model:
         return self.get_queryset().get(screen_name=self.kwargs["screen_name"])
 
 
@@ -30,7 +36,7 @@ class LogMessages(LoginRequiredMixin, ListView):
     model = models.LogMessage
     paginate_by = 50
 
-    def get_queryset(self):
+    def get_queryset(self) -> django.db.models.query.QuerySet:
         user = models.User.objects.get(pk=self.request.user.pk)
         return models.LogMessage.objects.filter(user=user).order_by("-time")
 
@@ -42,7 +48,7 @@ class Search(LoginRequiredMixin, FormView):
 
     ## TODO: check user has API enabled.
 
-    def form_valid(self, form):
+    def form_valid(self, form: django.forms.BaseForm) -> django.http.HttpResponse:
         screen_name = form.cleaned_data["screen_name"]
         screen_name_lower = screen_name.lower()
         account = None
@@ -74,7 +80,7 @@ class Block(LoginRequiredMixin, FormView):
     template_name = "block.html"
     success_url = reverse_lazy("block-accounts")
 
-    def form_valid(self, form):
+    def form_valid(self, form: django.forms.BaseForm) -> django.http.HttpResponse:
         # These limitations will go somewhere better later. On the user model
         # where they can be set per-user.
         TOO_MANY_TO_BLOCK = 100_000
@@ -96,6 +102,7 @@ class Block(LoginRequiredMixin, FormView):
         )
 
         ## SAFETY GUARDS
+        assert profile is not None
         followers_count = profile.json.get("followers_count", 0)
         if form.cleaned_data["block_followers"] and followers_count > TOO_MANY_TO_BLOCK:
             messages.add_message(
@@ -166,12 +173,12 @@ class Disconnect(LoginRequiredMixin, FormView):
     template_name = "disconnect.html"
     success_url = reverse_lazy("disconnected")
 
-    def form_valid(self, form):
+    def form_valid(self, form: django.forms.BaseForm) -> django.http.HttpResponse:
         # The form has nothing in it, it's just intercepting POST requests.
         # I guess I could an 'are you sure?' boolean in the form or something.
 
         user = self.request.user
-        user_social_auth = user.social_auth.get()  # There can be only one
+        user_social_auth = user.twitter_social_auth()  # There can be only one
 
         # Erase the oauth token we've got.
         user_social_auth.extra_data = None
@@ -194,8 +201,9 @@ class Disconnected(TemplateView):
 class Following(LoginRequiredMixin, ListView):
     template_name = "following.html"
 
-    def get_queryset(self):
+    def get_queryset(self) -> django.db.models.query.QuerySet:
         user = self.request.user
+        assert user.account
         return user.account.friends
 
 
@@ -204,7 +212,7 @@ class UpdateFollowing(LoginRequiredMixin, FormView):
     template_name = "update-following.html"
     success_url = reverse_lazy("home")
 
-    def form_valid(self, form):
+    def form_valid(self, form: django.forms.BaseForm) -> django.http.HttpResponse:
         user = self.request.user
         tasks.twitter_update_friends(secateur_user=user, get_profiles=True)
         messages.add_message(

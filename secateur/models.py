@@ -2,14 +2,15 @@ import logging
 import datetime
 import os
 
-import twitter
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import JSONField
 from django.db import models, transaction
 from django.utils import timezone
 from django.utils.functional import cached_property
 
-from social_django.models import UserSocialAuth
+import twitter
+
+import social_django.models
 
 from . import tasks
 
@@ -27,16 +28,18 @@ class User(AbstractUser):
     )
 
     @cached_property
-    def twitter_social_auth(self):
+    def twitter_social_auth(self) -> social_django.models.UserSocialAuth:
         """Get the social_auth object for this user."""
-        return self.social_auth.get(provider="twitter")
+        return social_django.models.UserSocialAuth.objects.get(
+            user=self, provider="twitter"
+        )
 
     @cached_property
-    def twitter_user_id(self):
+    def twitter_user_id(self) -> int:
         return int(self.twitter_social_auth.uid)
 
     @cached_property
-    def api(self):
+    def api(self) -> twitter.Api:
         if not self.is_twitter_api_enabled:
             raise TwitterApiDisabled()
         access_token = self.twitter_social_auth.extra_data.get("access_token")
@@ -49,7 +52,7 @@ class User(AbstractUser):
         )
         return api
 
-    def get_account_by_screen_name(self, screen_name):
+    def get_account_by_screen_name(self, screen_name:str)->"Account":
         queryset = Account.objects.filter(screen_name_lower=screen_name.lower())
         if queryset:
             return queryset.get()
@@ -58,7 +61,7 @@ class User(AbstractUser):
             return tasks.get_user(self.pk, screen_name=screen_name)
 
     @classmethod
-    def remove_unneeded_credentials(cls):
+    def remove_unneeded_credentials(cls)->None:
         """Remove the oauth credentials we don't need.
 
         We only need to keep the oauth credentials for users who are (a) logged
@@ -73,7 +76,7 @@ class User(AbstractUser):
         delta = datetime.timedelta(days=1)
         threshold = timezone.now() - delta
         # exclude the ones that have already had their credentials removed.
-        objects = UserSocialAuth.objects.exclude(extra_data=None)
+        objects = social_django.models.UserSocialAuth.objects.exclude(extra_data=None)
         # include only "twitter" ones (shoudl be all of them)
         objects = objects.filter(provider="twitter")
         # Exclude any with pending unblock operations

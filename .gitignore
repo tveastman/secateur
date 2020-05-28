@@ -7,3 +7,4 @@ staticfiles/*
 
 .mypy_cache/
 .idea/
+report_mypy

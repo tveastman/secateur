@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('secateur', '0008_populate_user_account'),
+        ("secateur", "0008_populate_user_account"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='is_twitter_api_enabled',
+            model_name="user",
+            name="is_twitter_api_enabled",
             field=models.BooleanField(default=True),
         ),
     ]

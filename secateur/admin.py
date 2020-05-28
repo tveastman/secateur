@@ -1,7 +1,13 @@
 from pprint import pformat
+from typing import Optional
 
 from django.contrib import admin
+from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
+from django.contrib.postgres.fields import JSONField
+from django.core.handlers.wsgi import WSGIRequest
+from django.db.models import QuerySet
+from django.template.response import TemplateResponse
 from django.utils.html import format_html
 
 import social_django.admin
@@ -18,11 +24,14 @@ from . import models
 social_django.admin.UserSocialAuthOption.exclude = ["extra_data"]
 
 
-def update_user_details(modeladmin, request, queryset):
+def update_user_details(
+    modeladmin: ModelAdmin, request: WSGIRequest, queryset: QuerySet
+) -> Optional[TemplateResponse]:
     import secateur.tasks
 
     for secateur_user in queryset:
         secateur.tasks.update_user_details(secateur_user)
+    return None
 
 
 class SecateurUserAdmin(UserAdmin):
@@ -46,16 +55,36 @@ class SecateurUserAdmin(UserAdmin):
 admin.site.register(models.User, SecateurUserAdmin)
 
 
-def get_user(modeladmin, request, queryset):
-    # Let's not accidentally do the whole database.
-    TOO_MANY = 200
-    import secateur.tasks
+# This ridiculousness is just to stop mypy complaining about the 'short_description' attribute
+# on the function.
+class GetUserFunction:
+    __name__ = "get_user"
+    short_description: str = "Update profile from Twitter."
 
-    for account in queryset[:TOO_MANY]:
-        secateur.tasks.get_user.delay(request.user.pk, account.user_id).forget()
+    def __call__(
+        self, modeladmin: ModelAdmin, request: WSGIRequest, queryset: QuerySet
+    ) -> Optional[TemplateResponse]:
+        # Let's not accidentally do the whole database.
+        TOO_MANY = 200
+        import secateur.tasks
+
+        for account in queryset[:TOO_MANY]:
+            secateur.tasks.get_user.delay(request.user.pk, account.user_id).forget()
+        return None
 
 
-get_user.short_description = "Update profile from Twitter."
+get_user = GetUserFunction()
+
+# def get_user(modeladmin, request, queryset):
+#     # Let's not accidentally do the whole database.
+#     TOO_MANY = 200
+#     import secateur.tasks
+#
+#     for account in queryset[:TOO_MANY]:
+#         secateur.tasks.get_user.delay(request.user.pk, account.user_id).forget()
+#
+#
+# get_user.short_description = "Update profile from Twitter."
 
 
 @admin.register(models.Account)
@@ -94,7 +123,8 @@ class ProfileAdmin(admin.ModelAdmin):
     )
     search_fields = ("json__description", "json__screen_name")
 
-    def formatted_json(self, obj):
+    @staticmethod
+    def formatted_json(obj: models.Profile) -> str:
         return format_html("<pre>{}</pre>", pformat(obj.json))
 
 

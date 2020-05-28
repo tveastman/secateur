@@ -1,9 +1,12 @@
+from typing import Any
 from enum import Enum
 import logging
 import random
-import datetime
+from datetime import timedelta
 
 import secateur.models
+
+import twitter
 
 logger = logging.getLogger(__name__)
 
@@ -17,22 +20,23 @@ class ErrorCode(Enum):
     INVALID_OR_EXPIRED_TOKEN = 89
 
     @classmethod
-    def from_exception(cls, twitter_error_exception):
+    def from_exception(
+        cls, twitter_error_exception: twitter.error.TwitterError
+    ) -> "ErrorCode":
         code = twitter_error_exception.message[0]["code"]
-        try:
-            return cls(code)
-        except ValueError:
-            return code
+        return cls(code)
 
 
-def fudge_duration(duration, fraction):
+def fudge_duration(duration: timedelta, fraction: float) -> timedelta:
     """Adds a random fraction to a timedelta"""
     total_seconds = duration.total_seconds()
     max_fudge = int(total_seconds * fraction)
-    return duration + datetime.timedelta(seconds=random.randint(0, max_fudge))
+    return duration + timedelta(seconds=random.randint(0, max_fudge))
 
 
-def pipeline_user_account_link(*args, **kwargs):
+def pipeline_user_account_link(
+    *, user: "secateur.models.User", uid: int, **kwargs: Any
+) -> None:
     """social auth pipeline: update secateur.models.User.account"""
     user = kwargs["user"]
     uid = kwargs["uid"]

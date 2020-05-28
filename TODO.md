@@ -26,13 +26,16 @@ NOW
 
 NEXT
 ====
-- Add a search bar.
-- put a 'block/mute' form on an account profile page (where a search result sends you.)
 
 
 BACKLOG
 =======
-
+- simplify the create-relationship task so it doesn't allow screen_name
+- Upgrade to python 3.8
+- Add mypy annotation checking
+- Add a search bar.
+- put a 'block/mute' form on an account profile page (where a search result sends you.)
+- Create a token bucket rate limiting system so that no single person can queue up too many blocks at once.
 - add security.txt
 - Login page
 - Add a random margin to the blocking duration.

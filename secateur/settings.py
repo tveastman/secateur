@@ -129,9 +129,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 AUTH_USER_MODEL = "secateur.User"
 
 # DJANGO SOCIAL AUTH TWITTER SUPPORT
-AUTHENTICATION_BACKENDS = (
-    "social_core.backends.twitter.TwitterOAuth",
-)
+AUTHENTICATION_BACKENDS = ("social_core.backends.twitter.TwitterOAuth",)
 SOCIAL_AUTH_TWITTER_KEY = os.environ.get("CONSUMER_KEY")
 SOCIAL_AUTH_TWITTER_SECRET = os.environ.get("CONSUMER_SECRET")
 LOGIN_URL = "/login/twitter/"
@@ -161,7 +159,7 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
-    "root": {"level": "DEBUG", "handlers": ["console"]},
+    "root": {"level": "INFO", "handlers": ["console"]},
     "loggers": {
         "secateur": {"level": "DEBUG"},
         "django": {"level": "INFO", "propagate": True},
@@ -175,8 +173,8 @@ CELERY_BROKER_URL = "redis://redis"
 CELERY_RESULT_BACKEND = "redis://redis"
 CELERY_IMPORTS = ["secateur.tasks"]
 CELERY_TASK_SERIALIZER = (
-    "pickle"
-)  # 'pickle' because I'm passing partial functions around.
+    "pickle"  # 'pickle' because I'm passing partial functions around.
+)
 CELERY_RESULT_SERIALIZER = "pickle"
 CELERY_ACCEPT_CONTENT = ["pickle"]
 CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 60 * 60 * 24}
