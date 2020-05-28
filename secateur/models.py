@@ -52,7 +52,7 @@ class User(AbstractUser):
         )
         return api
 
-    def get_account_by_screen_name(self, screen_name:str)->"Account":
+    def get_account_by_screen_name(self, screen_name: str) -> "Account":
         queryset = Account.objects.filter(screen_name_lower=screen_name.lower())
         if queryset:
             return queryset.get()
@@ -61,7 +61,7 @@ class User(AbstractUser):
             return tasks.get_user(self.pk, screen_name=screen_name)
 
     @classmethod
-    def remove_unneeded_credentials(cls)->None:
+    def remove_unneeded_credentials(cls) -> None:
         """Remove the oauth credentials we don't need.
 
         We only need to keep the oauth credentials for users who are (a) logged

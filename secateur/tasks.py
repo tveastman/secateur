@@ -5,7 +5,9 @@ import enum
 import logging
 import random
 from functools import partial
+from typing import Optional
 
+import celery
 from django.db import transaction
 from django.core.cache import cache
 from django.db.models import Q
@@ -26,7 +28,7 @@ class RelationshipType(enum.IntEnum):
     MUTE = 3
 
 
-def _twitter_retry_timeout(base=900, retries=0):
+def _twitter_retry_timeout(base: int = 900, retries: int = 0) -> int:
     """
     Twitter calculates all its rate limiting in 15 minute blocks. If we
     hit a rate limit we need to wait at least till the next 15 minute block.
@@ -56,7 +58,9 @@ def _twitter_retry_timeout(base=900, retries=0):
 
 
 @app.task
-def get_user(secateur_user_pk, user_id=None, screen_name=None):
+def get_user(
+    secateur_user_pk: int, user_id: int = None, screen_name: str = None
+) -> "Optional[models.Account]":
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
     api = secateur_user.api
     try:
@@ -82,8 +86,13 @@ def get_user(secateur_user_pk, user_id=None, screen_name=None):
 @app.task(bind=True, max_retries=15, rate_limit=10)
 @transaction.atomic
 def create_relationship(
-    self, secateur_user_pk, type, user_id=None, screen_name=None, until=None
-):
+    self: celery.Task,
+    secateur_user_pk: int,
+    type: RelationshipType,
+    user_id: Optional[int] = None,
+    screen_name: Optional[str] = None,
+    until: Optional[datetime.datetime] = None,
+) -> None:
     ## SANITY CHECKS
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
@@ -119,6 +128,7 @@ def create_relationship(
     if screen_name:
         existing_rel_qs = existing_rel_qs.filter(object__screen_name=screen_name)
     else:
+        assert user_id is not None
         existing_rel_qs = existing_rel_qs.filter(object__user_id=user_id)
     updated_existing = existing_rel_qs.update(until=until)
     if updated_existing:
@@ -130,6 +140,7 @@ def create_relationship(
         )
         return
 
+    assert secateur_user.account is not None
     if secateur_user.account.follows(user_id=user_id, screen_name=screen_name):
         logger.info(
             "%s follows %s and so %s won't be %s.",

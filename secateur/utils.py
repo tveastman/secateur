@@ -38,8 +38,6 @@ def pipeline_user_account_link(
     *, user: "secateur.models.User", uid: int, **kwargs: Any
 ) -> None:
     """social auth pipeline: update secateur.models.User.account"""
-    user = kwargs["user"]
-    uid = kwargs["uid"]
     account = secateur.models.Account.get_account(uid)
     if user.account != account:
         user.account = account
