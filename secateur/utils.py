@@ -1,4 +1,5 @@
 from typing import Any
+from dataclasses import dataclass, replace
 from enum import Enum
 import logging
 import random
@@ -42,3 +43,28 @@ def pipeline_user_account_link(
     if user.account != account:
         user.account = account
         user.save(update_fields=("account",))
+
+
+@dataclass(frozen=True)
+class TokenBucket:
+    time: float
+    value: float
+    rate: float
+    max: float
+
+    def value_at(self, time: float) -> float:
+        time_difference = time - self.time
+        value_difference = self.rate * time_difference
+        return min(value_difference + self.value, self.max)
+
+    def can_withdraw(self, time: float, amount: float) -> bool:
+        return self.value_at(time) >= amount
+
+    def withdraw(self, time: float, value: float) -> "TokenBucket":
+        value_at = self.value_at(time)
+        new_value = value_at - value
+        if new_value < 0:
+            raise ValueError(
+                f"Cannot withdraw {value} at time {time}, new value would be {new_value}"
+            )
+        return replace(self, time=time, value=new_value)
