@@ -36,7 +36,20 @@ def update_user_details(
 
 class SecateurUserAdmin(UserAdmin):
     fieldsets = (
-        ("Secateur", {"fields": ("is_twitter_api_enabled", "account")}),
+        (
+            "Secateur",
+            {
+                "fields": (
+                    "is_twitter_api_enabled",
+                    "account",
+                    "current_tokens",
+                    "token_bucket_max",
+                    "token_bucket_rate",
+                    "token_bucket_time",
+                    "token_bucket_value",
+                )
+            },
+        ),
     ) + UserAdmin.fieldsets
     list_display = (
         "username",
@@ -47,7 +60,7 @@ class SecateurUserAdmin(UserAdmin):
         "is_staff",
     )
     list_editable = ("is_twitter_api_enabled",)
-    readonly_fields = ("account",) + UserAdmin.readonly_fields
+    readonly_fields = ("account", "current_tokens") + UserAdmin.readonly_fields
 
     actions = [update_user_details]
 

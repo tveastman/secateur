@@ -1,5 +1,6 @@
 import logging
 import datetime
+import time
 import os
 
 from django.contrib.auth.models import AbstractUser
@@ -13,6 +14,7 @@ import twitter
 import social_django.models
 
 from . import tasks
+from . import utils
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +28,36 @@ class User(AbstractUser):
     account = models.ForeignKey(
         "Account", null=True, editable=False, on_delete=models.SET_NULL
     )
+
+    token_bucket_rate = models.FloatField(default=1.0)
+    token_bucket_max = models.FloatField(default=100_000.0)
+    token_bucket_time = models.FloatField(default=time.time)
+    token_bucket_value = models.FloatField(default=100_000.0)
+
+    @property
+    def token_bucket(self) -> utils.TokenBucket:
+        return utils.TokenBucket(
+            time=self.token_bucket_time,
+            rate=self.token_bucket_rate,
+            max=self.token_bucket_max,
+            value=self.token_bucket_value,
+        )
+
+    @token_bucket.setter
+    def token_bucket(self, value: utils.TokenBucket) -> None:
+        self.token_bucket_rate = value.rate
+        self.token_bucket_max = value.max
+        self.token_bucket_time = value.time
+        self.token_bucket_value = value.value
+
+    @property
+    def current_tokens(self) -> int:
+        return int(self.token_bucket.value_at(time.time()))
+
+    def withdraw_tokens(self, value: int) -> None:
+        if value > self.current_tokens:
+            raise ValueError("Rate limit exceeded.")
+        self.token_bucket = self.token_bucket.withdraw(time=time.time(), value=value)
 
     @cached_property
     def twitter_social_auth(self) -> social_django.models.UserSocialAuth:
