@@ -41,6 +41,24 @@ services:
     tmpfs:
       - /tmp
     restart: always
+  blocker:
+    build: .
+    image: secateur
+    env_file:
+      - ./.env
+    environment:
+      - DJANGO_SETTINGS_MODULE=secateur.settings
+    command: celery -A secateur worker -Q blocker -l info --autoscale 4,1
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      secateur:
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: always
   postgres:
     image: postgres:11
     command: postgres -c 'shared_buffers=256MB' -c 'synchronous_commit=off' -c "max_wal_senders=0" -c "wal_level=minimal" -c 'wal_writer_delay=5000' -c 'wal_writer_flush_after=5MB'

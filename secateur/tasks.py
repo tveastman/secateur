@@ -205,7 +205,7 @@ def create_relationship(
     logger.info("%s has %s", secateur_user, log_message)
 
 
-@app.task(bind=True, max_retries=15, rate_limit=10)
+@app.task(bind=True, max_retries=15, rate_limit=5)
 @transaction.atomic
 def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name=None):
     if screen_name is None and user_id is None:

@@ -178,6 +178,10 @@ CELERY_TASK_SERIALIZER = (
 CELERY_RESULT_SERIALIZER = "pickle"
 CELERY_ACCEPT_CONTENT = ["pickle"]
 CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 60 * 60 * 24}
+CELERY_TASK_ROUTES = {
+    "secateur.tasks.create_relationship": {"queue": "blocker"},
+    "secateur.tasks.destroy_relationship": {"queue": "blocker"},
+}
 
 CACHES = {
     "default": {
