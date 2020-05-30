@@ -131,6 +131,25 @@ class Block(LoginRequiredMixin, FormView):
             )
             return super().form_valid(form)
 
+        ## RATE LIMIT CHECK
+        tokens_required: int = 0
+        if form.cleaned_data["block_followers"]:
+            tokens_required += followers_count
+        if form.cleaned_data["mute_followers"]:
+            tokens_required += followers_count
+        if tokens_required > user.current_tokens:
+            messages.add_message(
+                self.request,
+                messages.ERROR,
+                "Rate limited: Sorry, you can only block a certain number of people per day, you'll "
+                "need to try again later. If you're actively being harassed, this limit can be increased "
+                "if you contact the administrator.",
+            )
+            return super().form_valid(form)
+        elif tokens_required:
+            user.withdraw_tokens(tokens_required)
+            user.save(update_fields=("token_bucket_time", "token_bucket_value"))
+
         WEEK = datetime.timedelta(days=7)
         duration = form.cleaned_data["duration"] * WEEK
         until = timezone.now() + duration
