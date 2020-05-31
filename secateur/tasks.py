@@ -5,7 +5,7 @@ import enum
 import logging
 import random
 from functools import partial
-from typing import Optional
+from typing import Optional, Callable, List, Iterable
 
 import celery
 from django.db import transaction
@@ -218,7 +218,13 @@ def create_relationship(
 
 @app.task(bind=True, max_retries=15)
 @transaction.atomic
-def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name=None):
+def destroy_relationship(
+    self: celery.Task,
+    secateur_user_pk: int,
+    type: int,
+    user_id: Optional[int] = None,
+    screen_name: Optional[str] = None,
+) -> None:
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
 
@@ -255,6 +261,7 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
     if screen_name:
         existing_qs = existing_qs.filter(object__screen_name=screen_name)
     else:
+        assert user_id is not None
         existing_qs = existing_qs.filter(object__user_id=user_id)
     if not existing_qs:
         logger.info(
@@ -323,14 +330,17 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
 
 @app.task(bind=True)
 def twitter_paged_call_iterator(
-    self,
-    api_function,
-    accounts_handlers,
-    finish_handlers,
-    cursor=-1,
-    max_pages=100,
-    current_page=1,
-):
+    self: celery.Task,
+    api_function: Callable,
+    # It's a list of callables, where each callable takes a single argument which is
+    # an iterable of Account objects, and it returns None
+    accounts_handlers: "List[Callable[[Iterable[models.Account]], None]]",
+    # It's a list of callables that take no arguments and return no result
+    finish_handlers: "List[Callable[[], None]]",
+    cursor: int = -1,
+    max_pages: int = 100,
+    current_page: int = 1,
+) -> None:
     try:
         logger.debug("Calling %r with cursor page %r", api_function, cursor)
         next_cursor, previous_cursor, data = api_function(cursor=cursor)
@@ -365,7 +375,9 @@ def twitter_paged_call_iterator(
             finish_handler()
 
 
-def twitter_update_followers(secateur_user, account=None):
+def twitter_update_followers(
+    secateur_user: "models.User", account: "Optional[models.Account]" = None
+) -> None:
     """Trigger django-q tasks to update the followers list of a twitter account.
 
     If the account is unspecified, it'll update the followers list of the user.
@@ -376,13 +388,18 @@ def twitter_update_followers(secateur_user, account=None):
     if account is None:
         account = secateur_user.account
 
+    assert account is not None
     api_function = partial(api.GetFollowerIDsPaged, user_id=account.user_id)
     accounts_handlers = [partial(account.add_followers, updated=now)]
     finish_handlers = [partial(account.remove_followers_older_than, now)]
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 
-def twitter_update_friends(secateur_user, account=None, get_profiles=False):
+def twitter_update_friends(
+    secateur_user: "models.User",
+    account: "Optional[models.Account]" = None,
+    get_profiles: bool = False,
+) -> None:
     """Trigger django-q tasks to update the friends list of a twitter account.
 
     If the account is unspecified, it'll update the friends list of the user.
@@ -391,6 +408,7 @@ def twitter_update_friends(secateur_user, account=None, get_profiles=False):
     api = secateur_user.api
     if account is None:
         account = secateur_user.account
+    assert account is not None
 
     if get_profiles:
         api_function = partial(api.GetFriendsPaged, user_id=account.user_id)
@@ -401,11 +419,12 @@ def twitter_update_friends(secateur_user, account=None, get_profiles=False):
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 
-def twitter_update_blocks(secateur_user):
+def twitter_update_blocks(secateur_user: "models.User") -> None:
     """Trigger django-q tasks to update the block list of a secateur user."""
     now = timezone.now()
     api = secateur_user.api
     account = secateur_user.account
+    assert account is not None
 
     api_function = partial(api.GetBlocksIDsPaged)
     accounts_handlers = [partial(account.add_blocks, updated=now)]
@@ -413,11 +432,12 @@ def twitter_update_blocks(secateur_user):
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 
-def twitter_update_mutes(secateur_user):
+def twitter_update_mutes(secateur_user: "models.User") -> None:
     """Trigger django-q tasks to update the mute list of a secateur user."""
     now = timezone.now()
     api = secateur_user.api
     account = secateur_user.account
+    assert account is not None
 
     api_function = partial(api.GetMutesIDsPaged)
     accounts_handlers = [partial(account.add_mutes, updated=now)]
@@ -426,8 +446,14 @@ def twitter_update_mutes(secateur_user):
 
 
 # Used as a partial() in twitter_block_followers()
-def _block_multiple(accounts, type, secateur_user_pk, duration):
+def _block_multiple(
+    accounts: "Iterable[models.Account]",
+    type: int,
+    secateur_user_pk: int,
+    duration: datetime.timedelta,
+) -> None:
     for i, account in enumerate(accounts):
+        until: Optional[datetime.datetime]
         if duration:
             # Add a random 5% component to the block duration.
             fudged_duration = fudge_duration(duration, 0.05)
@@ -486,7 +512,7 @@ def twitter_block_followers(
 
 
 @app.task
-def unblock_expired(now=None):
+def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
     if now is None:
         now = timezone.now()
 
@@ -513,13 +539,14 @@ def unblock_expired(now=None):
             )
 
 
-def update_user_details(secateur_user):
+def update_user_details(secateur_user: "models.User") -> None:
     """Update the details of a secateur user.
 
     Fetches a user's friends, blocks and mutes lists, and
     their own twitter profile.
     """
     account = secateur_user.account
+    assert account is not None
 
     get_user.delay(secateur_user.pk, user_id=account.pk).forget()
 
@@ -534,5 +561,5 @@ def update_user_details(secateur_user):
 
 
 @app.task
-def remove_unneeded_credentials():
+def remove_unneeded_credentials() -> None:
     models.User.remove_unneeded_credentials()

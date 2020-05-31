@@ -206,7 +206,7 @@ class Account(models.Model):
     @transaction.atomic
     def get_accounts(
         cls, *args: Union[int, twitter.User], now: Optional[datetime] = None
-    ) -> QuerySet["Account"]:
+    ) -> "QuerySet[Account]":
         """Update account objects from a result returned from the Twitter API.
 
         Twitter API calls either return lists of big-integer User IDs, or lists
