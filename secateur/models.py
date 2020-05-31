@@ -1,12 +1,13 @@
 import logging
-import datetime
 import time
 import os
-from typing import Optional
+from typing import Optional, Union, Tuple, List, Iterable, Any, Dict
+from datetime import datetime, timedelta
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import JSONField
 from django.db import models, transaction
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.functional import cached_property
 
@@ -107,7 +108,7 @@ class User(AbstractUser):
         our exposure... Anyone who logged in to secateur but hasn't used it
         won't have credentials floating around in it.
         """
-        delta = datetime.timedelta(days=1)
+        delta = timedelta(days=1)
         threshold = timezone.now() - delta
         # exclude the ones that have already had their credentials removed.
         objects = social_django.models.UserSocialAuth.objects.exclude(extra_data=None)
@@ -124,10 +125,10 @@ class User(AbstractUser):
         objects.update(extra_data=None)
 
 
-def json_getter(property_name):
+def json_getter(property_name: str) -> property:
     """Returns a class property that dereferences the json dictionary."""
 
-    def f(self):
+    def f(self: Profile) -> Union[int, str]:
         return self.json.get(property_name)
 
     f.__name__ = property_name
@@ -139,7 +140,9 @@ class Profile(models.Model):
     json = JSONField(editable=False)
 
     @classmethod
-    def update(cls, twitter_user, now):
+    def update(
+        cls, twitter_user: twitter.User, now: datetime
+    ) -> "Tuple[Profile, Account]":
         """Create or update Profile/Account objects from a twitter.User instance.
 
         Returns a tuple of (profile, account) model instances."""
@@ -188,18 +191,22 @@ class Account(models.Model):
     )
     profile_updated = models.DateTimeField(null=True, editable=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{}".format(
             self.screen_name if self.screen_name is not None else f"id={self.user_id}"
         )
 
     @classmethod
-    def get_account(cls, arg, now=None):
+    def get_account(
+        cls, arg: Union[int, twitter.User], now: datetime = None
+    ) -> "Account":
         return cls.get_accounts(arg, now=now).get()
 
     @classmethod
     @transaction.atomic
-    def get_accounts(cls, *args, now=None):
+    def get_accounts(
+        cls, *args: Union[int, twitter.User], now: Optional[datetime] = None
+    ) -> QuerySet["Account"]:
         """Update account objects from a result returned from the Twitter API.
 
         Twitter API calls either return lists of big-integer User IDs, or lists
@@ -253,39 +260,41 @@ class Account(models.Model):
         raise Exception("Couldn't handle arguments %r" % (args,))
 
     @property
-    def twitter_url(self):
+    def twitter_url(self) -> str:
         """URL for this account on twitter.com"""
         return f"https://twitter.com/i/user/{self.user_id}/"
 
     @property
-    def blocks(self):
+    def blocks(self) -> "QuerySet[Account]":
         return Account.objects.filter(
             relationship_object_set__type=Relationship.BLOCKS,
             relationship_object_set__subject_id=self,
         )
 
     @property
-    def friends(self):
+    def friends(self) -> "QuerySet[Account]":
         return Account.objects.filter(
             relationship_object_set__type=Relationship.FOLLOWS,
             relationship_object_set__subject_id=self,
         )
 
     @property
-    def followers(self):
+    def followers(self) -> "QuerySet[Account]":
         return Account.objects.filter(
             relationship_subject_set__type=Relationship.FOLLOWS,
             relationship_subject_set__object_id=self,
         )
 
     @property
-    def mutes(self):
+    def mutes(self) -> "QuerySet[Account]":
         return Account.objects.filter(
             relationship_object_set__type=Relationship.MUTES,
             relationship_object_set__subject_id=self,
         )
 
-    def follows(self, user_id=None, screen_name=None):
+    def follows(
+        self, user_id: Optional[int] = None, screen_name: Optional[str] = None
+    ) -> bool:
         """Return True if self follows the user specified in either user_id or screen_name"""
         assert (
             user_id is not None or screen_name is not None
@@ -298,7 +307,12 @@ class Account(models.Model):
         else:
             return self.friends.filter(screen_name=screen_name).exists()
 
-    def add_blocks(self, new_blocks, updated, until=None):
+    def add_blocks(
+        self,
+        new_blocks: "Iterable[Account]",
+        updated: datetime,
+        until: Optional[datetime] = None,
+    ) -> "QuerySet[Relationship]":
         return Relationship.add_relationships(
             subjects=[self],
             type=Relationship.BLOCKS,
@@ -307,12 +321,14 @@ class Account(models.Model):
             until=until,
         )
 
-    def remove_blocks_older_than(self, updated):
+    def remove_blocks_older_than(self, updated: datetime) -> int:
         return Relationship.remove_relationships(
             subject=self, type=Relationship.BLOCKS, updated__lt=updated
         )
 
-    def add_followers(self, new_followers, updated):
+    def add_followers(
+        self, new_followers: "Iterable[Account]", updated: datetime
+    ) -> "QuerySet[Relationship]":
         return Relationship.add_relationships(
             subjects=new_followers,
             type=Relationship.FOLLOWS,
@@ -320,12 +336,14 @@ class Account(models.Model):
             updated=updated,
         )
 
-    def remove_followers_older_than(self, updated):
+    def remove_followers_older_than(self, updated: datetime) -> int:
         return Relationship.remove_relationships(
             type=Relationship.FOLLOWS, object=self, updated__lt=updated
         )
 
-    def add_friends(self, new_friends, updated):
+    def add_friends(
+        self, new_friends: "Iterable[Account]", updated: datetime
+    ) -> "QuerySet[Relationship]":
         return Relationship.add_relationships(
             subjects=[self],
             type=Relationship.FOLLOWS,
@@ -333,17 +351,19 @@ class Account(models.Model):
             updated=updated,
         )
 
-    def remove_friends_older_than(self, updated):
+    def remove_friends_older_than(self, updated: datetime) -> int:
         return Relationship.remove_relationships(
             type=Relationship.FOLLOWS, subject=self, updated__lt=updated
         )
 
-    def add_mutes(self, new_mutes, updated):
+    def add_mutes(
+        self, new_mutes: "Iterable[Account]", updated: datetime
+    ) -> "QuerySet[Relationship]":
         return Relationship.add_relationships(
             subjects=[self], type=Relationship.MUTES, objects=new_mutes, updated=updated
         )
 
-    def remove_mutes_older_than(self, updated):
+    def remove_mutes_older_than(self, updated: datetime) -> int:
         return Relationship.remove_relationships(
             subject=self, type=Relationship.MUTES, updated__lt=updated
         )
@@ -379,14 +399,21 @@ class Relationship(models.Model):
     updated = models.DateTimeField(editable=False)
     until = models.DateTimeField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{subject} {type} {object}".format(
             subject=self.subject, type=self.get_type_display(), object=self.object
         )
 
     @classmethod
     @transaction.atomic
-    def add_relationships(cls, type, subjects, objects, updated, until=None):
+    def add_relationships(
+        cls,
+        type: int,
+        subjects: Iterable[Account],
+        objects: Iterable[Account],
+        updated: datetime,
+        until: Optional[datetime] = None,
+    ) -> "QuerySet[Relationship]":
         existing = cls.objects.filter(
             type=type, subject__in=subjects, object__in=objects
         )
@@ -412,11 +439,11 @@ class Relationship(models.Model):
         return cls.objects.filter(type=type, subject__in=subjects, object__in=objects)
 
     @classmethod
-    def remove_relationships(cls, **kwargs):
+    def remove_relationships(cls, **kwargs: Any) -> int:
         relationships = cls.objects.filter(**kwargs)
         if relationships:
             logger.debug("Removing relationships: {}".format(relationships))
-        return relationships.delete()
+        return relationships.delete()[0]
 
 
 class LogMessage(models.Model):

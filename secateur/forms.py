@@ -12,7 +12,7 @@ class BlockAccountsForm(forms.Form):
         (12, "Three months"),
         (26, "Six months"),
         (52, "One year"),
-        (None, "Forever")
+        (None, "Forever"),
     )
     screen_name = forms.CharField(help_text="The Twitter username.")
     duration = forms.IntegerField(
@@ -21,7 +21,7 @@ class BlockAccountsForm(forms.Form):
         initial=6,
         help_text="How long do you want the block to last?",
         required=False,
-        widget=forms.RadioSelect(choices=DURATION_CHOICES)
+        widget=forms.RadioSelect(choices=DURATION_CHOICES),
     )
     block_account = forms.BooleanField(required=False)
     mute_account = forms.BooleanField(required=False)
