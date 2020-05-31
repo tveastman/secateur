@@ -151,8 +151,12 @@ class Block(LoginRequiredMixin, FormView):
             user.save(update_fields=("token_bucket_time", "token_bucket_value"))
 
         WEEK = datetime.timedelta(days=7)
-        duration = form.cleaned_data["duration"] * WEEK
-        until = timezone.now() + duration
+        if form.cleaned_data["duration"]:
+            duration = form.cleaned_data["duration"] * WEEK
+            until = timezone.now() + duration
+        else:
+            duration = None
+            until = None
 
         if form.cleaned_data["block_account"]:
             tasks.create_relationship.delay(

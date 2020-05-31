@@ -79,11 +79,13 @@ def get_user(
         user=secateur_user,
         time=timezone.now(),
         message="Retrieved profile for {}".format(account),
+        account=account,
+        action=models.LogMessage.Action.GET_USER,
     )
     return account
 
 
-@app.task(bind=True, max_retries=15, rate_limit=10)
+@app.task(bind=True, max_retries=15)
 @transaction.atomic
 def create_relationship(
     self: celery.Task,
@@ -107,12 +109,14 @@ def create_relationship(
     type = RelationshipType(type)
 
     if type is RelationshipType.BLOCK:
+        action = models.LogMessage.Action.CREATE_BLOCK
         past_tense_verb = "blocked"
         api_function = api.CreateBlock
         rate_limit_key = "{}:{}:rate-limit".format(
             secateur_user.username, "create_block"
         )
     elif type is RelationshipType.MUTE:
+        action = models.LogMessage.Action.CREATE_MUTE
         past_tense_verb = "muted"
         api_function = api.CreateMute
         rate_limit_key = "{}:{}:rate-limit".format(
@@ -201,11 +205,18 @@ def create_relationship(
         account,
         " until {}".format(until.strftime("%-d %B")) if until else "",
     )
-    models.LogMessage.objects.create(user=secateur_user, time=now, message=log_message)
+    models.LogMessage.objects.create(
+        user=secateur_user,
+        time=now,
+        message=log_message,
+        action=action,
+        account=account,
+        until=until,
+    )
     logger.info("%s has %s", secateur_user, log_message)
 
 
-@app.task(bind=True, max_retries=15, rate_limit=5)
+@app.task(bind=True, max_retries=15)
 @transaction.atomic
 def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name=None):
     if screen_name is None and user_id is None:
@@ -226,12 +237,15 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
         rate_limit_key = "{}:{}:rate-limit".format(
             secateur_user.username, "destroy_block"
         )
+        action = models.LogMessage.Action.DESTROY_BLOCK
+
     elif type is RelationshipType.MUTE:
         past_tense_verb = "unmuted"
         api_function = api.DestroyMute
         rate_limit_key = "{}:{}:rate-limit".format(
             secateur_user.username, "destroy_mute"
         )
+        action = models.LogMessage.Action.DESTROY_MUTE
     else:
         raise ValueError("Don't know how to handle type %r", type)
 
@@ -296,7 +310,14 @@ def destroy_relationship(self, secateur_user_pk, type, user_id=None, screen_name
         subject=secateur_user.account, type=type, object=account
     ).delete()
     log_message = "{} {}".format(past_tense_verb, account)
-    models.LogMessage.objects.create(user=secateur_user, time=now, message=log_message)
+    models.LogMessage.objects.create(
+        user=secateur_user,
+        time=now,
+        message=log_message,
+        action=action,
+        until=None,
+        account=account,
+    )
     logger.info("%s has %s", secateur_user, log_message)
 
 
@@ -407,9 +428,12 @@ def twitter_update_mutes(secateur_user):
 # Used as a partial() in twitter_block_followers()
 def _block_multiple(accounts, type, secateur_user_pk, duration):
     for i, account in enumerate(accounts):
-        ## Add a random 5% component to the block duration.
-        fudged_duration = fudge_duration(duration, 0.05)
-        until = timezone.now() + fudged_duration
+        if duration:
+            # Add a random 5% component to the block duration.
+            fudged_duration = fudge_duration(duration, 0.05)
+            until = timezone.now() + fudged_duration
+        else:
+            until = None
         create_relationship.apply_async(
             [],
             {
@@ -426,7 +450,12 @@ def _block_multiple(accounts, type, secateur_user_pk, duration):
         )
 
 
-def twitter_block_followers(secateur_user, type, account, duration):
+def twitter_block_followers(
+    secateur_user: "models.User",
+    type: int,
+    account: "models.Account",
+    duration: Optional[datetime.timedelta],
+) -> None:
     api = secateur_user.api
     now = timezone.now()
 
@@ -441,6 +470,18 @@ def twitter_block_followers(secateur_user, type, account, duration):
         ),
     ]
     finish_handlers = [partial(account.remove_followers_older_than, now)]
+    models.LogMessage.objects.create(
+        user=secateur_user,
+        time=now,
+        action=(
+            models.LogMessage.Action.BLOCK_FOLLOWERS
+            if type == models.Relationship.BLOCKS
+            else models.LogMessage.Action.MUTE_FOLLOWERS
+        ),
+        account=account,
+        until=now + duration if duration else None,
+        message=None,
+    )
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 

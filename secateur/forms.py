@@ -12,6 +12,7 @@ class BlockAccountsForm(forms.Form):
         max_value=52,
         initial=6,
         help_text="How long to block the accounts (in weeks)",
+        required=False,
     )
     block_account = forms.BooleanField(required=False)
     mute_account = forms.BooleanField(required=False)

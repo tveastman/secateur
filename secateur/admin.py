@@ -143,6 +143,7 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(models.LogMessage)
 class LogMessageAdmin(admin.ModelAdmin):
-    list_display = ("time", "user", "message")
-    list_filter = ("user",)
+    list_display = ("time", "user", "action", "account")
+    list_filter = ("user", "action")
     date_hierarchy = "time"
+    raw_id_fields = ("account",)

@@ -18,7 +18,7 @@
       {% for log_message in object_list %}
         <tr>
           <td>{{ log_message.time|naturaltime }}</td>
-          <td>{{ log_message.message }}</td>
+          <td>{{ log_message.format_message }}</td>
         </tr>
       {% endfor %}
     </tbody>

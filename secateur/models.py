@@ -2,6 +2,7 @@ import logging
 import datetime
 import time
 import os
+from typing import Optional
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import JSONField
@@ -12,6 +13,7 @@ from django.utils.functional import cached_property
 import twitter
 
 import social_django.models
+from django.utils.html import format_html
 
 from . import tasks
 from . import utils
@@ -231,7 +233,10 @@ class Account(models.Model):
                 # Work out which objects we need to create
                 to_create = set(args) - existing
                 # Create the missing account objects a single SQL query and bulk_create
-                cls.objects.bulk_create(cls(user_id=user_id) for user_id in to_create)
+                cls.objects.bulk_create(
+                    (cls(user_id=user_id) for user_id in to_create),
+                    ignore_conflicts=True,
+                )
                 # finally, return an un-materialized queryset of all the new objects.
                 return cls.objects.filter(user_id__in=args)
         elif isinstance(args[0], twitter.User):
@@ -415,9 +420,66 @@ class Relationship(models.Model):
 
 
 class LogMessage(models.Model):
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
-    time = models.DateTimeField()
-    message = models.CharField(max_length=100)
-
     class Meta:
         indexes = (models.Index(fields=["user", "-time"]),)
+
+    class Action(models.IntegerChoices):
+        GET_USER = 1
+        CREATE_BLOCK = 2
+        DESTROY_BLOCK = 3
+        CREATE_MUTE = 4
+        DESTROY_MUTE = 5
+        GET_FOLLOWERS = 6
+        GET_FRIENDS = 7
+        GET_BLOCKS = 8
+        GET_MUTES = 9
+        MUTE_FOLLOWERS = 10
+        BLOCK_FOLLOWERS = 11
+        LOG_IN = 12
+        LOG_OUT = 13
+        DISCONNECT = 14
+
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    time = models.DateTimeField()
+    message = models.CharField(max_length=100, null=True)
+    action = models.IntegerField(choices=Action.choices, null=True)
+    account = models.ForeignKey(Account, null=True, on_delete=models.SET_NULL)
+    until = models.DateTimeField(null=True)
+
+    def format_message(self) -> str:
+        if self.action == self.Action.CREATE_BLOCK:
+            assert self.account is not None
+            return format_html(
+                'blocked {} (<a href="{}">@{}</a>){}',
+                self.account.name,
+                self.account.twitter_url,
+                self.account.screen_name,
+                f' until {self.until.strftime("%B %d, %Y")}' if self.until else "",
+            )
+        elif self.action == self.Action.CREATE_MUTE:
+            assert self.account is not None
+            return format_html(
+                'muted {} (<a href="{}">@{}</a>){}',
+                self.account.name,
+                self.account.twitter_url,
+                self.account.screen_name,
+                f' until {self.until.strftime("%B %d, %Y")}' if self.until else "",
+            )
+        elif self.action == self.Action.BLOCK_FOLLOWERS:
+            assert self.account is not None
+            return format_html(
+                'started blocking followers of {} (<a href="{}">@{}</a>)',
+                self.account.name,
+                self.account.twitter_url,
+                self.account.screen_name,
+            )
+        elif self.action == self.Action.MUTE_FOLLOWERS:
+            assert self.account is not None
+            return format_html(
+                'started muting followers of {} (<a href="{}">@{}</a>)',
+                self.account.name,
+                self.account.twitter_url,
+                self.account.screen_name,
+            )
+        else:
+            return format_html("{}", self.message)
