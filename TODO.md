@@ -20,6 +20,7 @@ DONE
 - Write copy for the frontpage explaining what the tool actually does.
 - Add a page that allows you to update the list of people you follow.
 - Add mypy annotation checking
+- Upgrade to python 3.8
 
 
 NOW
@@ -32,7 +33,6 @@ NEXT
 BACKLOG
 =======
 - simplify the create-relationship task so it doesn't allow screen_name
-- Upgrade to python 3.8
 - Add a search bar.
 - put a 'block/mute' form on an account profile page (where a search result sends you.)
 - Create a token bucket rate limiting system so that no single person can queue up too many blocks at once.
