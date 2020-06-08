@@ -35,7 +35,7 @@ class User(AbstractUser):
     token_bucket_rate = models.FloatField(default=1.0)
     token_bucket_max = models.FloatField(default=200_000.0)
     token_bucket_time = models.FloatField(default=time.time)
-    token_bucket_value = models.FloatField(default=100_000.0)
+    token_bucket_value = models.FloatField(default=200_000.0)
 
     @property
     def token_bucket(self) -> utils.TokenBucket:
