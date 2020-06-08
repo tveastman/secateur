@@ -53,12 +53,11 @@ class SecateurUserAdmin(UserAdmin):
     ) + UserAdmin.fieldsets
     list_display = (
         "username",
-        "first_name",
-        "last_name",
         "last_login",
+        "current_tokens",
         "is_twitter_api_enabled",
-        "is_staff",
     )
+    ordering = ("-last_login",)
     list_editable = ("is_twitter_api_enabled",)
     readonly_fields = ("account", "current_tokens") + UserAdmin.readonly_fields
 
