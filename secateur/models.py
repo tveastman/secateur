@@ -154,15 +154,10 @@ class Profile(models.Model):
         created_at: Optional[datetime]
         try:
             if twitter_user.created_at:
-                logger.debug(
-                    "parsing twitter_user.created_at %r", twitter_user.created_at
-                )
                 created_at = parsedate_to_datetime(twitter_user.created_at)
-                logger.debug("parsed created_at as %r", created_at)
             else:
                 created_at = None
         except Exception as e:
-            logger.exception("Couldn't parse 'created_at'")
             created_at = None
 
         account, account_updated = Account.objects.update_or_create(
@@ -178,6 +173,7 @@ class Profile(models.Model):
                 "profile_image_url_https": twitter_user.profile_image_url_https,
                 "profile_banner_url": twitter_user.profile_banner_url,
                 "favourites_count": twitter_user.favourites_count,
+                "followers_count": twitter_user.followers_count,
                 "friends_count": twitter_user.friends_count,
                 "statuses_count": twitter_user.statuses_count,
                 "listed_count": twitter_user.listed_count,
@@ -216,9 +212,9 @@ class Account(models.Model):
 
     # TWITTER PROFILE FIELDS
     screen_name = models.CharField(max_length=30, null=True, editable=False)
-    name = models.CharField(max_length=60, null=True, editable=False)
+    name = models.CharField(max_length=200, null=True, editable=False)
     description = models.CharField(max_length=200, null=True, editable=False)
-    location = models.CharField(max_length=60, null=True, editable=False)
+    location = models.CharField(max_length=200, null=True, editable=False)
     profile_image_url_https = models.CharField(
         max_length=200, null=True, editable=False
     )

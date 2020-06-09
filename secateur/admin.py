@@ -115,6 +115,7 @@ class AccountAdmin(admin.ModelAdmin):
         "profile_image_url_https",
         "profile_banner_url",
         "favourites_count",
+        "followers_count",
         "friends_count",
         "statuses_count",
         "listed_count",
