@@ -3,6 +3,7 @@ import time
 import os
 from typing import Optional, Union, Tuple, List, Iterable, Any, Dict
 from datetime import datetime, timedelta
+from email.utils import parsedate_to_datetime
 
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.fields import JSONField
@@ -150,6 +151,20 @@ class Profile(models.Model):
         profile, profile_updated = cls.objects.update_or_create(
             user_id=id, defaults={"json": twitter_user.AsDict()}
         )
+        created_at: Optional[datetime]
+        try:
+            if twitter_user.created_at:
+                logger.debug(
+                    "parsing twitter_user.created_at %r", twitter_user.created_at
+                )
+                created_at = parsedate_to_datetime(twitter_user.created_at)
+                logger.debug("parsed created_at as %r", created_at)
+            else:
+                created_at = None
+        except Exception as e:
+            logger.exception("Couldn't parse 'created_at'")
+            created_at = None
+
         account, account_updated = Account.objects.update_or_create(
             user_id=id,
             defaults={
@@ -158,6 +173,15 @@ class Profile(models.Model):
                 "name": twitter_user.name,
                 "profile_updated": now,
                 "profile": profile,
+                "description": twitter_user.description,
+                "location": twitter_user.location,
+                "profile_image_url_https": twitter_user.profile_image_url_https,
+                "profile_banner_url": twitter_user.profile_banner_url,
+                "favourites_count": twitter_user.favourites_count,
+                "friends_count": twitter_user.friends_count,
+                "statuses_count": twitter_user.statuses_count,
+                "listed_count": twitter_user.listed_count,
+                "created_at": created_at,
             },
         )
         return profile, account
@@ -183,13 +207,28 @@ class Account(models.Model):
         indexes = (models.Index(fields=["screen_name"]),)
 
     user_id = models.BigIntegerField(primary_key=True, editable=False)
-    screen_name = models.CharField(max_length=30, null=True, editable=False)
     screen_name_lower = models.CharField(max_length=30, null=True, editable=False)
-    name = models.CharField(max_length=60, null=True, editable=False)
+
     profile = models.OneToOneField(
         Profile, on_delete=models.SET_NULL, null=True, editable=False
     )
     profile_updated = models.DateTimeField(null=True, editable=False)
+
+    # TWITTER PROFILE FIELDS
+    screen_name = models.CharField(max_length=30, null=True, editable=False)
+    name = models.CharField(max_length=60, null=True, editable=False)
+    description = models.CharField(max_length=200, null=True, editable=False)
+    location = models.CharField(max_length=60, null=True, editable=False)
+    profile_image_url_https = models.CharField(
+        max_length=200, null=True, editable=False
+    )
+    profile_banner_url = models.CharField(max_length=200, null=True, editable=False)
+    created_at = models.DateTimeField(null=True, editable=False)
+    favourites_count = models.IntegerField(null=True, editable=False)
+    followers_count = models.IntegerField(null=True, editable=False)
+    friends_count = models.IntegerField(null=True, editable=False)
+    statuses_count = models.IntegerField(null=True, editable=False)
+    listed_count = models.IntegerField(null=True, editable=False)
 
     def __str__(self) -> str:
         return "{}".format(

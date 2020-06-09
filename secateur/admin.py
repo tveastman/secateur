@@ -106,10 +106,19 @@ class AccountAdmin(admin.ModelAdmin):
     readonly_fields = (
         "user_id",
         "screen_name",
-        "name",
         "screen_name_lower",
         "profile_updated",
         "profile",
+        "name",
+        "description",
+        "location",
+        "profile_image_url_https",
+        "profile_banner_url",
+        "favourites_count",
+        "friends_count",
+        "statuses_count",
+        "listed_count",
+        "created_at",
     )
     actions = [get_user]
 
