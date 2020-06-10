@@ -87,17 +87,6 @@ class GetUserFunction:
 
 get_user = GetUserFunction()
 
-# def get_user(modeladmin, request, queryset):
-#     # Let's not accidentally do the whole database.
-#     TOO_MANY = 200
-#     import secateur.tasks
-#
-#     for account in queryset[:TOO_MANY]:
-#         secateur.tasks.get_user.delay(request.user.pk, account.user_id).forget()
-#
-#
-# get_user.short_description = "Update profile from Twitter."
-
 
 @admin.register(models.Account)
 class AccountAdmin(admin.ModelAdmin):
@@ -108,7 +97,6 @@ class AccountAdmin(admin.ModelAdmin):
         "screen_name",
         "screen_name_lower",
         "profile_updated",
-        "profile",
         "name",
         "description",
         "location",
@@ -131,23 +119,6 @@ class RelationshipAdmin(admin.ModelAdmin):
     list_filter = ("type",)
     date_hierarchy = "updated"
     readonly_fields = ("subject", "type", "object", "updated")
-
-
-@admin.register(models.Profile)
-class ProfileAdmin(admin.ModelAdmin):
-    list_display = ("screen_name", "name", "description")
-    readonly_fields = (
-        "screen_name",
-        "name",
-        "description",
-        "location",
-        "formatted_json",
-    )
-    search_fields = ("json__description", "json__screen_name")
-
-    @staticmethod
-    def formatted_json(obj: models.Profile) -> str:
-        return format_html("<pre>{}</pre>", pformat(obj.json))
 
 
 @admin.register(models.LogMessage)

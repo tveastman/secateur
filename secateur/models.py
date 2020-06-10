@@ -126,76 +126,6 @@ class User(AbstractUser):
         objects.update(extra_data=None)
 
 
-def json_getter(property_name: str) -> property:
-    """Returns a class property that dereferences the json dictionary."""
-
-    def f(self: Profile) -> Union[int, str]:
-        return self.json.get(property_name)
-
-    f.__name__ = property_name
-    return property(f)
-
-
-class Profile(models.Model):
-    user_id = models.BigIntegerField(primary_key=True, editable=False)
-    json = JSONField(editable=False)
-
-    @classmethod
-    def update(
-        cls, twitter_user: twitter.User, now: datetime
-    ) -> "Tuple[Profile, Account]":
-        """Create or update Profile/Account objects from a twitter.User instance.
-
-        Returns a tuple of (profile, account) model instances."""
-        id = twitter_user.id
-        profile, profile_updated = cls.objects.update_or_create(
-            user_id=id, defaults={"json": twitter_user.AsDict()}
-        )
-        created_at: Optional[datetime]
-        try:
-            if twitter_user.created_at:
-                created_at = parsedate_to_datetime(twitter_user.created_at)
-            else:
-                created_at = None
-        except Exception as e:
-            created_at = None
-
-        account, account_updated = Account.objects.update_or_create(
-            user_id=id,
-            defaults={
-                "screen_name": twitter_user.screen_name,
-                "screen_name_lower": twitter_user.screen_name.lower(),
-                "name": twitter_user.name,
-                "profile_updated": now,
-                "profile": profile,
-                "description": twitter_user.description,
-                "location": twitter_user.location,
-                "profile_image_url_https": twitter_user.profile_image_url_https,
-                "profile_banner_url": twitter_user.profile_banner_url,
-                "favourites_count": twitter_user.favourites_count,
-                "followers_count": twitter_user.followers_count,
-                "friends_count": twitter_user.friends_count,
-                "statuses_count": twitter_user.statuses_count,
-                "listed_count": twitter_user.listed_count,
-                "created_at": created_at,
-            },
-        )
-        return profile, account
-
-
-for attribute_name in [
-    "description",
-    "screen_name",
-    "location",
-    "name",
-    "followers_count",
-    "friends_count",
-    "statuses_count",
-    "favourites_count",
-]:
-    setattr(Profile, attribute_name, json_getter(attribute_name))
-
-
 class Account(models.Model):
     """A Twitter account"""
 
@@ -205,9 +135,6 @@ class Account(models.Model):
     user_id = models.BigIntegerField(primary_key=True, editable=False)
     screen_name_lower = models.CharField(max_length=30, null=True, editable=False)
 
-    profile = models.OneToOneField(
-        Profile, on_delete=models.SET_NULL, null=True, editable=False
-    )
     profile_updated = models.DateTimeField(null=True, editable=False)
 
     # TWITTER PROFILE FIELDS
@@ -289,10 +216,43 @@ class Account(models.Model):
                 now = timezone.now()
             ids = []
             for twitter_user in args:
-                profile, account = Profile.update(twitter_user, now)
+                account = cls.from_twitter_user(twitter_user, now)
                 ids.append(account.user_id)
             return cls.objects.filter(user_id__in=ids)
         raise Exception("Couldn't handle arguments %r" % (args,))
+
+    @classmethod
+    def from_twitter_user(
+        cls, user: twitter.User, now: Optional[datetime] = None
+    ) -> "Account":
+        account, account_updated = Account.objects.update_or_create(
+            user_id=user.id,
+            defaults={
+                "screen_name": user.screen_name,
+                "screen_name_lower": user.screen_name.lower(),
+                "name": user.name,
+                "profile_updated": now,
+                "description": user.description,
+                "location": user.location,
+                "profile_image_url_https": user.profile_image_url_https,
+                "profile_banner_url": user.profile_banner_url,
+                "favourites_count": user.favourites_count,
+                "followers_count": user.followers_count,
+                "friends_count": user.friends_count,
+                "statuses_count": user.statuses_count,
+                "listed_count": user.listed_count,
+                "created_at": (
+                    parsedate_to_datetime(user.created_at) if user.created_at else None
+                ),
+            },
+        )
+        logger.debug(
+            f"Account.from_twitter_user(%r): %s %s",
+            user,
+            "updated" if account_updated else "created",
+            account,
+        )
+        return account
 
     @property
     def twitter_url(self) -> str:

@@ -12,13 +12,10 @@ class TestAccounts(TestCase):
         result = models.Account.get_accounts(1)
         user_1 = result.get()
         assert user_1.user_id == 1
-        assert user_1.profile is None
 
         user_1, user_2 = models.Account.get_accounts(1, 2).order_by("user_id")
         assert user_1.user_id == 1
-        assert user_1.profile is None
         assert user_2.user_id == 2
-        assert user_2.profile is None
 
         now = timezone.now()
         twitter_user_2 = twitter.models.User(id=2, screen_name="two")
@@ -29,20 +26,14 @@ class TestAccounts(TestCase):
         assert user_2.screen_name == "two"
         assert user_2.user_id == 2
         assert user_2.profile_updated == now
-        assert user_2.profile.json["screen_name"] == "two"
-        assert user_2.profile.user_id == 2
 
         assert user_3.screen_name == "three"
         assert user_3.user_id == 3
-        assert user_3.profile_updated == now
-        assert user_3.profile.json["screen_name"] == "three"
-        assert user_3.profile.user_id == 3
 
         new_now = timezone.now()
         twitter_user_3 = twitter.models.User(id=3, screen_name="3")
         user_3 = models.Account.get_account(twitter_user_3, now=new_now)
         assert user_3.screen_name == "3"
-        assert user_3.profile_updated == new_now
 
     def test_relationship_helpers(self):
         now = timezone.now()

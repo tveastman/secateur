@@ -90,11 +90,9 @@ class Block(LoginRequiredMixin, FormView):
 
         account = user.get_account_by_screen_name(form.cleaned_data["screen_name"])
         # messages.add_message(self.request, messages.INFO, "Retrieved account %s from Twitter" % (account,))
-        profile = account.profile
-        if not profile:
+        if not account.profile_updated:
             account = tasks.get_user(user.pk, user_id=account.pk)
-            profile = account.profile
-            logger.debug("Retrieved account %s and profile %s", account, profile)
+            logger.debug("Retrieved account %s", account)
         messages.add_message(
             self.request,
             messages.INFO,
@@ -102,8 +100,7 @@ class Block(LoginRequiredMixin, FormView):
         )
 
         ## SAFETY GUARDS
-        assert profile is not None
-        followers_count = profile.json.get("followers_count", 0)
+        followers_count = account.followers_count or 0
         if form.cleaned_data["block_followers"] and followers_count > TOO_MANY_TO_BLOCK:
             messages.add_message(
                 self.request,
