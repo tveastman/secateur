@@ -130,7 +130,10 @@ class Account(models.Model):
     """A Twitter account"""
 
     class Meta:
-        indexes = (models.Index(fields=["screen_name"]),)
+        indexes = (
+            models.Index(fields=["screen_name"]),
+            models.Index(fields=["screen_name_lower"]),
+        )
 
     user_id = models.BigIntegerField(primary_key=True, editable=False)
     screen_name_lower = models.CharField(max_length=30, null=True, editable=False)
@@ -184,30 +187,11 @@ class Account(models.Model):
             # If we didn't get anything, return an empty queryset.
             return cls.objects.none()
         if isinstance(args[0], int):
-            if len(args) == 1:
-                # The simplest case, make one and return it.
-                account, account_created = cls.objects.get_or_create(user_id=args[0])
-                return cls.objects.filter(user_id=args[0])
-            else:
-                # Create a bunch of account objects as efficiently as possible.
-                # This tries to do clever bulk_create stuff coz it'll usually
-                # be a list of 5000 numbers passed in.
-
-                # Nab the IDs of all the already-existing Account objects.
-                existing = set(
-                    cls.objects.filter(user_id__in=args).values_list(
-                        "user_id", flat=True
-                    )
-                )
-                # Work out which objects we need to create
-                to_create = set(args) - existing
-                # Create the missing account objects a single SQL query and bulk_create
-                cls.objects.bulk_create(
-                    (cls(user_id=user_id) for user_id in to_create),
-                    ignore_conflicts=True,
-                )
-                # finally, return an un-materialized queryset of all the new objects.
-                return cls.objects.filter(user_id__in=args)
+            cls.objects.bulk_create(
+                (cls(user_id=user_id) for user_id in args),
+                ignore_conflicts=True,
+            )
+            return cls.objects.filter(user_id__in=args)
         elif isinstance(args[0], twitter.User):
             # If we're dealing with dicts, we need need to do it the boring
             # way with a couple SQL queries per object. I'd sure love to make this
@@ -409,29 +393,25 @@ class Relationship(models.Model):
         updated: datetime,
         until: Optional[datetime] = None,
     ) -> "QuerySet[Relationship]":
-        existing = cls.objects.filter(
-            type=type, subject__in=subjects, object__in=objects
-        )
-        existing_set = set(existing.values_list("subject", "object"))
         to_create = []
         for object in objects:
             for subject in subjects:
-                if (subject.pk, object.pk) not in existing_set:
-                    to_create.append(
-                        cls(
-                            type=type,
-                            subject=subject,
-                            object=object,
-                            updated=updated,
-                            until=until,
-                        )
+                to_create.append(
+                    cls(
+                        type=type,
+                        subject=subject,
+                        object=object,
+                        updated=updated,
+                        until=until,
                     )
-        cls.objects.bulk_create(to_create)
+                )
+        cls.objects.bulk_create(to_create, ignore_conflicts=True)
+        result = cls.objects.filter(type=type, subject__in=subjects, object__in=objects)
         if until:
-            existing.update(updated=updated, until=until)
+            result.update(updated=updated, until=until)
         else:
-            existing.update(updated=updated)
-        return cls.objects.filter(type=type, subject__in=subjects, object__in=objects)
+            result.update(updated=updated)
+        return result
 
     @classmethod
     def remove_relationships(cls, **kwargs: Any) -> int:

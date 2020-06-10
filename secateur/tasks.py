@@ -216,7 +216,7 @@ def create_relationship(
     logger.info("%s has %s", secateur_user, log_message)
 
 
-@app.task(bind=True, max_retries=15)
+@app.task(bind=True, max_retries=15, rate_limit=5)
 @transaction.atomic
 def destroy_relationship(
     self: celery.Task,
@@ -534,7 +534,7 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
                     "type": expired_block.type,
                     "user_id": blocked_account.user_id,
                 },
-                countdown=random.randint(1, 60 * 15),
+                countdown=random.randint(1, 60 * 60),
                 max_retries=15,
             )
 
