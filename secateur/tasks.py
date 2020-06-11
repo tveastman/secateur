@@ -487,7 +487,9 @@ def twitter_block_followers(
 
     api_function = partial(api.GetFollowerIDsPaged, user_id=account.user_id)
     accounts_handlers = [
-        partial(account.add_followers, updated=now),
+        # I'm removing the task of updating the relationship table to track the followers.
+        # This should save IO and I'm not using this data for anything.
+        # partial(account.add_followers, updated=now),
         partial(
             _block_multiple,
             type=type,
@@ -495,7 +497,9 @@ def twitter_block_followers(
             duration=duration,
         ),
     ]
-    finish_handlers = [partial(account.remove_followers_older_than, now)]
+    finish_handlers = [
+        # partial(account.remove_followers_older_than, now)
+    ]
     models.LogMessage.objects.create(
         user=secateur_user,
         time=now,

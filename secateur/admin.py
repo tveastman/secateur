@@ -90,7 +90,13 @@ get_user = GetUserFunction()
 
 @admin.register(models.Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ("user_id", "screen_name", "name", "followers_count", "description",)
+    list_display = (
+        "user_id",
+        "screen_name",
+        "name",
+        "followers_count",
+        "description",
+    )
     search_fields = ("user_id", "screen_name_lower")
     readonly_fields = (
         "user_id",

@@ -188,8 +188,7 @@ class Account(models.Model):
             return cls.objects.none()
         if isinstance(args[0], int):
             cls.objects.bulk_create(
-                (cls(user_id=user_id) for user_id in args),
-                ignore_conflicts=True,
+                (cls(user_id=user_id) for user_id in args), ignore_conflicts=True,
             )
             return cls.objects.filter(user_id__in=args)
         elif isinstance(args[0], twitter.User):
@@ -352,7 +351,7 @@ class Relationship(models.Model):
     class Meta:
         unique_together = (("type", "subject", "object"),)
         indexes = (
-            models.Index(fields=["type", "subject"]),
+            # models.Index(fields=["type", "subject"]),
             models.Index(fields=["type", "object"]),
         )
 
@@ -367,6 +366,7 @@ class Relationship(models.Model):
         on_delete=models.CASCADE,
         editable=False,
         related_name="relationship_subject_set",
+        db_index=False,
     )
     type = models.IntegerField(choices=TYPE_CHOICES, editable=False)
     object = models.ForeignKey(
@@ -374,6 +374,7 @@ class Relationship(models.Model):
         on_delete=models.CASCADE,
         editable=False,
         related_name="relationship_object_set",
+        db_index=False,
     )
     updated = models.DateTimeField(editable=False)
     until = models.DateTimeField(blank=True, null=True)
@@ -441,11 +442,13 @@ class LogMessage(models.Model):
         LOG_OUT = 13
         DISCONNECT = 14
 
-    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE, db_index=False)
     time = models.DateTimeField()
     message = models.CharField(max_length=100, null=True)
     action = models.IntegerField(choices=Action.choices, null=True)
-    account = models.ForeignKey(Account, null=True, on_delete=models.SET_NULL)
+    account = models.ForeignKey(
+        Account, null=True, on_delete=models.SET_NULL, db_index=False
+    )
     until = models.DateTimeField(null=True)
 
     def format_message(self) -> str:
