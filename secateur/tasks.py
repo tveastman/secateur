@@ -520,16 +520,14 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
     if now is None:
         now = timezone.now()
 
-    ## TODO: This nested loop will suck once there's a lot of users. Flatten it
-    ##       into one query to iterate over.
-    for secateur_user in models.User.objects.filter(is_twitter_api_enabled=True):
         expired_blocks = models.Relationship.objects.filter(
             Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
-            subject=secateur_user.account,
             until__lt=now,
-        ).select_related("object")
+            subject__user__is_twitter_api_enabled=True
+        ).select_related("object", "subject").prefetch_related("subject__user_set")
 
         for expired_block in expired_blocks.iterator():
+            secateur_user = expired_block.subject.user_set.get()
             blocked_account = expired_block.object
             destroy_relationship.apply_async(
                 [],
