@@ -83,8 +83,8 @@ class Block(LoginRequiredMixin, FormView):
     def form_valid(self, form: django.forms.BaseForm) -> django.http.HttpResponse:
         # These limitations will go somewhere better later. On the user model
         # where they can be set per-user.
-        TOO_MANY_TO_BLOCK = 100_000
-        TOO_MANY_TO_MUTE = 5_000
+        TOO_MANY_TO_BLOCK = 200_000
+        TOO_MANY_TO_MUTE = 10_000
         user = models.User.objects.get(pk=self.request.user.pk)
         user_account = user.account
 
