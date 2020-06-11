@@ -48,7 +48,7 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: celery -A secateur worker -Q blocker -l info --autoscale 4,1
+    command: celery -A secateur worker -Q blocker -l info --autoscale 3,1
     depends_on:
       - redis
       - postgres
