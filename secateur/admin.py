@@ -130,6 +130,6 @@ class RelationshipAdmin(admin.ModelAdmin):
 @admin.register(models.LogMessage)
 class LogMessageAdmin(admin.ModelAdmin):
     list_display = ("time", "user", "action", "account")
-    list_filter = ("user", "action")
+    list_filter = ("action", "user")
     date_hierarchy = "time"
     raw_id_fields = ("account",)

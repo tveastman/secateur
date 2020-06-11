@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
 
 from django.contrib.auth.models import AbstractUser
-from django.contrib.postgres.fields import JSONField
+from django.contrib.postgres.indexes import BrinIndex
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
@@ -133,6 +133,7 @@ class Account(models.Model):
         indexes = (
             models.Index(fields=["screen_name"]),
             models.Index(fields=["screen_name_lower"]),
+            BrinIndex(fields=["profile_updated"], autosummarize=True),
         )
 
     user_id = models.BigIntegerField(primary_key=True, editable=False)
@@ -351,8 +352,10 @@ class Relationship(models.Model):
     class Meta:
         unique_together = (("type", "subject", "object"),)
         indexes = (
-            # models.Index(fields=["type", "subject"]),
             models.Index(fields=["type", "object"]),
+            BrinIndex(fields=["until"], autosummarize=True),
+            BrinIndex(fields=["updated"], autosummarize=True),
+            BrinIndex(fields=["type"], autosummarize=True),
         )
 
     FOLLOWS = 1
@@ -424,7 +427,11 @@ class Relationship(models.Model):
 
 class LogMessage(models.Model):
     class Meta:
-        indexes = (models.Index(fields=["user", "-time"]),)
+        indexes = (
+            models.Index(fields=["user", "-time"]),
+            BrinIndex(fields=["time"], autosummarize=True),
+            BrinIndex(fields=["action"], autosummarize=True),
+        )
 
     class Action(models.IntegerChoices):
         GET_USER = 1
