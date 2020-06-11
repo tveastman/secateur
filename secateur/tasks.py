@@ -471,7 +471,7 @@ def _block_multiple(
             # I can't decide if there should be a timeout here. Probably what ought
             # to happen instead is that blocks are handled by a different celery
             # queue, so they can start right away and not block paged_iterator tasks.
-            countdown=1 + int(i * (60 * 15 / 5000)),
+            # countdown=1 + int(i * (60 * 15 / 5000)),
             max_retries=20,
         )
 
