@@ -169,15 +169,18 @@ LOGGING = {
     },
 }
 
-CELERY_BROKER_URL = "redis://redis"
-CELERY_RESULT_BACKEND = "redis://redis"
+CELERY_BROKER_URL = "redis://redis/0"
+CELERY_RESULT_BACKEND = "redis://redis/1"
 CELERY_IMPORTS = ["secateur.tasks"]
 CELERY_TASK_SERIALIZER = (
     "pickle"  # 'pickle' because I'm passing partial functions around.
 )
 CELERY_RESULT_SERIALIZER = "pickle"
 CELERY_ACCEPT_CONTENT = ["pickle"]
-CELERY_BROKER_TRANSPORT_OPTIONS = {"visibility_timeout": 60 * 60 * 24}
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    "visibility_timeout": 60 * 60 * 24,
+    "queue_order_strategy": "priority",
+}
 CELERY_TASK_ROUTES = {
     "secateur.tasks.create_relationship": {"queue": "blocker"},
     "secateur.tasks.destroy_relationship": {"queue": "blocker"},
