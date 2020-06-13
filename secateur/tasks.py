@@ -85,7 +85,7 @@ def get_user(
     return account
 
 
-@app.task(bind=True, max_retries=15)
+@app.task(bind=True, max_retries=15, ignore_result=True)
 @transaction.atomic
 def create_relationship(
     self: celery.Task,
@@ -216,7 +216,7 @@ def create_relationship(
     logger.info("%s has %s", secateur_user, log_message)
 
 
-@app.task(bind=True, max_retries=15, rate_limit=5)
+@app.task(bind=True, max_retries=15, rate_limit=5, ignore_result=True, priority=8)
 @transaction.atomic
 def destroy_relationship(
     self: celery.Task,
@@ -308,8 +308,11 @@ def destroy_relationship(
             # So we'll remove the account entirely.
             logger.warning("API: Page does not exist (user deleted?)")
             # This deletion cascades to the relationship and the profile.
-            existing_qs.get().object.delete()
-            return
+            # TODO: Don't delete the account object, instead mark it as deleted.
+            # existing_qs.get().object.delete()
+            # return
+            account = existing_qs.get().object
+            pass
         else:
             raise
 
@@ -328,7 +331,7 @@ def destroy_relationship(
     logger.info("%s has %s", secateur_user, log_message)
 
 
-@app.task(bind=True)
+@app.task(bind=True, ignore_result=True)
 def twitter_paged_call_iterator(
     self: celery.Task,
     api_function: Callable,
@@ -473,6 +476,7 @@ def _block_multiple(
             # queue, so they can start right away and not block paged_iterator tasks.
             # countdown=1 + int(i * (60 * 15 / 5000)),
             max_retries=20,
+            priority=random.randint(1, 9)
         )
 
 
@@ -515,7 +519,7 @@ def twitter_block_followers(
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 
-@app.task
+@app.task(priority=9)
 def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
     if now is None:
         now = timezone.now()
