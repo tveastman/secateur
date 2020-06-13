@@ -26,6 +26,7 @@ urlpatterns = [
     path("block/", views.Block.as_view(), name="block-accounts"),
     path("search/", views.Search.as_view(), name="search"),
     path("log-messages/", views.LogMessages.as_view(), name="log-messages"),
+    path("block-messages/", views.BlockMessages.as_view(), name="block-messages"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("disconnect/", views.Disconnect.as_view(), name="disconnect"),
     path("disconnected/", views.Disconnected.as_view(), name="disconnected"),

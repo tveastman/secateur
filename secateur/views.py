@@ -38,7 +38,27 @@ class LogMessages(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> django.db.models.query.QuerySet:
         user = models.User.objects.get(pk=self.request.user.pk)
-        return models.LogMessage.objects.filter(user=user).order_by("-time")
+        return models.LogMessage.objects.filter(user=user).exclude(action__in=[
+            models.LogMessage.Action.CREATE_BLOCK,
+            models.LogMessage.Action.DESTROY_BLOCK,
+            models.LogMessage.Action.CREATE_MUTE,
+            models.LogMessage.Action.DESTROY_MUTE,
+        ]).order_by("-time")
+
+
+class BlockMessages(LoginRequiredMixin, ListView):
+    template_name = "block-messages.html"
+    model = models.LogMessage
+    paginate_by = 50
+
+    def get_queryset(self) -> django.db.models.query.QuerySet:
+        user = models.User.objects.get(pk=self.request.user.pk)
+        return models.LogMessage.objects.filter(user=user).filter(action__in=[
+            models.LogMessage.Action.CREATE_BLOCK,
+            models.LogMessage.Action.DESTROY_BLOCK,
+            models.LogMessage.Action.CREATE_MUTE,
+            models.LogMessage.Action.DESTROY_MUTE,
+        ]).order_by("-time")
 
 
 class Search(LoginRequiredMixin, FormView):
@@ -198,7 +218,7 @@ class Disconnect(LoginRequiredMixin, FormView):
         # I guess I could an 'are you sure?' boolean in the form or something.
 
         user = self.request.user
-        user_social_auth = user.twitter_social_auth()  # There can be only one
+        user_social_auth = user.twitter_social_auth  # There can be only one
 
         # Erase the oauth token we've got.
         user_social_auth.extra_data = None

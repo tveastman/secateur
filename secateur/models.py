@@ -457,6 +457,7 @@ class LogMessage(models.Model):
         Account, null=True, on_delete=models.SET_NULL, db_index=False
     )
     until = models.DateTimeField(null=True)
+    rate_limited = models.BooleanField(null=True)
 
     def format_message(self) -> str:
         if self.action == self.Action.CREATE_BLOCK:
@@ -467,6 +468,10 @@ class LogMessage(models.Model):
                 self.account.twitter_url,
                 self.account.screen_name,
                 f' until {self.until.strftime("%B %d, %Y")}' if self.until else "",
+            )
+        elif self.rate_limited:
+            return format_html(
+                "Hit Twitter API rate limit, pausing operation for 15 minutes."
             )
         elif self.action == self.Action.CREATE_MUTE:
             assert self.account is not None

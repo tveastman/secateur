@@ -185,6 +185,8 @@ def create_relationship(
             models.LogMessage.objects.create(
                 user=secateur_user,
                 message="Rate limited: resuming in 15 minutes.",
+                action=action,
+                rate_limited=True,
                 time=now,
             )
             self.retry(countdown=_twitter_retry_timeout(retries=self.request.retries))

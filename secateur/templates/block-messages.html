@@ -2,11 +2,9 @@
 {% load bootstrap4 %}
 {% load humanize %}
 
-{% block title %}Secateur log.{% endblock %}
+{% block title %}Secateur blocks and unblocks{% endblock %}
 
 {% block content %}
-
-  <p>For logs of each individual block and unblock action, <a href="{%  url "block-messages" %}">click here</a>.</p>
 
   {% bootstrap_pagination page_obj pages_to_show=5 %}
   <table class="table">
