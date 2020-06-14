@@ -78,7 +78,6 @@ def get_user(
     models.LogMessage.objects.create(
         user=secateur_user,
         time=timezone.now(),
-        message="Retrieved profile for {}".format(account),
         account=account,
         action=models.LogMessage.Action.GET_USER,
     )
@@ -184,7 +183,6 @@ def create_relationship(
             )
             models.LogMessage.objects.create(
                 user=secateur_user,
-                message="Rate limited: resuming in 15 minutes.",
                 action=action,
                 rate_limited=True,
                 time=now,
@@ -210,7 +208,6 @@ def create_relationship(
     models.LogMessage.objects.create(
         user=secateur_user,
         time=now,
-        message=log_message,
         action=action,
         account=account,
         until=until,
@@ -325,7 +322,6 @@ def destroy_relationship(
     models.LogMessage.objects.create(
         user=secateur_user,
         time=now,
-        message=log_message,
         action=action,
         until=None,
         account=account,
@@ -516,7 +512,6 @@ def twitter_block_followers(
         ),
         account=account,
         until=now + duration if duration else None,
-        message=None,
     )
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 

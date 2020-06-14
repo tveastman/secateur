@@ -451,7 +451,6 @@ class LogMessage(models.Model):
 
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE, db_index=False)
     time = models.DateTimeField()
-    message = models.CharField(max_length=100, null=True)
     action = models.IntegerField(choices=Action.choices, null=True)
     account = models.ForeignKey(
         Account, null=True, on_delete=models.SET_NULL, db_index=False
@@ -482,6 +481,22 @@ class LogMessage(models.Model):
                 self.account.screen_name,
                 f' until {self.until.strftime("%B %d, %Y")}' if self.until else "",
             )
+        elif self.action == self.Action.DESTROY_MUTE:
+            assert self.account is not None
+            return format_html(
+                'unmuted {} (<a href="{}">@{}</a>)',
+                self.account.name,
+                self.account.twitter_url,
+                self.account.screen_name,
+            )
+        elif self.action == self.Action.DESTROY_BLOCK:
+            assert self.account is not None
+            return format_html(
+                'unblocked {} (<a href="{}">@{}</a>)',
+                self.account.name,
+                self.account.twitter_url,
+                self.account.screen_name,
+            )
         elif self.action == self.Action.BLOCK_FOLLOWERS:
             assert self.account is not None
             return format_html(
@@ -510,4 +525,4 @@ class LogMessage(models.Model):
                 self.account.screen_name,
             )
         else:
-            return format_html("{}", self.message)
+            return format_html("{}", self.action)
