@@ -182,10 +182,7 @@ def create_relationship(
                 rate_limit_key, now + datetime.timedelta(seconds=15 * 60), 15 * 60
             )
             models.LogMessage.objects.create(
-                user=secateur_user,
-                action=action,
-                rate_limited=True,
-                time=now,
+                user=secateur_user, action=action, rate_limited=True, time=now,
             )
             self.retry(countdown=_twitter_retry_timeout(retries=self.request.retries))
         else:
@@ -206,16 +203,12 @@ def create_relationship(
         " until {}".format(until.strftime("%-d %B")) if until else "",
     )
     models.LogMessage.objects.create(
-        user=secateur_user,
-        time=now,
-        action=action,
-        account=account,
-        until=until,
+        user=secateur_user, time=now, action=action, account=account, until=until,
     )
     logger.info("%s has %s", secateur_user, log_message)
 
 
-@app.task(bind=True, max_retries=15, rate_limit=5, ignore_result=True, priority=8)
+@app.task(bind=True, max_retries=15, ignore_result=True, priority=9)
 @transaction.atomic
 def destroy_relationship(
     self: celery.Task,
@@ -320,11 +313,7 @@ def destroy_relationship(
     ).delete()
     log_message = "{} {}".format(past_tense_verb, account)
     models.LogMessage.objects.create(
-        user=secateur_user,
-        time=now,
-        action=action,
-        until=None,
-        account=account,
+        user=secateur_user, time=now, action=action, until=None, account=account,
     )
     logger.info("%s has %s", secateur_user, log_message)
 
