@@ -498,5 +498,16 @@ class LogMessage(models.Model):
                 self.account.twitter_url,
                 self.account.screen_name,
             )
+        elif self.action == self.Action.LOG_IN:
+            return format_html("logged in")
+        elif self.action == self.Action.LOG_OUT:
+            return format_html("logged out")
+        elif self.action == self.Action.GET_USER:
+            return format_html(
+                'retrieved profile for {} (<a href="{}">@{}</a>)',
+                self.account.name,
+                self.account.twitter_url,
+                self.account.screen_name,
+            )
         else:
             return format_html("{}", self.message)

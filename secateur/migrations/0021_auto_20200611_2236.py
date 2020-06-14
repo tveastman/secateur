@@ -7,12 +7,14 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('secateur', '0020_auto_20200611_1645'),
+        ("secateur", "0020_auto_20200611_1645"),
     ]
 
     operations = [
         migrations.AddIndex(
-            model_name='relationship',
-            index=django.contrib.postgres.indexes.BrinIndex(fields=['until'], name='secateur_re_until_54d335_brin'),
+            model_name="relationship",
+            index=django.contrib.postgres.indexes.BrinIndex(
+                fields=["until"], name="secateur_re_until_54d335_brin"
+            ),
         ),
     ]

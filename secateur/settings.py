@@ -47,7 +47,7 @@ INSTALLED_APPS = [
     "social_django",
     "bootstrap4",
     "request",
-    "secateur",
+    "secateur.apps.SecateurConfig",
 ]
 
 MIDDLEWARE = [

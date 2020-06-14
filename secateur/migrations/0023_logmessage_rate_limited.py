@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('secateur', '0022_auto_20200611_2252'),
+        ("secateur", "0022_auto_20200611_2252"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='logmessage',
-            name='rate_limited',
+            model_name="logmessage",
+            name="rate_limited",
             field=models.BooleanField(null=True),
         ),
     ]

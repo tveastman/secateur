@@ -10,6 +10,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.timezone import now
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 
 from . import forms, models, tasks
@@ -38,12 +39,18 @@ class LogMessages(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> django.db.models.query.QuerySet:
         user = models.User.objects.get(pk=self.request.user.pk)
-        return models.LogMessage.objects.filter(user=user).exclude(action__in=[
-            models.LogMessage.Action.CREATE_BLOCK,
-            models.LogMessage.Action.DESTROY_BLOCK,
-            models.LogMessage.Action.CREATE_MUTE,
-            models.LogMessage.Action.DESTROY_MUTE,
-        ]).order_by("-time")
+        return (
+            models.LogMessage.objects.filter(user=user)
+            .exclude(
+                action__in=[
+                    models.LogMessage.Action.CREATE_BLOCK,
+                    models.LogMessage.Action.DESTROY_BLOCK,
+                    models.LogMessage.Action.CREATE_MUTE,
+                    models.LogMessage.Action.DESTROY_MUTE,
+                ]
+            )
+            .order_by("-time")
+        )
 
 
 class BlockMessages(LoginRequiredMixin, ListView):
@@ -53,12 +60,18 @@ class BlockMessages(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> django.db.models.query.QuerySet:
         user = models.User.objects.get(pk=self.request.user.pk)
-        return models.LogMessage.objects.filter(user=user).filter(action__in=[
-            models.LogMessage.Action.CREATE_BLOCK,
-            models.LogMessage.Action.DESTROY_BLOCK,
-            models.LogMessage.Action.CREATE_MUTE,
-            models.LogMessage.Action.DESTROY_MUTE,
-        ]).order_by("-time")
+        return (
+            models.LogMessage.objects.filter(user=user)
+            .filter(
+                action__in=[
+                    models.LogMessage.Action.CREATE_BLOCK,
+                    models.LogMessage.Action.DESTROY_BLOCK,
+                    models.LogMessage.Action.CREATE_MUTE,
+                    models.LogMessage.Action.DESTROY_MUTE,
+                ]
+            )
+            .order_by("-time")
+        )
 
 
 class Search(LoginRequiredMixin, FormView):
@@ -227,6 +240,10 @@ class Disconnect(LoginRequiredMixin, FormView):
         # Disable the twitter API.
         user.is_twitter_api_enabled = False
         user.save(update_fields=["is_twitter_api_enabled"])
+
+        models.LogMessage.objects.create(
+            time=now(), action=models.LogMessage.Action.DISCONNECT, user=user
+        )
 
         # Log the user out.
         logout(self.request)
