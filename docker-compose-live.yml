@@ -30,7 +30,7 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: celery -A secateur worker -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --beat --autoscale 2,1
+    command: nice celery -A secateur worker -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --beat --autoscale 2,1
     depends_on:
       - redis
       - postgres
@@ -48,7 +48,7 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: celery -A secateur worker -Q blocker -l info --autoscale 1,1
+    command: nice celery -A secateur worker -Q blocker -l info --autoscale 4,1
     depends_on:
       - redis
       - postgres
@@ -83,3 +83,4 @@ services:
     init: true
     read_only: true
     restart: always
+    command: redis-server --maxmemory 768mb

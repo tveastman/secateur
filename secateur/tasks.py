@@ -186,6 +186,12 @@ def create_relationship(
             )
             self.retry(countdown=_twitter_retry_timeout(retries=self.request.retries))
         else:
+            logger.exception(
+                "Error during destroy_relationship, secateur_user=%s, type=%s, user_id=%s",
+                secateur_user,
+                type,
+                user_id,
+            )
             raise
 
     ## UPDATE DATABASE
@@ -208,7 +214,7 @@ def create_relationship(
     logger.info("%s has %s", secateur_user, log_message)
 
 
-@app.task(bind=True, max_retries=15, ignore_result=True, priority=9)
+@app.task(bind=True, max_retries=5, ignore_result=True)
 @transaction.atomic
 def destroy_relationship(
     self: celery.Task,
@@ -306,6 +312,12 @@ def destroy_relationship(
             account = existing_qs.get().object
             pass
         else:
+            logger.exception(
+                "Error during destroy_relationship, secateur_user=%s, type=%s, user_id=%s",
+                secateur_user,
+                type,
+                user_id,
+            )
             raise
 
     models.Relationship.objects.filter(
@@ -505,34 +517,39 @@ def twitter_block_followers(
     twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
 
 
-@app.task(priority=9)
+@app.task()
 def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
+    max_per_call = 1000
     if now is None:
         now = timezone.now()
 
-        expired_blocks = (
-            models.Relationship.objects.filter(
-                Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
-                until__lt=now,
-                subject__user__is_twitter_api_enabled=True,
-            )
-            .select_related("object", "subject")
-            .prefetch_related("subject__user_set")
+    expired_blocks = (
+        models.Relationship.objects.filter(
+            Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
+            until__lt=now,
+            subject__user__is_twitter_api_enabled=True,
         )
+        .select_related("object", "subject")
+        .prefetch_related("subject__user_set")
+    )
 
-        for expired_block in expired_blocks.iterator():
-            secateur_user = expired_block.subject.user_set.get()
-            blocked_account = expired_block.object
-            destroy_relationship.apply_async(
-                [],
-                {
-                    "secateur_user_pk": secateur_user.pk,
-                    "type": expired_block.type,
-                    "user_id": blocked_account.user_id,
-                },
-                countdown=random.randint(1, 60 * 60),
-                max_retries=15,
-            )
+    # for expired_block in expired_blocks.iterator():
+    count: int = 0
+    for expired_block in expired_blocks[:max_per_call]:
+        secateur_user = expired_block.subject.user_set.get()
+        blocked_account = expired_block.object
+        destroy_relationship.apply_async(
+            [],
+            {
+                "secateur_user_pk": secateur_user.pk,
+                "type": expired_block.type,
+                "user_id": blocked_account.user_id,
+            },
+            countdown=random.randint(1, 60 * 60),
+            priority=random.randint(1, 5),
+        )
+        count += 1
+    logger.info("Triggered unblock/unmute tasks on %s relationships.", count)
 
 
 def update_user_details(secateur_user: "models.User") -> None:
