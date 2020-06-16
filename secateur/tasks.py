@@ -519,7 +519,7 @@ def twitter_block_followers(
 
 @app.task()
 def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
-    max_per_call = 1000
+    max_per_call = 2_000
     if now is None:
         now = timezone.now()
 
@@ -546,7 +546,7 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
                 "user_id": blocked_account.user_id,
             },
             countdown=random.randint(1, 60 * 60),
-            priority=random.randint(1, 5),
+            priority=1,
         )
         count += 1
     logger.info("Triggered unblock/unmute tasks on %s relationships.", count)
