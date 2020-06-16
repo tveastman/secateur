@@ -60,7 +60,7 @@ services:
       - /tmp
     restart: always
   postgres:
-    image: postgres:11
+    image: postgres:13
     command: postgres -c 'shared_buffers=256MB' -c 'synchronous_commit=off' -c "max_wal_senders=0" -c "wal_level=minimal" -c 'wal_writer_delay=5000' -c 'wal_writer_flush_after=5MB' -c 'log_min_duration_statement=200'
     env_file:
       - ./.env
