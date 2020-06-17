@@ -185,9 +185,14 @@ def create_relationship(
                 user=secateur_user, action=action, rate_limited=True, time=now,
             )
             self.retry(countdown=_twitter_retry_timeout(retries=self.request.retries))
+        elif ErrorCode.from_exception(e) == ErrorCode.INVALID_OR_EXPIRED_TOKEN:
+            secateur_user.is_twitter_api_enabled = False
+            secateur_user.save(update_fields=["is_twitter_api_enabled"])
+            logger.warning("Received %s, disabling Twitter API for user %s", ErrorCode.INVALID_OR_EXPIRED_TOKEN, secateur_user)
+            return
         else:
             logger.exception(
-                "Error during destroy_relationship, secateur_user=%s, type=%s, user_id=%s",
+                "Error during create_relationship, secateur_user=%s, type=%s, user_id=%s",
                 secateur_user,
                 type,
                 user_id,
@@ -311,6 +316,11 @@ def destroy_relationship(
             # return
             account = existing_qs.get().object
             pass
+        elif ErrorCode.from_exception(e) == ErrorCode.INVALID_OR_EXPIRED_TOKEN:
+            secateur_user.is_twitter_api_enabled = False
+            secateur_user.save(update_fields=["is_twitter_api_enabled"])
+            logger.warning("Received %s, disabling Twitter API for user %s", ErrorCode.INVALID_OR_EXPIRED_TOKEN, secateur_user)
+            return
         else:
             logger.exception(
                 "Error during destroy_relationship, secateur_user=%s, type=%s, user_id=%s",
