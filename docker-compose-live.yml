@@ -75,7 +75,7 @@ services:
       - /tmp/
     restart: always
   redis:
-    image: redis
+    image: redis:6
     volumes:
       - redis:/data
     networks:
@@ -83,4 +83,4 @@ services:
     init: true
     read_only: true
     restart: always
-    command: redis-server --maxmemory 768mb
+    #command: redis-server --maxmemory 768mb --save 300 1
