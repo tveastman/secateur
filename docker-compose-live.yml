@@ -83,4 +83,4 @@ services:
     init: true
     read_only: true
     restart: always
-    #command: redis-server --maxmemory 768mb --save 300 1
+    command: redis-server redis.conf
