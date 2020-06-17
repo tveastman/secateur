@@ -188,7 +188,11 @@ def create_relationship(
         elif ErrorCode.from_exception(e) == ErrorCode.INVALID_OR_EXPIRED_TOKEN:
             secateur_user.is_twitter_api_enabled = False
             secateur_user.save(update_fields=["is_twitter_api_enabled"])
-            logger.warning("Received %s, disabling Twitter API for user %s", ErrorCode.INVALID_OR_EXPIRED_TOKEN, secateur_user)
+            logger.warning(
+                "Received %s, disabling Twitter API for user %s",
+                ErrorCode.INVALID_OR_EXPIRED_TOKEN,
+                secateur_user,
+            )
             return
         else:
             logger.exception(
@@ -319,7 +323,11 @@ def destroy_relationship(
         elif ErrorCode.from_exception(e) == ErrorCode.INVALID_OR_EXPIRED_TOKEN:
             secateur_user.is_twitter_api_enabled = False
             secateur_user.save(update_fields=["is_twitter_api_enabled"])
-            logger.warning("Received %s, disabling Twitter API for user %s", ErrorCode.INVALID_OR_EXPIRED_TOKEN, secateur_user)
+            logger.warning(
+                "Received %s, disabling Twitter API for user %s",
+                ErrorCode.INVALID_OR_EXPIRED_TOKEN,
+                secateur_user,
+            )
             return
         else:
             logger.exception(
@@ -510,7 +518,7 @@ def twitter_block_followers(
             duration=duration,
         ),
     ]
-    finish_handlers = [
+    finish_handlers: "List[Callable[[], None]]" = [
         # partial(account.remove_followers_older_than, now)
     ]
     models.LogMessage.objects.create(

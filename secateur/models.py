@@ -80,7 +80,9 @@ class User(AbstractUser):
             raise TwitterApiDisabled()
         access_token = self.twitter_social_auth.extra_data.get("access_token", None)
         if not access_token:
-            logger.error("Tried to get a Twitter API but User %s had no access token.", self)
+            logger.error(
+                "Tried to get a Twitter API but User %s had no access token.", self
+            )
             raise TwitterApiDisabled()
         api = twitter.Api(
             consumer_key=os.environ.get("CONSUMER_KEY"),
@@ -521,6 +523,7 @@ class LogMessage(models.Model):
         elif self.action == self.Action.LOG_OUT:
             return format_html("logged out")
         elif self.action == self.Action.GET_USER:
+            assert self.account is not None
             return format_html(
                 'retrieved profile for {} (<a href="{}">@{}</a>)',
                 self.account.name,

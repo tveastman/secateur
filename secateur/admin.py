@@ -55,6 +55,7 @@ class SecateurUserAdmin(UserAdmin):
         "username",
         "last_login",
         "current_tokens",
+        "has_access_token",
         "is_twitter_api_enabled",
     )
     ordering = ("-last_login",)
@@ -62,6 +63,11 @@ class SecateurUserAdmin(UserAdmin):
     readonly_fields = ("account", "current_tokens") + UserAdmin.readonly_fields
 
     actions = [update_user_details]
+
+    def has_access_token(self, obj) -> bool:
+        return bool(obj.twitter_social_auth.extra_data)
+
+    has_access_token.boolean = True
 
 
 admin.site.register(models.User, SecateurUserAdmin)
