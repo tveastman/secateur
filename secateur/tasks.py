@@ -492,7 +492,7 @@ def _block_multiple(
             # to happen instead is that blocks are handled by a different celery
             # queue, so they can start right away and not block paged_iterator tasks.
             # countdown=1 + int(i * (60 * 15 / 5000)),
-            max_retries=20,
+            max_retries=5,
             priority=random.randint(1, 9),
         )
 
@@ -563,7 +563,7 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
                 "type": expired_block.type,
                 "user_id": blocked_account.user_id,
             },
-            countdown=random.randint(1, 60 * 60),
+            # countdown=random.randint(1, 60 * 60),
             priority=1,
         )
         count += 1
