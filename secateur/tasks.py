@@ -360,6 +360,7 @@ def twitter_paged_call_iterator(
     cursor: int = -1,
     max_pages: int = 100,
     current_page: int = 1,
+    delay_between_pages: int = 0,
 ) -> None:
     try:
         logger.debug("Calling %r with cursor page %r", api_function, cursor)
@@ -379,13 +380,15 @@ def twitter_paged_call_iterator(
     for accounts_handler in accounts_handlers:
         accounts_handler(accounts)
     if next_cursor and max_pages:
-        twitter_paged_call_iterator.delay(
-            api_function,
-            accounts_handlers,
-            finish_handlers,
-            cursor=next_cursor,
-            max_pages=max_pages - 1,
-            current_page=current_page + 1,
+        twitter_paged_call_iterator.apply_async(
+            [api_function, accounts_handlers, finish_handlers,],
+            dict(
+                cursor=next_cursor,
+                max_pages=max_pages - 1,
+                current_page=current_page + 1,
+                delay_between_pages=delay_between_pages,
+            ),
+            countdown=delay_between_pages if delay_between_pages else None,
         )
     if not next_cursor:
         # We only run the finish_handler if we actually made it to the end of the list.
@@ -532,7 +535,9 @@ def twitter_block_followers(
         account=account,
         until=now + duration if duration else None,
     )
-    twitter_paged_call_iterator.delay(api_function, accounts_handlers, finish_handlers)
+    twitter_paged_call_iterator.delay(
+        api_function, accounts_handlers, finish_handlers, delay_between_pages=500
+    )
 
 
 @app.task()
