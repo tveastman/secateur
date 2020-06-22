@@ -70,6 +70,7 @@ services:
       secateur:
     init: true
     read_only: true
+    shm_size: 128M
     tmpfs:
       - /run/
       - /tmp/
