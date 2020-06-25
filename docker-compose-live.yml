@@ -48,7 +48,7 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: nice celery -A secateur worker -Q blocker -l info --autoscale 4,0
+    command: nice celery -A secateur worker -Q blocker -l info --autoscale 3,0 --max-memory-per-child 1048576
     depends_on:
       - redis
       - postgres
