@@ -12,5 +12,16 @@
     {% endbuttons %}
   </form>
 
-<p>NEW: If you don't want Secateur to block the accounts of people you follow, you can tell it not to <a href="{% url "following" %}">on this page</a>.</p>
+<p>If you don't want Secateur to block the accounts of people you follow, you can tell it not to <a href="{% url "following" %}">on this page</a>.</p>
+
+
+<div class="alert alert-warning" role="alert">
+<p>Dear Secateur user,</p>
+<p>Secateur has gotten very popular in the last few weeks. To prevent the server overloading I've had to reduce the number
+of people you can block at a time.
+</p>
+<p>If you're being harassed you can contact me and I can increase the limit for you.</p>
+<p>I want to make sure that secateur is always available to people who need it for protection.</p>
+<p>If you can, please donate to help with the server expenses!</p>
+</div>
 {% endblock %}

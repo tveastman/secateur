@@ -26,6 +26,15 @@ logger = logging.getLogger(__name__)
 class TwitterApiDisabled(Exception):
     pass
 
+def default_token_bucket_rate() -> float:
+    return 0.5
+
+def default_token_bucket_max() -> float:
+    return 50_000.00
+
+def default_token_bucket_value() -> float:
+    return 50_000.00
+
 
 class User(AbstractUser):
     is_twitter_api_enabled = models.BooleanField(default=True)
@@ -33,10 +42,10 @@ class User(AbstractUser):
         "Account", null=True, editable=False, on_delete=models.SET_NULL
     )
 
-    token_bucket_rate = models.FloatField(default=1.0)
-    token_bucket_max = models.FloatField(default=200_000.0)
+    token_bucket_rate = models.FloatField(default=default_token_bucket_rate)
+    token_bucket_max = models.FloatField(default=default_token_bucket_max)
     token_bucket_time = models.FloatField(default=time.time)
-    token_bucket_value = models.FloatField(default=200_000.0)
+    token_bucket_value = models.FloatField(default=default_token_bucket_value)
 
     @property
     def token_bucket(self) -> utils.TokenBucket:
@@ -234,12 +243,6 @@ class Account(models.Model):
                     parsedate_to_datetime(user.created_at) if user.created_at else None
                 ),
             },
-        )
-        logger.debug(
-            f"Account.from_twitter_user(%r): %s %s",
-            user,
-            "updated" if account_updated else "created",
-            account,
         )
         return account
 
