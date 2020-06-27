@@ -169,7 +169,21 @@ LOGGING = {
     },
 }
 
-CELERY_BROKER_URL = "redis://redis/0"
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis/1")
+if CELERY_BROKER_URL.lower().startswith("redis"):
+    CELERY_BROKER_TRANSPORT_OPTIONS = {
+        "visibility_timeout": 60 * 60 * 24,
+        "queue_order_strategy": "priority",
+    }
+elif CELERY_BROKER_URL.lower().startswith("sqs"):
+    CELERY_BROKER_TRANSPORT_OPTIONS = {
+        "visibility_timeout": 60 * 60 * 12,
+        "region": "ap-southeast-2",
+        "polling_interval": 5.0,
+        "wait_time_seconds": 20,
+        "queue_name_prefix": os.environ.get("SQS_QUEUE_NAME_PREFIX"),
+    }
 CELERY_RESULT_BACKEND = "redis://redis/1"
 CELERY_IMPORTS = ["secateur.tasks"]
 CELERY_TASK_SERIALIZER = (
@@ -177,14 +191,12 @@ CELERY_TASK_SERIALIZER = (
 )
 CELERY_RESULT_SERIALIZER = "pickle"
 CELERY_ACCEPT_CONTENT = ["pickle"]
-CELERY_BROKER_TRANSPORT_OPTIONS = {
-    "visibility_timeout": 60 * 60 * 24,
-    "queue_order_strategy": "priority",
-}
 CELERY_TASK_ROUTES = {
     "secateur.tasks.create_relationship": {"queue": "blocker"},
     "secateur.tasks.destroy_relationship": {"queue": "blocker"},
 }
+
+
 
 CACHES = {
     "default": {
