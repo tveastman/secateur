@@ -116,7 +116,6 @@ class Block(LoginRequiredMixin, FormView):
     def form_valid(self, form: django.forms.BaseForm) -> django.http.HttpResponse:
         # These limitations will go somewhere better later. On the user model
         # where they can be set per-user.
-        TOO_MANY_TO_BLOCK = 200_000
         TOO_MANY_TO_MUTE = 10_000
         user = models.User.objects.get(pk=self.request.user.pk)
         user_account = user.account
@@ -134,12 +133,12 @@ class Block(LoginRequiredMixin, FormView):
 
         ## SAFETY GUARDS
         followers_count = account.followers_count or 0
-        if form.cleaned_data["block_followers"] and followers_count > TOO_MANY_TO_BLOCK:
+        if form.cleaned_data["block_followers"] and followers_count > user.token_bucket_max:
             messages.add_message(
                 self.request,
                 messages.ERROR,
                 "Sorry, {} has too many followers to block them all (max is {} for now)".format(
-                    account, TOO_MANY_TO_BLOCK
+                    account, user.token_bucket_max
                 ),
             )
             return super().form_valid(form)
