@@ -26,14 +26,18 @@ logger = logging.getLogger(__name__)
 class TwitterApiDisabled(Exception):
     pass
 
+
 def default_token_bucket_rate() -> float:
     return 0.5
 
+
 def default_token_bucket_max() -> float:
-    return 50_000.00
+    return 100_000.00
+
 
 def default_token_bucket_value() -> float:
-    return 50_000.00
+    return 100_000.00
+
 
 
 class User(AbstractUser):

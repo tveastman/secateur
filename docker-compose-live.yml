@@ -10,7 +10,10 @@ services:
     image: secateur
     env_file:
       - .env
-    command: sh -c "./manage.py migrate && gunicorn -b 0.0.0.0:5000 -k gthread --log-file=- --log-level info --access-logfile - --capture-output secateur.wsgi"
+    command: >
+      sh -c "./manage.py migrate &&
+      gunicorn -b 0.0.0.0:5000 -k gthread --log-file=- --log-level info
+      --access-logfile - --capture-output secateur.wsgi"
     ports:
       - "5000:5000"
     depends_on:
@@ -30,7 +33,11 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: nice celery -A secateur worker -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler --beat --autoscale 1,0
+    command: >
+      nice celery -A secateur worker
+      -l info
+      --scheduler django_celery_beat.schedulers:DatabaseScheduler
+      --beat --concurrency=1
     depends_on:
       - redis
       - postgres
@@ -48,7 +55,12 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: nice celery -A secateur worker -Q blocker -l info --autoscale 5,0 --max-memory-per-child 1548576 --prefetch-multiplier 150
+    command: >
+      nice celery -A secateur worker -Q blocker -l info
+      --concurrency=3
+      --max-memory-per-child 1548576
+      --max-tasks-per-child 10000
+      --prefetch-multiplier 150
     depends_on:
       - redis
       - postgres
@@ -61,7 +73,16 @@ services:
     restart: always
   postgres:
     image: postgres:13
-    command: postgres -c 'shared_buffers=256MB' -c 'synchronous_commit=off' -c "max_wal_senders=0" -c "wal_level=minimal" -c 'wal_writer_delay=5000' -c 'wal_writer_flush_after=5MB' -c 'log_min_duration_statement=200' -c 'autovacuum_vacuum_scale_factor=0.01'
+    command: >
+      postgres
+      -c 'shared_buffers=256MB'
+      -c 'synchronous_commit=off'
+      -c "max_wal_senders=0"
+      -c "wal_level=minimal"
+      -c 'wal_writer_delay=5000'
+      -c 'wal_writer_flush_after=5MB'
+      -c 'log_min_duration_statement=200'
+      -c 'autovacuum_vacuum_scale_factor=0.01'
     env_file:
       - ./.env
     volumes:
