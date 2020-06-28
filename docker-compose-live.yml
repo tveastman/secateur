@@ -34,7 +34,8 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
     command: >
-      nice celery -A secateur worker
+      nice timeout 32400 celery -A secateur worker
+      --without-gossip --without-mingle --without-heartbeat
       -l info
       --scheduler django_celery_beat.schedulers:DatabaseScheduler
       --beat --concurrency=1
@@ -56,10 +57,9 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
     command: >
-      nice celery -A secateur worker -Q blocker -l info
+      nice timeout 32400 celery -A secateur worker -Q blocker -l info
+      --without-gossip --without-mingle --without-heartbeat
       --concurrency=3
-      --max-memory-per-child 1548576
-      --max-tasks-per-child 10000
       --prefetch-multiplier 150
     depends_on:
       - redis
