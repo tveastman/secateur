@@ -440,9 +440,8 @@ class Relationship(models.Model):
 class LogMessage(models.Model):
     class Meta:
         indexes = (
-            models.Index(fields=["user", "-time"]),
             BrinIndex(fields=["time"], autosummarize=True),
-            BrinIndex(fields=["action"], autosummarize=True),
+            models.Index(fields=["user", "action"]),
         )
 
     class Action(models.IntegerChoices):
@@ -463,7 +462,7 @@ class LogMessage(models.Model):
 
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE, db_index=False)
     time = models.DateTimeField()
-    action = models.IntegerField(choices=Action.choices, null=True)
+    action = models.IntegerField(choices=Action.choices)
     account = models.ForeignKey(
         Account, null=True, on_delete=models.SET_NULL, db_index=False
     )
