@@ -20,12 +20,21 @@ class ErrorCode(Enum):
     PAGE_DOES_NOT_EXIST = 34
     INVALID_OR_EXPIRED_TOKEN = 89
 
+    NOT_AUTHORIZED = 'Not authorized.'
+
     @classmethod
     def from_exception(
         cls, twitter_error_exception: twitter.error.TwitterError
     ) -> "ErrorCode":
-        code = twitter_error_exception.message[0]["code"]
-        return cls(code)
+        message = twitter_error_exception.message
+        logger.debug("Parsing twitter exception: %r", twitter_error_exception)
+        logger.debug("Parsing twitter exception message: %r", message)
+        if isinstance(message, list):
+            code = message[0]["code"]
+            return cls(code)
+        elif isinstance(message, str):
+            return cls(message)
+        raise ValueError(f"Didn't recognize exception {twitter_error_exception!r}")
 
 
 def fudge_duration(duration: timedelta, fraction: float) -> timedelta:
