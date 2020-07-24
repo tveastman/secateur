@@ -6,14 +6,14 @@ from . import models
 
 
 @receiver(user_logged_in)
-def log_in_log_message(sender, user, request, **kwargs):
+def log_in_log_message(sender, user, request, **kwargs):  # type: ignore
     models.LogMessage.objects.create(
         time=now(), user=user, action=models.LogMessage.Action.LOG_IN
     )
 
 
 @receiver(user_logged_out)
-def log_out_log_message(sender, user, request, **kwargs):
+def log_out_log_message(sender, user, request, **kwargs):  # type: ignore
     models.LogMessage.objects.create(
         time=now(), user=user, action=models.LogMessage.Action.LOG_OUT
     )

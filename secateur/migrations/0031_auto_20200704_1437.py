@@ -6,13 +6,30 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('secateur', '0030_auto_20200704_1429'),
+        ("secateur", "0030_auto_20200704_1429"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='logmessage',
-            name='action',
-            field=models.IntegerField(choices=[(1, 'Get User'), (2, 'Create Block'), (3, 'Destroy Block'), (4, 'Create Mute'), (5, 'Destroy Mute'), (6, 'Get Followers'), (7, 'Get Friends'), (8, 'Get Blocks'), (9, 'Get Mutes'), (10, 'Mute Followers'), (11, 'Block Followers'), (12, 'Log In'), (13, 'Log Out'), (14, 'Disconnect')]),
+            model_name="logmessage",
+            name="action",
+            field=models.IntegerField(
+                choices=[
+                    (1, "Get User"),
+                    (2, "Create Block"),
+                    (3, "Destroy Block"),
+                    (4, "Create Mute"),
+                    (5, "Destroy Mute"),
+                    (6, "Get Followers"),
+                    (7, "Get Friends"),
+                    (8, "Get Blocks"),
+                    (9, "Get Mutes"),
+                    (10, "Mute Followers"),
+                    (11, "Block Followers"),
+                    (12, "Log In"),
+                    (13, "Log Out"),
+                    (14, "Disconnect"),
+                ]
+            ),
         ),
     ]

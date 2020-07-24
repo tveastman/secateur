@@ -39,7 +39,6 @@ def default_token_bucket_value() -> float:
     return 50_000.00
 
 
-
 class User(AbstractUser):
     is_twitter_api_enabled = models.BooleanField(default=True)
     account = models.ForeignKey(

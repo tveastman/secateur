@@ -133,7 +133,10 @@ class Block(LoginRequiredMixin, FormView):
 
         ## SAFETY GUARDS
         followers_count = account.followers_count or 0
-        if form.cleaned_data["block_followers"] and followers_count > user.token_bucket_max:
+        if (
+            form.cleaned_data["block_followers"]
+            and followers_count > user.token_bucket_max
+        ):
             messages.add_message(
                 self.request,
                 messages.ERROR,

@@ -4,7 +4,7 @@ from django.apps import AppConfig
 class SecateurConfig(AppConfig):
     name = "secateur"
 
-    def ready(self):
+    def ready(self) -> None:
         import secateur.signals
 
         return super().ready()

@@ -20,7 +20,7 @@ class ErrorCode(Enum):
     PAGE_DOES_NOT_EXIST = 34
     INVALID_OR_EXPIRED_TOKEN = 89
 
-    NOT_AUTHORIZED = 'Not authorized.'
+    NOT_AUTHORIZED = "Not authorized."
 
     @classmethod
     def from_exception(

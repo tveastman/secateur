@@ -197,7 +197,6 @@ CELERY_TASK_ROUTES = {
 }
 
 
-
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

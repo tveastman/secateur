@@ -64,10 +64,10 @@ class SecateurUserAdmin(UserAdmin):
 
     actions = [update_user_details]
 
-    def has_access_token(self, obj) -> bool:
+    def has_access_token(self, obj: models.User) -> bool:
         return bool(obj.twitter_social_auth.extra_data)
 
-    has_access_token.boolean = True
+    has_access_token.boolean = True  # type: ignore
 
 
 admin.site.register(models.User, SecateurUserAdmin)
