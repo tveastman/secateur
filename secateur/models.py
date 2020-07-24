@@ -28,15 +28,15 @@ class TwitterApiDisabled(Exception):
 
 
 def default_token_bucket_rate() -> float:
-    return 0.5
+    return 0.4
 
 
 def default_token_bucket_max() -> float:
-    return 100_000.00
+    return 50_000.00
 
 
 def default_token_bucket_value() -> float:
-    return 100_000.00
+    return 50_000.00
 
 
 
