@@ -371,11 +371,11 @@ def twitter_paged_call_iterator(
     current_page: int = 1,
     delay_between_pages: int = 0,
 ) -> None:
-    logger.info(api_function=repr(api_function), cursor=cursor)
+    logger.info("paged_call_iterator()", api_function=repr(api_function), cursor=cursor)
     try:
         next_cursor, previous_cursor, data = api_function(cursor=cursor)
         if data:
-            logger.info(len_data=len(data))
+            logger.info("Got a page of data", len_data=len(data))
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             logger.warning("Rate limit exceeded, scheduling a retry.")
