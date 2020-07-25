@@ -23,6 +23,7 @@ dj-database-url = "*"
 django-csp = "*"
 django-request = "*"
 django-xff = "*"
+django-structlog = "*"
 
 [dev-packages]
 pytest = "*"

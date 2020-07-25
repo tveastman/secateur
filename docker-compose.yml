@@ -30,7 +30,9 @@ services:
       - ./.env
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- celery -A secateur worker -l info
+    #command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- celery -A secateur worker -l info
+    command: celery -A secateur worker -Q celery,blocker -l debug
+
     depends_on:
       - redis
       - postgres

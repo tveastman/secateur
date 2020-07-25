@@ -2,12 +2,14 @@
 
 import datetime
 import enum
-import logging
+
+# import logging
 import random
 from functools import partial
 from typing import Optional, Callable, List, Iterable
 
 import celery
+import structlog
 from django.db import transaction
 from django.core.cache import cache
 from django.db.models import Q
@@ -18,7 +20,7 @@ from . import models
 from .celery import app
 from .utils import ErrorCode, fudge_duration
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 # These have to match the ones for the Relationship model.

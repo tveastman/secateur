@@ -63,6 +63,7 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.contrib.flatpages.middleware.FlatpageFallbackMiddleware",
     "csp.middleware.CSPMiddleware",
+    "django_structlog.middlewares.RequestMiddleware",
 ]
 
 XFF_TRUSTED_PROXY_DEPTH = 1
@@ -155,19 +156,70 @@ SOCIAL_AUTH_PIPELINE = (
 )
 
 # LOGGING
+# LOGGING = {
+#     "version": 1,
+#     "disable_existing_loggers": False,
+#     "handlers": {"console": {"class": "logging.StreamHandler"}},
+#     "root": {"level": "INFO", "handlers": ["console"]},
+#     "loggers": {
+#         "secateur": {"level": "DEBUG"},
+#         "django": {"level": "INFO", "propagate": True},
+#         "requests_oauthlib": {"level": "INFO"},
+#         "urllib3": {"level": "INFO"},
+#         "oauthlib": {"level": "INFO"},
+#     },
+# }
+
+import structlog
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "handlers": {"console": {"class": "logging.StreamHandler"}},
-    "root": {"level": "INFO", "handlers": ["console"]},
+    "formatters": {
+        "json_formatter": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.JSONRenderer(),
+        },
+        "plain_console": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.dev.ConsoleRenderer(),
+        },
+        "key_value": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.KeyValueRenderer(
+                key_order=["timestamp", "level", "event", "logger"]
+            ),
+        },
+    },
+    "handlers": {
+        "console": {"class": "logging.StreamHandler", "formatter": "plain_console",},
+    },
     "loggers": {
-        "secateur": {"level": "DEBUG"},
-        "django": {"level": "INFO", "propagate": True},
-        "requests_oauthlib": {"level": "INFO"},
-        "urllib3": {"level": "INFO"},
-        "oauthlib": {"level": "INFO"},
+        "secateur": {
+            "handlers": ["console",],  # "flat_line_file", "json_file"],
+            "level": "DEBUG",
+        },
     },
 }
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.processors.ExceptionPrettyPrinter(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    context_class=structlog.threadlocal.wrap_dict(dict),
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
 
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis/1")

@@ -5,6 +5,7 @@ import logging
 import django.db.models
 import django.forms
 import django.http
+import structlog
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -15,7 +16,7 @@ from django.views.generic import DetailView, FormView, ListView, TemplateView
 
 from . import forms, models, tasks
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class Home(TemplateView):
