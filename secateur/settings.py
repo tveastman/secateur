@@ -64,6 +64,7 @@ MIDDLEWARE = [
     "django.contrib.flatpages.middleware.FlatpageFallbackMiddleware",
     "csp.middleware.CSPMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
+    "django_structlog.middlewares.CeleryMiddleware",
 ]
 
 XFF_TRUSTED_PROXY_DEPTH = 1

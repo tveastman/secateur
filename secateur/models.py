@@ -1,10 +1,10 @@
-import logging
 import time
 import os
 from typing import Optional, Union, Tuple, List, Iterable, Any, Dict
 from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
 
+import structlog
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.indexes import BrinIndex
 from django.db import models, transaction
@@ -20,7 +20,7 @@ from django.utils.html import format_html
 from . import tasks
 from . import utils
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class TwitterApiDisabled(Exception):
@@ -105,7 +105,7 @@ class User(AbstractUser):
         )
         return api
 
-    def get_account_by_screen_name(self, screen_name: str) -> "Account":
+    def get_account_by_screen_name(self, screen_name: str) -> "Optional[Account]":
         queryset = Account.objects.filter(screen_name_lower=screen_name.lower())
         if queryset:
             return queryset.get()

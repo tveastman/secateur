@@ -5,11 +5,13 @@ import logging
 import random
 from datetime import timedelta
 
+import structlog
+
 import secateur.models
 
 import twitter
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class ErrorCode(Enum):
@@ -27,14 +29,15 @@ class ErrorCode(Enum):
         cls, twitter_error_exception: twitter.error.TwitterError
     ) -> "ErrorCode":
         message = twitter_error_exception.message
-        logger.debug("Parsing twitter exception: %r", twitter_error_exception)
-        logger.debug("Parsing twitter exception message: %r", message)
         if isinstance(message, list):
             code = message[0]["code"]
-            return cls(code)
+            result = cls(code)
         elif isinstance(message, str):
-            return cls(message)
-        raise ValueError(f"Didn't recognize exception {twitter_error_exception!r}")
+            result = cls(message)
+        else:
+            raise ValueError(f"Didn't recognize exception {twitter_error_exception!r}")
+        logger.debug("Parsed twitter exception.", message=message, result=result)
+        return result
 
 
 def fudge_duration(duration: timedelta, fraction: float) -> timedelta:

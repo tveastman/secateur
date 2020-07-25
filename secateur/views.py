@@ -122,10 +122,12 @@ class Block(LoginRequiredMixin, FormView):
         user_account = user.account
 
         account = user.get_account_by_screen_name(form.cleaned_data["screen_name"])
-        # messages.add_message(self.request, messages.INFO, "Retrieved account %s from Twitter" % (account,))
-        if not account.profile_updated:
-            account = tasks.get_user(user.pk, user_id=account.pk)
-            logger.debug("Retrieved account %s", account)
+        if account is None:
+            messages.add_message(
+                self.request, messages.ERROR, "Account not found.",
+            )
+            return super().form_valid(form)
+
         messages.add_message(
             self.request,
             messages.INFO,

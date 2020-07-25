@@ -39,22 +39,23 @@ def _twitter_retry_timeout(base: int = 900, retries: int = 0) -> int:
     schedule our retry.
     """
     # Pick a slot using binary exponential backoff.
-    # We limit slots to sometime in the next 23 hours so we don't fall afowl
-    # of redis' visibility_timeout. If we use rabbitmq we can get rid of this
-    # cap.
-    max_slot = min(2 ** retries - 1, 23 * 4)
+    # We have to make sure we don't pick a slot past our celery broker's
+    # visibility timeout, which was 23 hours on redis but is only 11 hours
+    # on SQS.
+    visibility_timeout_hours = 11
+    max_slot = min(2 ** retries - 1, visibility_timeout_hours * 4)
     slot = random.randint(0, max_slot)
     # Each slot is a 15 minute window, pick a random second within
     # that 15 minute window.
     seconds = random.randint(slot * 15 * 60, (slot + 1) * 15 * 60)
     timeout = base + seconds
     logger.debug(
-        "retry timeout: base=%r retries=%r, slot=%r, seconds=%r timeout=%r",
-        base,
-        retries,
-        slot,
-        seconds,
-        timeout,
+        "twitter_retry_timeout",
+        base=base,
+        retries=retries,
+        slot=slot,
+        seconds=seconds,
+        timeout=timeout,
     )
     return timeout
 
@@ -101,10 +102,11 @@ def create_relationship(
         raise ValueError("Must provide either user_id or screen_name.")
 
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
+    log = logger.bind(user=secateur_user)
     try:
         api = secateur_user.api
     except models.TwitterApiDisabled:
-        logger.error("Twitter API not enabled for user: %s", secateur_user)
+        log.error("Twitter API not enabled")
         return
     now = timezone.now()
     type = RelationshipType(type)
@@ -125,6 +127,7 @@ def create_relationship(
         )
     else:
         raise ValueError("Don't know how to handle type %r", type)
+    log = log.bind(action=action, until=until, type=type, user_id=user_id)
 
     ## CHECK IF THIS RELATIONSHIP ALREADY EXISTS
     existing_rel_qs = models.Relationship.objects.filter(
@@ -137,7 +140,7 @@ def create_relationship(
         existing_rel_qs = existing_rel_qs.filter(object__user_id=user_id)
     updated_existing = existing_rel_qs.update(until=until)
     if updated_existing:
-        logger.info(
+        log.info(
             "%s has already %s %s.",
             secateur_user.account,
             past_tense_verb,
@@ -147,7 +150,7 @@ def create_relationship(
 
     assert secateur_user.account is not None
     if secateur_user.account.follows(user_id=user_id, screen_name=screen_name):
-        logger.info(
+        log.info(
             "%s follows %s and so %s won't be %s.",
             secateur_user.account,
             user_id,
@@ -160,9 +163,7 @@ def create_relationship(
     rate_limited = cache.get(rate_limit_key)
     if rate_limited:
         time_remaining = (rate_limited - now).total_seconds()
-        logger.debug(
-            "Locally cached rate limit exceeded (%s seconds remaining)", time_remaining
-        )
+        log.debug("Locally cached rate limit exceeded", time_remaining=time_remaining)
         self.retry(
             countdown=_twitter_retry_timeout(
                 base=time_remaining + 5, retries=self.request.retries
@@ -179,7 +180,7 @@ def create_relationship(
         )
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
-            logger.warning("API rate limit exceeded.")
+            log.warning("API rate limit exceeded.")
             cache.set(
                 rate_limit_key, now + datetime.timedelta(seconds=15 * 60), 15 * 60
             )
@@ -190,14 +191,14 @@ def create_relationship(
         elif ErrorCode.from_exception(e) == ErrorCode.INVALID_OR_EXPIRED_TOKEN:
             secateur_user.is_twitter_api_enabled = False
             secateur_user.save(update_fields=["is_twitter_api_enabled"])
-            logger.warning(
+            log.warning(
                 "Received %s, disabling Twitter API for user %s",
                 ErrorCode.INVALID_OR_EXPIRED_TOKEN,
                 secateur_user,
             )
             return
         else:
-            logger.exception(
+            log.exception(
                 "Error during create_relationship, secateur_user=%s, type=%s, user_id=%s",
                 secateur_user,
                 type,
@@ -207,6 +208,7 @@ def create_relationship(
 
     ## UPDATE DATABASE
     account = models.Account.get_account(api_result)
+    log = log.bind(account=account)
     models.Relationship.add_relationships(
         type=type,
         subjects=[secateur_user.account],
@@ -222,7 +224,7 @@ def create_relationship(
     models.LogMessage.objects.create(
         user=secateur_user, time=now, action=action, account=account, until=until,
     )
-    logger.info("%s has %s", secateur_user, log_message)
+    log.info(f"{secateur_user} has {log_message}")
 
 
 @app.task(bind=True, max_retries=5, ignore_result=True)
@@ -347,7 +349,12 @@ def destroy_relationship(
     models.LogMessage.objects.create(
         user=secateur_user, time=now, action=action, until=None, account=account,
     )
-    logger.info("%s has %s", secateur_user, log_message)
+    logger.info(
+        f"{secateur_user} has {log_message}",
+        user=secateur_user,
+        account=account,
+        action=action,
+    )
 
 
 @app.task(bind=True, ignore_result=True)
@@ -364,11 +371,11 @@ def twitter_paged_call_iterator(
     current_page: int = 1,
     delay_between_pages: int = 0,
 ) -> None:
+    logger.info(api_function=repr(api_function), cursor=cursor)
     try:
-        logger.debug("Calling %r with cursor page %r", api_function, cursor)
         next_cursor, previous_cursor, data = api_function(cursor=cursor)
         if data:
-            logger.debug("Received %r results", len(data))
+            logger.info(len_data=len(data))
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             logger.warning("Rate limit exceeded, scheduling a retry.")
