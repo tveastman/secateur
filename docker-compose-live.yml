@@ -26,6 +26,8 @@ services:
     tmpfs:
       - /tmp
     restart: always
+    logging:
+      driver: journald
   celery:
     build: .
     image: secateur
@@ -49,6 +51,8 @@ services:
     tmpfs:
       - /tmp
     restart: always
+    logging:
+      driver: journald
   blocker:
     build: .
     image: secateur
@@ -71,6 +75,8 @@ services:
     tmpfs:
       - /tmp
     restart: always
+    logging:
+      driver: journald
   postgres:
     image: postgres:13
     command: >
@@ -96,6 +102,8 @@ services:
       - /run/
       - /tmp/
     restart: always
+    logging:
+      driver: journald
   redis:
     image: redis:6
     volumes:
@@ -106,3 +114,5 @@ services:
     read_only: true
     restart: always
     command: redis-server redis.conf
+    logging:
+      driver: journald
