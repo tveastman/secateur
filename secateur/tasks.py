@@ -546,7 +546,7 @@ def twitter_block_followers(
         until=now + duration if duration else None,
     )
     twitter_paged_call_iterator.delay(
-        api_function, accounts_handlers, finish_handlers, delay_between_pages=500
+        api_function, accounts_handlers, finish_handlers, delay_between_pages=600
     )
 
 
