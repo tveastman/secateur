@@ -484,6 +484,7 @@ def _block_multiple(
     secateur_user_pk: int,
     duration: datetime.timedelta,
 ) -> None:
+    # TODO: Right here I can filter out of 'accounts' all the accounts that are already blocked.
     for i, account in enumerate(accounts):
         until: Optional[datetime.datetime]
         if duration:
