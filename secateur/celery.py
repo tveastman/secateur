@@ -19,19 +19,9 @@ def receiver_setup_logging(  # type: ignore
             "version": 1,
             "disable_existing_loggers": False,
             "formatters": {
-                "json_formatter": {
-                    "()": structlog.stdlib.ProcessorFormatter,
-                    "processor": structlog.processors.JSONRenderer(),
-                },
                 "plain_console": {
                     "()": structlog.stdlib.ProcessorFormatter,
-                    "processor": structlog.dev.ConsoleRenderer(),
-                },
-                "key_value": {
-                    "()": structlog.stdlib.ProcessorFormatter,
-                    "processor": structlog.processors.KeyValueRenderer(
-                        key_order=["timestamp", "level", "event", "logger"]
-                    ),
+                    "processor": structlog.dev.ConsoleRenderer(colors=False),
                 },
             },
             "handlers": {

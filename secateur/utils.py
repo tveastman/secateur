@@ -22,6 +22,8 @@ class ErrorCode(Enum):
     PAGE_DOES_NOT_EXIST = 34
     INVALID_OR_EXPIRED_TOKEN = 89
 
+    ACCOUNT_TEMPORARILY_LOCKED = 326
+
     NOT_AUTHORIZED = "Not authorized."
 
     @classmethod
