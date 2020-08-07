@@ -367,7 +367,7 @@ def twitter_paged_call_iterator(
     # It's a list of callables that take no arguments and return no result
     finish_handlers: "List[Callable[[], None]]",
     cursor: int = -1,
-    max_pages: int = 100,
+    max_pages: int = 300,
     current_page: int = 1,
     delay_between_pages: int = 0,
 ) -> None:
@@ -484,8 +484,21 @@ def _block_multiple(
     secateur_user_pk: int,
     duration: datetime.timedelta,
 ) -> None:
-    # TODO: Right here I can filter out of 'accounts' all the accounts that are already blocked.
+
+    secateur_user = models.User.objects.get(pk=secateur_user_pk)
+    already_blocked_ids = set(
+        models.Relationship.objects.filter(
+            subject=secateur_user.account, type=type, object__in=accounts
+        ).values_list("object_id", flat=True)
+    )
+    logger.debug(
+        "_block_multiple(): filtering out already blocked accounts.",
+        len_accounts=len(accounts),
+        len_already_blocked_ids=len(already_blocked_ids),
+    )
     for i, account in enumerate(accounts):
+        if account.user_id in already_blocked_ids:
+            continue
         until: Optional[datetime.datetime]
         if duration:
             # Add a random 5% component to the block duration.
@@ -546,7 +559,7 @@ def twitter_block_followers(
         until=now + duration if duration else None,
     )
     twitter_paged_call_iterator.delay(
-        api_function, accounts_handlers, finish_handlers, delay_between_pages=600
+        api_function, accounts_handlers, finish_handlers, delay_between_pages=600,
     )
 
 

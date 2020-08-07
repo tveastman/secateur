@@ -36,7 +36,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
     command: >
-      nice timeout 32400 celery -A secateur worker
+      nice timeout 86400 celery -A secateur worker
       --without-gossip --without-mingle --without-heartbeat
       -l info
       --scheduler django_celery_beat.schedulers:DatabaseScheduler
@@ -61,7 +61,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
     command: >
-      nice timeout 32400 celery -A secateur worker -Q blocker -l info
+      nice timeout 86400 celery -A secateur worker -Q blocker -l info
       --without-gossip --without-mingle --without-heartbeat
       --concurrency=3
       --prefetch-multiplier 150
