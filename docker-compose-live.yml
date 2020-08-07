@@ -9,7 +9,7 @@ services:
     build: .
     image: secateur
     env_file:
-      - .env
+      - /etc/secateur/environment
     command: >
       sh -c "./manage.py migrate &&
       gunicorn -b 0.0.0.0:5000 -k gthread --log-file=- --log-level info
@@ -32,7 +32,7 @@ services:
     build: .
     image: secateur
     env_file:
-      - ./.env
+      - /etc/secateur/environment
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
     command: >
@@ -57,7 +57,7 @@ services:
     build: .
     image: secateur
     env_file:
-      - ./.env
+      - /etc/secateur/environment
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
     command: >
@@ -90,7 +90,7 @@ services:
       -c 'log_min_duration_statement=200'
       -c 'autovacuum_vacuum_scale_factor=0.01'
     env_file:
-      - ./.env
+      - /etc/secateur/environment
     volumes:
       - postgres:/var/lib/postgresql/data
     networks:
