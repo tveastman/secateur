@@ -565,7 +565,7 @@ def twitter_block_followers(
 
 @app.task()
 def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
-    max_per_call = 2_000
+    max_per_call = 5_000
     if now is None:
         now = timezone.now()
 
