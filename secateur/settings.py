@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     "django.contrib.sites",
     "django.contrib.flatpages",
+    "django.contrib.postgres",
     "django_celery_beat",
     "social_django",
     "bootstrap4",

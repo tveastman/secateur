@@ -32,11 +32,11 @@ def default_token_bucket_rate() -> float:
 
 
 def default_token_bucket_max() -> float:
-    return 200_000.00
+    return 50_000.00
 
 
 def default_token_bucket_value() -> float:
-    return 200_000.00
+    return 50_000.00
 
 
 class User(AbstractUser):
