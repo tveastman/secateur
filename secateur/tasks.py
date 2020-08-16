@@ -1,9 +1,6 @@
-"""django-q tasks"""
-
 import datetime
 import enum
 
-# import logging
 import random
 from functools import partial
 from typing import Optional, Callable, List, Iterable
@@ -596,6 +593,29 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
         )
         count += 1
     logger.info("Triggered unblock/unmute tasks on %s relationships.", count)
+
+
+@app.task()
+def delete_old_block_log_messages() -> None:
+    # Five weeks, basically just so that there's a month's worth?
+    days_old = 7 * 5
+    cutoff = timezone.now() - datetime.timedelta(days=days_old)
+    queryset = models.LogMessage.objects.filter().filter(
+        action__in=[
+            models.LogMessage.Action.CREATE_BLOCK,
+            models.LogMessage.Action.DESTROY_BLOCK,
+            models.LogMessage.Action.CREATE_MUTE,
+            models.LogMessage.Action.DESTROY_MUTE,
+        ],
+        time__lt=cutoff,
+    )
+    total_deleted, deleted_per_model = queryset.delete()
+    logger.info(
+        "delete_old_block_log_messages",
+        cutoff=cutoff,
+        days_old=days_old,
+        total_deleted=total_deleted,
+    )
 
 
 def update_user_details(secateur_user: "models.User") -> None:
