@@ -1,14 +1,13 @@
-from pprint import pformat
 from typing import Optional
 
 from django.contrib import admin
 from django.contrib.admin import ModelAdmin
 from django.contrib.auth.admin import UserAdmin
-from django.contrib.postgres.fields import JSONField
 from django.core.handlers.wsgi import WSGIRequest
+from django.core.paginator import Paginator
 from django.db.models import QuerySet
+from django.http import HttpRequest
 from django.template.response import TemplateResponse
-from django.utils.html import format_html
 
 import social_django.admin
 
@@ -103,11 +102,10 @@ class AccountAdmin(admin.ModelAdmin):
         "followers_count",
         "description",
     )
-    search_fields = ("user_id", "screen_name_lower")
+    search_fields = ("user_id", "screen_name__iexact")
     readonly_fields = (
         "user_id",
         "screen_name",
-        "screen_name_lower",
         "profile_updated",
         "name",
         "description",
@@ -122,15 +120,58 @@ class AccountAdmin(admin.ModelAdmin):
         "created_at",
     )
     actions = [get_user]
+    show_full_result_count = False
+
+    def get_search_results(self, request, queryset, search_term):
+        if search_term:
+            queryset = queryset.filter(screen_name__iexact=search_term)
+        return queryset, False
+
+    def get_paginator(
+        self,
+        request: HttpRequest,
+        queryset: QuerySet,
+        per_page: int,
+        orphans=0,
+        allow_empty_first_page=True,
+    ) -> Paginator:
+        MAX = 10_000
+        queryset = queryset[:MAX]
+        return super().get_paginator(
+            request=request,
+            queryset=queryset,
+            per_page=per_page,
+            orphans=orphans,
+            allow_empty_first_page=allow_empty_first_page,
+        )
 
 
 @admin.register(models.Relationship)
 class RelationshipAdmin(admin.ModelAdmin):
-    search_fields = ("object__screen_name_lower", "subject__screen_name_lower")
+    search_fields = ("object__screen_name__iexact", "subject__screen_name__iexact")
     list_display = ("subject", "type", "object", "until", "updated")
     list_filter = ("type",)
     date_hierarchy = "updated"
     readonly_fields = ("subject", "type", "object", "updated")
+    show_full_result_count = False
+
+    def get_paginator(
+        self,
+        request: HttpRequest,
+        queryset: QuerySet,
+        per_page: int,
+        orphans=0,
+        allow_empty_first_page=True,
+    ) -> Paginator:
+        MAX = 10_000
+        queryset = queryset[:MAX]
+        return super().get_paginator(
+            request=request,
+            queryset=queryset,
+            per_page=per_page,
+            orphans=orphans,
+            allow_empty_first_page=allow_empty_first_page,
+        )
 
 
 @admin.register(models.LogMessage)
@@ -139,3 +180,22 @@ class LogMessageAdmin(admin.ModelAdmin):
     list_filter = ("action", "user")
     date_hierarchy = "time"
     raw_id_fields = ("account",)
+    show_full_result_count = False
+
+    def get_paginator(
+        self,
+        request: HttpRequest,
+        queryset: QuerySet,
+        per_page: int,
+        orphans=0,
+        allow_empty_first_page=True,
+    ) -> Paginator:
+        MAX = 10_000
+        queryset = queryset[:MAX]
+        return super().get_paginator(
+            request=request,
+            queryset=queryset,
+            per_page=per_page,
+            orphans=orphans,
+            allow_empty_first_page=allow_empty_first_page,
+        )

@@ -106,7 +106,7 @@ class User(AbstractUser):
         return api
 
     def get_account_by_screen_name(self, screen_name: str) -> "Optional[Account]":
-        queryset = Account.objects.filter(screen_name_lower=screen_name.lower())
+        queryset = Account.objects.filter(screen_name__iexact=screen_name)
         if queryset:
             return queryset.get()
         else:
@@ -149,12 +149,10 @@ class Account(models.Model):
     class Meta:
         indexes = (
             models.Index(fields=["screen_name"]),
-            models.Index(fields=["screen_name_lower"]),
             BrinIndex(fields=["profile_updated"], autosummarize=True),
         )
 
     user_id = models.BigIntegerField(primary_key=True, editable=False)
-    screen_name_lower = models.CharField(max_length=30, null=True, editable=False)
 
     profile_updated = models.DateTimeField(null=True, editable=False)
 
@@ -230,7 +228,6 @@ class Account(models.Model):
             user_id=user.id,
             defaults={
                 "screen_name": user.screen_name,
-                "screen_name_lower": user.screen_name.lower(),
                 "name": user.name,
                 "profile_updated": now,
                 "description": user.description,

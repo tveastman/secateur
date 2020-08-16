@@ -84,18 +84,15 @@ class Search(LoginRequiredMixin, FormView):
 
     def form_valid(self, form: django.forms.BaseForm) -> django.http.HttpResponse:
         screen_name = form.cleaned_data["screen_name"]
-        screen_name_lower = screen_name.lower()
         account = None
 
         # First search our local database.
         try:
-            account = models.Account.objects.get(screen_name_lower=screen_name_lower)
+            account = models.Account.objects.get(screen_name__iexact=screen_name)
         except models.Account.DoesNotExist:
-            logger.debug("Account not found for user: %s", screen_name_lower)
+            logger.debug("Account not found for user: %s", screen_name)
         if account is None:
-            account = tasks.get_user(
-                self.request.user.pk, screen_name=screen_name_lower
-            )
+            account = tasks.get_user(self.request.user.pk, screen_name=screen_name)
 
         if account is None:
             messages.add_message(
