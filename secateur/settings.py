@@ -237,6 +237,7 @@ CELERY_RESULT_SERIALIZER = "pickle"
 CELERY_ACCEPT_CONTENT = ["pickle"]
 CELERY_TASK_ROUTES = {
     "secateur.tasks.create_relationship": {"queue": "blocker"},
+    "secateur.tasks.create_relationships": {"queue": "blocker"},
     "secateur.tasks.destroy_relationship": {"queue": "blocker"},
 }
 

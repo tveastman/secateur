@@ -1,6 +1,6 @@
 import pytest
 
-from .utils import TokenBucket
+from .utils import TokenBucket, chunks
 
 
 def test_token_bucket() -> None:
@@ -15,3 +15,13 @@ def test_token_bucket() -> None:
     b = b.withdraw(time=100.0, value=100.0)
     b = b.withdraw(time=101.0, value=100.0)
     assert b.value == 2.0
+
+
+@pytest.mark.parametrize("iterable,size,output", [
+    ([1, 2, 3], 2, [[1, 2], [3]]),
+    ([1, 2], 2, [[1, 2]]),
+    ([1], 2, [[1]]),
+    ([], 2, []),
+])
+def test_chunks(iterable, size, output):
+    assert list(chunks(iterable, size)) == output

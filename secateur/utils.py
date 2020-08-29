@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, List, Iterable
 from dataclasses import dataclass, replace
 from enum import Enum
 import logging
@@ -17,6 +17,7 @@ logger = structlog.get_logger(__name__)
 class ErrorCode(Enum):
     RATE_LIMITED_EXCEEDED = 88
     USER_SUSPENDED = 63
+    ACCOUNT_SUSPENDED = 64
     USER_NOT_FOUND = 50
     NOT_MUTING_SPECIFIED_USER = 272
     PAGE_DOES_NOT_EXIST = 34
@@ -82,3 +83,8 @@ class TokenBucket:
                 f"Cannot withdraw {value} at time {time}, new value would be {new_value}"
             )
         return replace(self, time=time, value=new_value)
+
+
+def chunks(iterable: Iterable[Any], size: int) -> List[Any]:
+    for chunk in (iterable[i:i+size] for i in range(0, len(iterable), size)):
+        yield chunk

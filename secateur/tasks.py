@@ -15,7 +15,7 @@ from twitter.error import TwitterError
 
 from . import models
 from .celery import app
-from .utils import ErrorCode, fudge_duration
+from .utils import ErrorCode, fudge_duration, chunks
 
 logger = structlog.get_logger(__name__)
 
@@ -82,6 +82,33 @@ def get_user(
         action=models.LogMessage.Action.GET_USER,
     )
     return account
+
+
+@app.task(ignore_result=True)
+def create_relationships(
+    self: celery.Task,
+    secateur_user_pk: int,
+    type: RelationshipType,
+    user_ids: List[int] = None,
+    screen_name: Optional[str] = None,
+    until: Optional[datetime.datetime] = None
+) -> None:
+    """Directly calls 'create_relationship() for each id in `user_ids`. Doesn't call it as a task.
+
+    This is for grouping a chunk of blocks into a single celery task, reducing the number of Celery
+    messages being sent through the Celery broker.
+
+    It might do strange wrong things on errors.
+    """
+    for user_id in user_ids:
+        create_relationship(
+            secateur_user_pk=secateur_user_pk,
+            type=type,
+            user_id=user_id,
+            screen_name=screen_name,
+            until=until
+        )
+    logger.debug("Finished create_relationships()", user_ids=user_ids)
 
 
 @app.task(bind=True, max_retries=15, ignore_result=True)
@@ -493,22 +520,19 @@ def _block_multiple(
         len_accounts=len(accounts),
         len_already_blocked_ids=len(already_blocked_ids),
     )
-    for i, account in enumerate(accounts):
-        if account.user_id in already_blocked_ids:
-            continue
-        until: Optional[datetime.datetime]
+    accounts_to_block = [account for account in accounts if account.user_id not in already_blocked_ids]
+    chunk_size = 2
+    for accounts_chunk in chunks(accounts_to_block, chunk_size):
+        until: Optional[datetime.datetime] = None
         if duration:
-            # Add a random 5% component to the block duration.
             fudged_duration = fudge_duration(duration, 0.05)
             until = timezone.now() + fudged_duration
-        else:
-            until = None
-        create_relationship.apply_async(
+        create_relationships.apply_async(
             [],
             {
                 "secateur_user_pk": secateur_user_pk,
                 "type": type,
-                "user_id": account.user_id,
+                "user_ids": [a.user_id for a in accounts_chunk],
                 "until": until,
             },
             # I can't decide if there should be a timeout here. Probably what ought
