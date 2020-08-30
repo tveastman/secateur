@@ -9,7 +9,7 @@ import celery
 import structlog
 from django.db import transaction
 from django.core.cache import cache
-from django.db.models import Q
+from django.db.models import Q, F
 from django.utils import timezone
 from twitter.error import TwitterError
 
@@ -84,14 +84,14 @@ def get_user(
     return account
 
 
-@app.task(ignore_result=True)
+@app.task(bind=True, ignore_result=True)
 def create_relationships(
     self: celery.Task,
     secateur_user_pk: int,
     type: RelationshipType,
     user_ids: List[int] = None,
     screen_name: Optional[str] = None,
-    until: Optional[datetime.datetime] = None
+    until: Optional[datetime.datetime] = None,
 ) -> None:
     """Directly calls 'create_relationship() for each id in `user_ids`. Doesn't call it as a task.
 
@@ -101,12 +101,16 @@ def create_relationships(
     It might do strange wrong things on errors.
     """
     for user_id in user_ids:
-        create_relationship(
-            secateur_user_pk=secateur_user_pk,
-            type=type,
-            user_id=user_id,
-            screen_name=screen_name,
-            until=until
+        create_relationship.apply(
+            [],
+            dict(
+                secateur_user_pk=secateur_user_pk,
+                type=type,
+                user_id=user_id,
+                screen_name=screen_name,
+                until=until,
+            ),
+            throw=True,
         )
     logger.debug("Finished create_relationships()", user_ids=user_ids)
 
@@ -348,13 +352,17 @@ def destroy_relationship(
             # return
             account = existing_qs.get().object
             pass
-        elif ErrorCode.from_exception(e) == ErrorCode.INVALID_OR_EXPIRED_TOKEN:
+        elif ErrorCode.from_exception(e) in [
+            ErrorCode.INVALID_OR_EXPIRED_TOKEN,
+            ErrorCode.ACCOUNT_SUSPENDED,
+            ErrorCode.ACCOUNT_TEMPORARILY_LOCKED,
+        ]:
+            # These are the error codes for which we disable the secateur account -- something's
+            # gone wrong that's going to take invervention to fix.
             secateur_user.is_twitter_api_enabled = False
             secateur_user.save(update_fields=["is_twitter_api_enabled"])
             logger.warning(
-                "Received %s, disabling Twitter API for user %s",
-                ErrorCode.INVALID_OR_EXPIRED_TOKEN,
-                secateur_user,
+                "Received %s, disabling Twitter API for user %s", e, secateur_user,
             )
             return
         else:
@@ -520,8 +528,10 @@ def _block_multiple(
         len_accounts=len(accounts),
         len_already_blocked_ids=len(already_blocked_ids),
     )
-    accounts_to_block = [account for account in accounts if account.user_id not in already_blocked_ids]
-    chunk_size = 2
+    accounts_to_block = [
+        account for account in accounts if account.user_id not in already_blocked_ids
+    ]
+    chunk_size = 10
     for accounts_chunk in chunks(accounts_to_block, chunk_size):
         until: Optional[datetime.datetime] = None
         if duration:
@@ -617,6 +627,19 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
         )
         count += 1
     logger.info("Triggered unblock/unmute tasks on %s relationships.", count)
+
+
+@app.task()
+def bounce_until_for_disabled_accounts():
+    """If a relationship expiry is due, but the Twitter API is disabled for that user, we'll just add time to it."""
+    now = timezone.now()
+    interval = datetime.timedelta(days=7 * 6)
+    result = models.Relationship.objects.filter(
+        Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
+        until__lt=now,
+        subject__user__is_twitter_api_enabled=False,
+    ).update(until=F("until") + interval)
+    logger.info("bounce_until_for_disabled_accounts", result=result)
 
 
 @app.task()

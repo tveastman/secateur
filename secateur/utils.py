@@ -86,5 +86,5 @@ class TokenBucket:
 
 
 def chunks(iterable: Iterable[Any], size: int) -> List[Any]:
-    for chunk in (iterable[i:i+size] for i in range(0, len(iterable), size)):
+    for chunk in (iterable[i : i + size] for i in range(0, len(iterable), size)):
         yield chunk

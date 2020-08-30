@@ -17,11 +17,14 @@ def test_token_bucket() -> None:
     assert b.value == 2.0
 
 
-@pytest.mark.parametrize("iterable,size,output", [
-    ([1, 2, 3], 2, [[1, 2], [3]]),
-    ([1, 2], 2, [[1, 2]]),
-    ([1], 2, [[1]]),
-    ([], 2, []),
-])
+@pytest.mark.parametrize(
+    "iterable,size,output",
+    [
+        ([1, 2, 3], 2, [[1, 2], [3]]),
+        ([1, 2], 2, [[1, 2]]),
+        ([1], 2, [[1]]),
+        ([], 2, []),
+    ],
+)
 def test_chunks(iterable, size, output):
     assert list(chunks(iterable, size)) == output
