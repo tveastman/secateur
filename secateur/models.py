@@ -8,7 +8,7 @@ import structlog
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.indexes import BrinIndex
 from django.db import models, transaction
-from django.db.models import QuerySet
+from django.db.models import QuerySet, Q
 from django.utils import timezone
 from django.utils.functional import cached_property
 
@@ -361,9 +361,8 @@ class Relationship(models.Model):
         unique_together = (("type", "subject", "object"),)
         indexes = (
             models.Index(fields=["type", "object"]),
-            BrinIndex(fields=["until"], autosummarize=True),
+            BrinIndex(fields=["until"], autosummarize=True, condition=Q(until__isnull=False), name="until_brin"),
             BrinIndex(fields=["updated"], autosummarize=True),
-            BrinIndex(fields=["type"], autosummarize=True),
         )
 
     FOLLOWS = 1
