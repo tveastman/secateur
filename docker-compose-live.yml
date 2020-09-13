@@ -63,7 +63,7 @@ services:
     command: >
       nice timeout 86400 celery -A secateur worker -Q blocker -l info
       --without-gossip --without-mingle --without-heartbeat
-      --concurrency=4
+      --concurrency=6
       --prefetch-multiplier 150
     depends_on:
       - redis
