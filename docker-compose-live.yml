@@ -89,6 +89,10 @@ services:
       -c 'wal_writer_flush_after=5MB'
       -c 'log_min_duration_statement=200'
       -c 'autovacuum_vacuum_scale_factor=0.01'
+      -c 'bgwriter_lru_maxpages=2000'
+      -c 'bgwriter_delay=1000ms'
+      -c 'bgwriter_flush_after=2MB'
+      -c 'bgwriter_lru_multiplier=4.0'
     env_file:
       - /etc/secateur/environment
     volumes:
