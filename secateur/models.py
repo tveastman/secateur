@@ -28,15 +28,15 @@ class TwitterApiDisabled(Exception):
 
 
 def default_token_bucket_rate() -> float:
-    return 0.4
+    return 0.3
 
 
 def default_token_bucket_max() -> float:
-    return 50_000.00
+    return 100_000.00
 
 
 def default_token_bucket_value() -> float:
-    return 50_000.00
+    return 100_000.00
 
 
 class User(AbstractUser):
@@ -45,24 +45,22 @@ class User(AbstractUser):
         "Account", null=True, editable=False, on_delete=models.SET_NULL
     )
 
-    token_bucket_rate = models.FloatField(default=default_token_bucket_rate)
-    token_bucket_max = models.FloatField(default=default_token_bucket_max)
+    token_bucket_rate = models.FloatField(null=True, blank=True)
+    token_bucket_max = models.FloatField(null=True, blank=True)
     token_bucket_time = models.FloatField(default=time.time)
-    token_bucket_value = models.FloatField(default=default_token_bucket_value)
+    token_bucket_value = models.FloatField(default=default_token_bucket_max)
 
     @property
     def token_bucket(self) -> utils.TokenBucket:
         return utils.TokenBucket(
             time=self.token_bucket_time,
-            rate=self.token_bucket_rate,
-            max=self.token_bucket_max,
             value=self.token_bucket_value,
+            rate=self.token_bucket_rate if self.token_bucket_rate is not None else default_token_bucket_rate(),
+            max=self.token_bucket_max if self.token_bucket_max is not None else default_token_bucket_max(),
         )
 
     @token_bucket.setter
     def token_bucket(self, value: utils.TokenBucket) -> None:
-        self.token_bucket_rate = value.rate
-        self.token_bucket_max = value.max
         self.token_bucket_time = value.time
         self.token_bucket_value = value.value
 
@@ -361,7 +359,7 @@ class Relationship(models.Model):
         unique_together = (("type", "subject", "object"),)
         indexes = (
             models.Index(fields=["type", "object"]),
-            BrinIndex(fields=["until"], autosummarize=True, condition=Q(until__isnull=False), name="until_brin"),
+            models.Index(fields=["until"], condition=Q(until__isnull=False), name="until_btree"),
             BrinIndex(fields=["updated"], autosummarize=True),
         )
 

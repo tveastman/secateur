@@ -131,11 +131,12 @@ class Block(LoginRequiredMixin, FormView):
             "Retrieved account %s from Twitter" % (account,),
         )
 
+        bucket = user.token_bucket
         ## SAFETY GUARDS
         followers_count = account.followers_count or 0
         if (
             form.cleaned_data["block_followers"]
-            and followers_count > user.token_bucket_max
+            and followers_count > bucket.max
         ):
             messages.add_message(
                 self.request,
