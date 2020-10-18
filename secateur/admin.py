@@ -178,7 +178,7 @@ class RelationshipAdmin(admin.ModelAdmin):
 class LogMessageAdmin(admin.ModelAdmin):
     list_display = ("time", "user", "action", "account", "until")
     list_filter = ("action", "user")
-    date_hierarchy = "time"
+    # date_hierarchy = "time"
     raw_id_fields = ("account",)
     show_full_result_count = False
 
