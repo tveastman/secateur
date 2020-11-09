@@ -644,8 +644,8 @@ def bounce_until_for_disabled_accounts():
 
 @app.task()
 def delete_old_block_log_messages() -> None:
-    # Five weeks, basically just so that there's a month's worth?
-    days_old = 7 * 5
+    # two weeks
+    days_old = 7 * 2
     cutoff = timezone.now() - datetime.timedelta(days=days_old)
     queryset = models.LogMessage.objects.filter().filter(
         action__in=[
