@@ -1,12 +1,16 @@
-FROM python:3.8
+FROM python:3.8 as virtualenv
+
+RUN pip install poetry
+RUN python -m venv /venv
+ENV POETRY_VIRTUALENVS_CREATE=0 \
+    VIRTUAL_ENV=/venv           \
+    PATH="/venv/bin:$PATH"
+
+COPY poetry.lock pyproject.toml /
+RUN poetry install --no-dev --no-root
 
 RUN useradd app
-# install pipenv and use pipenv to build the environment
-RUN set -ex && pip install --upgrade pipenv==2020.6.2
-COPY Pipfile Pipfile
-COPY Pipfile.lock Pipfile.lock
-RUN pipenv install --dev --deploy --system --ignore-pipfile
 COPY --chown=app . /app
 WORKDIR /app
-USER app
-RUN python -m compileall . && python manage.py collectstatic --noinput --no-color
+RUN python -m compileall . && poetry install --no-dev && python manage.py collectstatic --noinput --no-color
+
