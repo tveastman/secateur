@@ -176,11 +176,15 @@ class RelationshipAdmin(admin.ModelAdmin):
 
 @admin.register(models.LogMessage)
 class LogMessageAdmin(admin.ModelAdmin):
-    list_display = ("time", "user", "action", "account", "until")
+    list_display = ("time", "user", "action", "account", "get_followers_count", "until")
     list_filter = ("action", "user")
     # date_hierarchy = "time"
     raw_id_fields = ("account",)
     show_full_result_count = False
+
+    def get_followers_count(self, obj):
+        return obj.account.followers_count
+    get_followers_count.short_description = "Followers"
 
     def get_paginator(
         self,
