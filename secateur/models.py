@@ -28,15 +28,15 @@ class TwitterApiDisabled(Exception):
 
 
 def default_token_bucket_rate() -> float:
-    return 0.3
+    return 0.25
 
 
 def default_token_bucket_max() -> float:
-    return 100_000.00
+    return 40_000.00
 
 
 def default_token_bucket_value() -> float:
-    return 100_000.00
+    return 40_000.00
 
 
 class User(AbstractUser):
@@ -171,9 +171,10 @@ class Account(models.Model):
     listed_count = models.IntegerField(null=True, editable=False)
 
     def __str__(self) -> str:
-        return "{}".format(
-            self.screen_name if self.screen_name is not None else f"id={self.user_id}"
-        )
+        #return "{}".format(
+        #    self.screen_name if self.screen_name is not None else f"id={self.user_id}"
+        #)
+        return f"{self.user_id}" + (f" ({self.screen_name})" if self.screen_name else "")
 
     @classmethod
     def get_account(

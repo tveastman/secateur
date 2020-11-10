@@ -531,7 +531,7 @@ def _block_multiple(
     accounts_to_block = [
         account for account in accounts if account.user_id not in already_blocked_ids
     ]
-    chunk_size = 20
+    chunk_size = 50
     for accounts_chunk in chunks(accounts_to_block, chunk_size):
         until: Optional[datetime.datetime] = None
         if duration:
