@@ -183,7 +183,7 @@ class LogMessageAdmin(admin.ModelAdmin):
     show_full_result_count = False
 
     def get_followers_count(self, obj):
-        return obj.account.followers_count
+        return obj.account.followers_count if obj.account else None
     get_followers_count.short_description = "Followers"
 
     def get_paginator(
