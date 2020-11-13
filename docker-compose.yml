@@ -31,8 +31,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
     #command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- celery -A secateur worker -l info
-    command: celery -A secateur worker -Q celery,blocker -l debug
-
+    command: celery -A secateur worker --queues celery,blocker --loglevel debug --pool gevent
     depends_on:
       - redis
       - postgres
@@ -42,25 +41,25 @@ services:
       - .:/app:cached
     init: true
     read_only: true
-  tests:
-    build: .
-    image: secateur
-    env_file:
-      - ./.env
-    environment:
-      - DJANGO_SETTINGS_MODULE=secateur.settings
-    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- pytest --cov-report=term-missing:skip-covered --cov=secateur
-    depends_on:
-      - redis
-      - postgres
-    networks:
-      secateur:
-    volumes:
-      - .:/app:cached
-    init: true
-    read_only: true
+#  tests:
+#    build: .
+#    image: secateur
+#    env_file:
+#      - ./.env
+#    environment:
+#      - DJANGO_SETTINGS_MODULE=secateur.settings
+#    command: watchmedo auto-restart --recursive --pattern="*.py" --directory="." -- pytest --cov-report=term-missing:skip-covered --cov=secateur
+#    depends_on:
+#      - redis
+#      - postgres
+#    networks:
+#      secateur:
+#    volumes:
+#      - .:/app:cached
+#    init: true
+#    read_only: true
   postgres:
-    image: postgres:11
+    image: postgres:13
     env_file:
       - ./.env
     volumes:

@@ -2,7 +2,7 @@ FROM python:3.8
 
 RUN useradd app
 # install pipenv and use pipenv to build the environment
-RUN set -ex && pip install --upgrade pipenv==2020.6.2
+RUN set -ex && pip install --upgrade pipenv==2020.11.4
 COPY Pipfile Pipfile
 COPY Pipfile.lock Pipfile.lock
 RUN pipenv install --dev --deploy --system --ignore-pipfile

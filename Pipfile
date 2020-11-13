@@ -11,7 +11,7 @@ django = "*"
 social-auth-app-django = "*"
 python-twitter = "*"
 "psycopg2-binary" = "*"
-celery = {extras = ["redis", "sqs"],version = "*"}
+celery = {extras = ["gevent", "redis", "sqs"], version = "*"}
 redis = "*"
 django-redis = "*"
 gunicorn = "*"
