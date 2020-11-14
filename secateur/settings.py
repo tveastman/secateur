@@ -95,6 +95,7 @@ DATABASES = {
         default="postgres://postgres@postgres/postgres", conn_max_age=600
     )
 }
+CONN_MAX_AGE = 300
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators

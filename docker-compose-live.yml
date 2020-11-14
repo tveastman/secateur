@@ -87,7 +87,7 @@ services:
       --without-gossip --without-mingle --without-heartbeat
       --prefetch-multiplier 150
       --pool gevent
-      --concurrency 30
+#      --concurrency 30
     depends_on:
       - redis
       - postgres
