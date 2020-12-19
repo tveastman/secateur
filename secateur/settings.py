@@ -92,10 +92,9 @@ WSGI_APPLICATION = "secateur.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgres://postgres@postgres/postgres", conn_max_age=600
+        default="postgres://postgres@postgres/postgres"
     )
 }
-CONN_MAX_AGE = 300
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators

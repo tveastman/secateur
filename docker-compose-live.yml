@@ -62,7 +62,7 @@ services:
       nice timeout 86400 celery -A secateur worker
       --without-gossip --without-mingle --without-heartbeat
       -l info
-      --pool gevent
+      --pool gevent --concurrency 2
     depends_on:
       - redis
       - postgres
@@ -87,7 +87,7 @@ services:
       --without-gossip --without-mingle --without-heartbeat
       --prefetch-multiplier 150
       --pool gevent
-#      --concurrency 30
+      --concurrency 3
     depends_on:
       - redis
       - postgres

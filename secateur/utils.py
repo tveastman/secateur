@@ -51,13 +51,20 @@ def fudge_duration(duration: timedelta, fraction: float) -> timedelta:
 
 
 def pipeline_user_account_link(
-    *, user: "secateur.models.User", uid: int, **kwargs: Any
+    *, user: "secateur.models.User", uid: int, details: dict, **kwargs: Any
 ) -> None:
     """social auth pipeline: update secateur.models.User.account"""
     account = secateur.models.Account.get_account(uid)
+    update_fields = []
     if user.account != account:
         user.account = account
-        user.save(update_fields=("account",))
+        update_fields.append("account")
+    username = details.get("username")
+    if username and user.screen_name != username:
+        user.screen_name = username
+        update_fields.append("screen_name")
+    if update_fields:
+        user.save(update_fields=update_fields)
 
 
 @dataclass(frozen=True)

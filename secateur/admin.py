@@ -39,6 +39,7 @@ class SecateurUserAdmin(UserAdmin):
             "Secateur",
             {
                 "fields": (
+                    "screen_name",
                     "is_twitter_api_enabled",
                     "account",
                     "current_tokens",
@@ -51,15 +52,18 @@ class SecateurUserAdmin(UserAdmin):
         ),
     ) + UserAdmin.fieldsets
     list_display = (
-        "username",
+        "screen_name",
         "last_login",
         "current_tokens",
         "has_access_token",
         "is_twitter_api_enabled",
     )
+    search_fields = (
+        "username", "screen_name"#, "account_id", "pk"
+    )
     ordering = ("-last_login",)
     list_editable = ("is_twitter_api_enabled",)
-    readonly_fields = ("account", "current_tokens") + UserAdmin.readonly_fields
+    readonly_fields = ("account", "current_tokens", "screen_name") + UserAdmin.readonly_fields
 
     actions = [update_user_details]
 

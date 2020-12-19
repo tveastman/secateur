@@ -28,7 +28,7 @@ class TwitterApiDisabled(Exception):
 
 
 def default_token_bucket_rate() -> float:
-    return 0.1
+    return 0.025
 
 
 def default_token_bucket_max() -> float:
@@ -40,6 +40,7 @@ def default_token_bucket_value() -> float:
 
 
 class User(AbstractUser):
+    screen_name = models.CharField(null=True, editable=False, max_length=150)
     is_twitter_api_enabled = models.BooleanField(default=True)
     account = models.ForeignKey(
         "Account", null=True, editable=False, on_delete=models.SET_NULL
