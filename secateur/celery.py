@@ -31,12 +31,16 @@ def receiver_setup_logging(  # type: ignore
                 },
             },
             "secateur": {
-                "handlers": ["console",],  # "flat_line_file", "json_file"],
+                "handlers": [
+                    "console",
+                ],  # "flat_line_file", "json_file"],
                 "level": "DEBUG",
             },
             "loggers": {
                 "django_structlog": {
-                    "handlers": ["console",],  # "flat_line_file", "json_file"],
+                    "handlers": [
+                        "console",
+                    ],  # "flat_line_file", "json_file"],
                     "level": "DEBUG",
                 },
             },

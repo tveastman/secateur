@@ -58,12 +58,14 @@ class SecateurUserAdmin(UserAdmin):
         "has_access_token",
         "is_twitter_api_enabled",
     )
-    search_fields = (
-        "username", "screen_name"#, "account_id", "pk"
-    )
+    search_fields = ("username", "screen_name")  # , "account_id", "pk"
     ordering = ("-last_login",)
     list_editable = ("is_twitter_api_enabled",)
-    readonly_fields = ("account", "current_tokens", "screen_name") + UserAdmin.readonly_fields
+    readonly_fields = (
+        "account",
+        "current_tokens",
+        "screen_name",
+    ) + UserAdmin.readonly_fields
 
     actions = [update_user_details]
 
@@ -188,6 +190,7 @@ class LogMessageAdmin(admin.ModelAdmin):
 
     def get_followers_count(self, obj):
         return obj.account.followers_count if obj.account else None
+
     get_followers_count.short_description = "Followers"
 
     def get_paginator(

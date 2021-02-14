@@ -6,16 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('secateur', '0036_auto_20200927_1529'),
+        ("secateur", "0036_auto_20200927_1529"),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='relationship',
-            name='until_brin_btree',
+            model_name="relationship",
+            name="until_brin_btree",
         ),
         migrations.AddIndex(
-            model_name='relationship',
-            index=models.Index(condition=models.Q(until__isnull=False), fields=['until'], name='until_btree'),
+            model_name="relationship",
+            index=models.Index(
+                condition=models.Q(until__isnull=False),
+                fields=["until"],
+                name="until_btree",
+            ),
         ),
     ]

@@ -10,5 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="logmessage", name="message",),
+        migrations.RemoveField(
+            model_name="logmessage",
+            name="message",
+        ),
     ]

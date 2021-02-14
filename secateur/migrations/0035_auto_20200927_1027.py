@@ -7,23 +7,23 @@ import secateur.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('secateur', '0034_auto_20200903_1015'),
+        ("secateur", "0034_auto_20200903_1015"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='token_bucket_max',
+            model_name="user",
+            name="token_bucket_max",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='token_bucket_rate',
+            model_name="user",
+            name="token_bucket_rate",
             field=models.FloatField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='token_bucket_value',
+            model_name="user",
+            name="token_bucket_value",
             field=models.FloatField(default=secateur.models.default_token_bucket_max),
         ),
     ]

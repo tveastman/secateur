@@ -11,7 +11,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveIndex(
-            model_name="account", name="secateur_ac_screen__cf1d38_idx",
+            model_name="account",
+            name="secateur_ac_screen__cf1d38_idx",
         ),
-        migrations.RemoveField(model_name="account", name="screen_name_lower",),
+        migrations.RemoveField(
+            model_name="account",
+            name="screen_name_lower",
+        ),
     ]

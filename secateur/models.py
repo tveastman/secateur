@@ -56,8 +56,12 @@ class User(AbstractUser):
         return utils.TokenBucket(
             time=self.token_bucket_time,
             value=self.token_bucket_value,
-            rate=self.token_bucket_rate if self.token_bucket_rate is not None else default_token_bucket_rate(),
-            max=self.token_bucket_max if self.token_bucket_max is not None else default_token_bucket_max(),
+            rate=self.token_bucket_rate
+            if self.token_bucket_rate is not None
+            else default_token_bucket_rate(),
+            max=self.token_bucket_max
+            if self.token_bucket_max is not None
+            else default_token_bucket_max(),
         )
 
     @token_bucket.setter
@@ -77,9 +81,9 @@ class User(AbstractUser):
     @cached_property
     def twitter_social_auth(self) -> social_django.models.UserSocialAuth:
         """Get the social_auth object for this user."""
-        return social_django.models.UserSocialAuth.objects.get(
+        return social_django.models.UserSocialAuth.objects.filter(
             user=self, provider="twitter"
-        )
+        ).order_by("-modified")[0]
 
     @cached_property
     def twitter_user_id(self) -> int:
@@ -172,10 +176,12 @@ class Account(models.Model):
     listed_count = models.IntegerField(null=True, editable=False)
 
     def __str__(self) -> str:
-        #return "{}".format(
+        # return "{}".format(
         #    self.screen_name if self.screen_name is not None else f"id={self.user_id}"
-        #)
-        return f"{self.user_id}" + (f" ({self.screen_name})" if self.screen_name else "")
+        # )
+        return f"{self.user_id}" + (
+            f" ({self.screen_name})" if self.screen_name else ""
+        )
 
     @classmethod
     def get_account(
@@ -204,7 +210,8 @@ class Account(models.Model):
             return cls.objects.none()
         if isinstance(args[0], int):
             cls.objects.bulk_create(
-                (cls(user_id=user_id) for user_id in args), ignore_conflicts=True,
+                (cls(user_id=user_id) for user_id in args),
+                ignore_conflicts=True,
             )
             return cls.objects.filter(user_id__in=args)
         elif isinstance(args[0], twitter.User):
@@ -361,7 +368,9 @@ class Relationship(models.Model):
         unique_together = (("type", "subject", "object"),)
         indexes = (
             models.Index(fields=["type", "object"]),
-            models.Index(fields=["until"], condition=Q(until__isnull=False), name="until_btree"),
+            models.Index(
+                fields=["until"], condition=Q(until__isnull=False), name="until_btree"
+            ),
             BrinIndex(fields=["updated"], autosummarize=True),
         )
 

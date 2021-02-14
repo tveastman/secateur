@@ -10,6 +10,11 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(model_name="account", name="profile",),
-        migrations.DeleteModel(name="Profile",),
+        migrations.RemoveField(
+            model_name="account",
+            name="profile",
+        ),
+        migrations.DeleteModel(
+            name="Profile",
+        ),
     ]
