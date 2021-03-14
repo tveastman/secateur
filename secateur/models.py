@@ -27,8 +27,13 @@ class TwitterApiDisabled(Exception):
     pass
 
 
+def token_bucket_time() -> float:
+    # Use "days since the epoch" as the time unit for the token bucket.
+    return time.time() / 24 / 60 / 60
+
+
 def default_token_bucket_rate() -> float:
-    return 0.025
+    return 5_000
 
 
 def default_token_bucket_max() -> float:
@@ -36,6 +41,7 @@ def default_token_bucket_max() -> float:
 
 
 def default_token_bucket_value() -> float:
+    # No longer used but needed by an old migration.
     return 50_000.00
 
 
@@ -71,12 +77,12 @@ class User(AbstractUser):
 
     @property
     def current_tokens(self) -> int:
-        return int(self.token_bucket.value_at(time.time()))
+        return int(self.token_bucket.value_at(token_bucket_time()))
 
     def withdraw_tokens(self, value: int) -> None:
         if value > self.current_tokens:
             raise ValueError("Rate limit exceeded.")
-        self.token_bucket = self.token_bucket.withdraw(time=time.time(), value=value)
+        self.token_bucket = self.token_bucket.withdraw(time=token_bucket_time(), value=value)
 
     @cached_property
     def twitter_social_auth(self) -> social_django.models.UserSocialAuth:
