@@ -54,7 +54,7 @@ class User(AbstractUser):
 
     token_bucket_rate = models.FloatField(null=True, blank=True)
     token_bucket_max = models.FloatField(null=True, blank=True)
-    token_bucket_time = models.FloatField(default=time.time)
+    token_bucket_time = models.FloatField(default=1)
     token_bucket_value = models.FloatField(default=default_token_bucket_max)
 
     @property
@@ -82,7 +82,9 @@ class User(AbstractUser):
     def withdraw_tokens(self, value: int) -> None:
         if value > self.current_tokens:
             raise ValueError("Rate limit exceeded.")
-        self.token_bucket = self.token_bucket.withdraw(time=token_bucket_time(), value=value)
+        self.token_bucket = self.token_bucket.withdraw(
+            time=token_bucket_time(), value=value
+        )
 
     @cached_property
     def twitter_social_auth(self) -> social_django.models.UserSocialAuth:
