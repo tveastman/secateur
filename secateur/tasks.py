@@ -610,7 +610,7 @@ def twitter_block_followers(
         api_function,
         accounts_handlers,
         finish_handlers,
-        delay_between_pages=600,
+        delay_between_pages=900,
     )
 
 

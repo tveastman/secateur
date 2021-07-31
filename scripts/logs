@@ -3,5 +3,5 @@
 set -eux
 
 ssh -t ${DEPLOY_USER}@${DEPLOY_HOST} "
-  sudo docker-compose -f ${DEPLOY_DIRECTORY}/docker-compose-live.yml logs -f
+  sudo docker-compose -f ${DEPLOY_DIRECTORY}/docker-compose-live.yml logs -f --since=1m
 "

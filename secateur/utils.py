@@ -63,6 +63,8 @@ def pipeline_user_account_link(
     if username and user.screen_name != username:
         user.screen_name = username
         update_fields.append("screen_name")
+    user.is_twitter_api_enabled = True
+    update_fields.append("is_twitter_api_enabled")
     if update_fields:
         user.save(update_fields=update_fields)
 
