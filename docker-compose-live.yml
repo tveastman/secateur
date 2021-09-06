@@ -10,6 +10,8 @@ services:
     image: secateur
     env_file:
       - /etc/secateur/environment
+    environment:
+      - PGAPPNAME=app
     command: >
       sh -c "./manage.py migrate &&
       gunicorn -b 0.0.0.0:5000 -k gevent --log-file=- --log-level info
@@ -35,9 +37,10 @@ services:
       - /etc/secateur/environment
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
+      -  PGAPPNAME=beat
     command: >
       nice timeout 86400 celery -A secateur beat
-      -l debug
+      -l DEBUG
       --scheduler django_celery_beat.schedulers:DatabaseScheduler
     depends_on:
       - redis
@@ -58,6 +61,7 @@ services:
       - /etc/secateur/environment
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
+      - PGAPPNAME=celery
     command: >
       nice timeout 86400 celery -A secateur worker
       --without-gossip --without-mingle --without-heartbeat
@@ -82,6 +86,7 @@ services:
       - /etc/secateur/environment
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
+      - PGAPPNAME=blocker
     command: >
       nice timeout 86400 celery -A secateur worker -Q blocker -l info
       --without-gossip --without-mingle --without-heartbeat
