@@ -37,9 +37,10 @@ services:
       - /etc/secateur/environment
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
-      -  PGAPPNAME=beat
+      - PGAPPNAME=beat
+#      - C_REMDEBUG=True
     command: >
-      nice timeout 86400 celery -A secateur beat
+      nice timeout 864000 celery -A secateur beat
       -l DEBUG
       --scheduler django_celery_beat.schedulers:DatabaseScheduler
     depends_on:
