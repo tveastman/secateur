@@ -3,6 +3,7 @@ import enum
 
 import random
 from functools import partial
+from importlib import import_module
 from typing import Optional, Callable, List, Iterable
 
 import celery
@@ -669,6 +670,7 @@ def bounce_until_for_disabled_accounts():
 
 @app.task()
 def delete_old_block_log_messages() -> None:
+    logger.info("starting delete_old_block_log_messages")
     # two weeks
     days_old = 7 * 2
     cutoff = timezone.now() - datetime.timedelta(days=days_old)
@@ -714,3 +716,9 @@ def update_user_details(secateur_user: "models.User") -> None:
 @app.task
 def remove_unneeded_credentials() -> None:
     models.User.remove_unneeded_credentials()
+
+
+@app.task
+def clear_sessions() -> None:
+    from django.core import management
+    management.call_command("clearsessions", verbosity=0)
