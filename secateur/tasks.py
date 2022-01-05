@@ -721,4 +721,5 @@ def remove_unneeded_credentials() -> None:
 @app.task
 def clear_sessions() -> None:
     from django.core import management
+
     management.call_command("clearsessions", verbosity=0)
