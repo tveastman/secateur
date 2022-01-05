@@ -220,12 +220,18 @@ def create_relationship(
                 time=now,
             )
             self.retry(countdown=_twitter_retry_timeout(retries=self.request.retries))
-        elif ErrorCode.from_exception(e) == ErrorCode.INVALID_OR_EXPIRED_TOKEN:
+        elif ErrorCode.from_exception(e) in [
+            ErrorCode.INVALID_OR_EXPIRED_TOKEN,
+            ErrorCode.ACCOUNT_SUSPENDED,
+            ErrorCode.ACCOUNT_TEMPORARILY_LOCKED,
+        ]:
+            # These are the error codes for which we disable the secateur account -- something's
+            # gone wrong that's going to take invervention to fix.
             secateur_user.is_twitter_api_enabled = False
             secateur_user.save(update_fields=["is_twitter_api_enabled"])
-            log.warning(
+            logger.warning(
                 "Received %s, disabling Twitter API for user %s",
-                ErrorCode.INVALID_OR_EXPIRED_TOKEN,
+                ErrorCode.from_exception(e),
                 secateur_user,
             )
             return
