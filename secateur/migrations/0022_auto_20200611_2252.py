@@ -12,7 +12,8 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveIndex(
-            model_name="relationship", name="secateur_re_until_54d335_brin",
+            model_name="relationship",
+            name="secateur_re_until_54d335_brin",
         ),
         migrations.AddIndex(
             model_name="account",

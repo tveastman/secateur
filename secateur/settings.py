@@ -91,9 +91,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "secateur.wsgi.application"
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default="postgres://postgres@postgres/postgres", conn_max_age=600
-    )
+    "default": dj_database_url.config(default="postgres://postgres@postgres/postgres")
 }
 
 # Password validation
@@ -184,11 +182,16 @@ LOGGING = {
         },
     },
     "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "plain_console",},
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "plain_console",
+        },
     },
     "loggers": {
         "secateur": {
-            "handlers": ["console",],  # "flat_line_file", "json_file"],
+            "handlers": [
+                "console",
+            ],  # "flat_line_file", "json_file"],
             "level": "DEBUG",
         },
     },

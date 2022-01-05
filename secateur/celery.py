@@ -5,6 +5,8 @@ import structlog
 from celery.signals import setup_logging
 from django_structlog.celery.steps import DjangoStructLogInitStep
 
+logger = structlog.get_logger(__name__)
+
 app = celery.Celery("secateur")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.steps["worker"].add(DjangoStructLogInitStep)
@@ -30,13 +32,29 @@ def receiver_setup_logging(  # type: ignore
                     "formatter": "plain_console",
                 },
             },
-            "secateur": {
-                "handlers": ["console",],  # "flat_line_file", "json_file"],
-                "level": "DEBUG",
-            },
             "loggers": {
                 "django_structlog": {
-                    "handlers": ["console",],  # "flat_line_file", "json_file"],
+                    "handlers": [
+                        "console",
+                    ],  # "flat_line_file", "json_file"],
+                    "level": "DEBUG",
+                },
+                "django_celery_beat": {
+                    "handlers": [
+                        "console",
+                    ],  # "flat_line_file", "json_file"],
+                    "level": "DEBUG",
+                },
+                "celery": {
+                    "handlers": [
+                        "console",
+                    ],  # "flat_line_file", "json_file"],
+                    "level": "INFO",
+                },
+                "secateur": {
+                    "handlers": [
+                        "console",
+                    ],  # "flat_line_file", "json_file"],
                     "level": "DEBUG",
                 },
             },
@@ -64,6 +82,6 @@ def receiver_setup_logging(  # type: ignore
 
 
 @app.task(bind=True)
-def debug_task(self: celery.Task) -> str:
-    result = "Request: {0!r}".format(self.request)
-    return result
+def debug_task(self: celery.Task) -> None:
+    logger.info("debug_task", self_obj=str(self), request=str(self.request))
+    return

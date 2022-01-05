@@ -7,21 +7,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('secateur', '0032_auto_20200816_1123'),
+        ("secateur", "0032_auto_20200816_1123"),
     ]
 
     operations = [
         migrations.RemoveIndex(
-            model_name='relationship',
-            name='secateur_re_until_54d335_brin',
+            model_name="relationship",
+            name="secateur_re_until_54d335_brin",
         ),
         migrations.AlterField(
-            model_name='user',
-            name='first_name',
-            field=models.CharField(blank=True, max_length=150, verbose_name='first name'),
+            model_name="user",
+            name="first_name",
+            field=models.CharField(
+                blank=True, max_length=150, verbose_name="first name"
+            ),
         ),
         migrations.AddIndex(
-            model_name='relationship',
-            index=django.contrib.postgres.indexes.BrinIndex(autosummarize=True, condition=models.Q(until__isnull=False), fields=['until'], name='until_brin'),
+            model_name="relationship",
+            index=django.contrib.postgres.indexes.BrinIndex(
+                autosummarize=True,
+                condition=models.Q(until__isnull=False),
+                fields=["until"],
+                name="until_brin",
+            ),
         ),
     ]

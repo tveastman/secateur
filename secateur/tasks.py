@@ -3,6 +3,7 @@ import enum
 
 import random
 from functools import partial
+from importlib import import_module
 from typing import Optional, Callable, List, Iterable
 
 import celery
@@ -213,7 +214,10 @@ def create_relationship(
                 rate_limit_key, now + datetime.timedelta(seconds=15 * 60), 15 * 60
             )
             models.LogMessage.objects.create(
-                user=secateur_user, action=action, rate_limited=True, time=now,
+                user=secateur_user,
+                action=action,
+                rate_limited=True,
+                time=now,
             )
             self.retry(countdown=_twitter_retry_timeout(retries=self.request.retries))
         elif ErrorCode.from_exception(e) == ErrorCode.INVALID_OR_EXPIRED_TOKEN:
@@ -250,7 +254,11 @@ def create_relationship(
         " until {}".format(until.strftime("%-d %B")) if until else "",
     )
     models.LogMessage.objects.create(
-        user=secateur_user, time=now, action=action, account=account, until=until,
+        user=secateur_user,
+        time=now,
+        action=action,
+        account=account,
+        until=until,
     )
     log.info(f"{secateur_user} has {log_message}")
 
@@ -362,7 +370,9 @@ def destroy_relationship(
             secateur_user.is_twitter_api_enabled = False
             secateur_user.save(update_fields=["is_twitter_api_enabled"])
             logger.warning(
-                "Received %s, disabling Twitter API for user %s", e, secateur_user,
+                "Received %s, disabling Twitter API for user %s",
+                e,
+                secateur_user,
             )
             return
         else:
@@ -379,7 +389,11 @@ def destroy_relationship(
     ).delete()
     log_message = "{} {}".format(past_tense_verb, account)
     models.LogMessage.objects.create(
-        user=secateur_user, time=now, action=action, until=None, account=account,
+        user=secateur_user,
+        time=now,
+        action=action,
+        until=None,
+        account=account,
     )
     logger.info(
         f"{secateur_user} has {log_message}",
@@ -422,7 +436,11 @@ def twitter_paged_call_iterator(
         accounts_handler(accounts)
     if next_cursor and max_pages:
         twitter_paged_call_iterator.apply_async(
-            [api_function, accounts_handlers, finish_handlers,],
+            [
+                api_function,
+                accounts_handlers,
+                finish_handlers,
+            ],
             dict(
                 cursor=next_cursor,
                 max_pages=max_pages - 1,
@@ -531,7 +549,7 @@ def _block_multiple(
     accounts_to_block = [
         account for account in accounts if account.user_id not in already_blocked_ids
     ]
-    chunk_size = 20
+    chunk_size = 50
     for accounts_chunk in chunks(accounts_to_block, chunk_size):
         until: Optional[datetime.datetime] = None
         if duration:
@@ -590,7 +608,10 @@ def twitter_block_followers(
         until=now + duration if duration else None,
     )
     twitter_paged_call_iterator.delay(
-        api_function, accounts_handlers, finish_handlers, delay_between_pages=600,
+        api_function,
+        accounts_handlers,
+        finish_handlers,
+        delay_between_pages=900,
     )
 
 
@@ -609,10 +630,15 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
         .select_related("object", "subject")
         .prefetch_related("subject__user_set")
     )
+    as_list = list(expired_blocks[:max_per_call])
 
-    # for expired_block in expired_blocks.iterator():
+    # Bump the 'until' on all of them now.
+    time_to_bump = datetime.timedelta(days=7 * 6)
+    models.Relationship.objects.filter(pk__in=[i.pk for i in as_list]).update(
+        until=F("until") + time_to_bump
+    )
     count: int = 0
-    for expired_block in expired_blocks[:max_per_call]:
+    for expired_block in as_list:
         secateur_user = expired_block.subject.user_set.get()
         blocked_account = expired_block.object
         destroy_relationship.apply_async(
@@ -644,6 +670,7 @@ def bounce_until_for_disabled_accounts():
 
 @app.task()
 def delete_old_block_log_messages() -> None:
+    logger.info("starting delete_old_block_log_messages")
     # two weeks
     days_old = 7 * 2
     cutoff = timezone.now() - datetime.timedelta(days=days_old)
@@ -689,3 +716,9 @@ def update_user_details(secateur_user: "models.User") -> None:
 @app.task
 def remove_unneeded_credentials() -> None:
     models.User.remove_unneeded_credentials()
+
+
+@app.task
+def clear_sessions() -> None:
+    from django.core import management
+    management.call_command("clearsessions", verbosity=0)

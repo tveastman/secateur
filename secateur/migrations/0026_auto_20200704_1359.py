@@ -11,10 +11,12 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveIndex(
-            model_name="logmessage", name="secateur_lo_user_id_e2e246_idx",
+            model_name="logmessage",
+            name="secateur_lo_user_id_e2e246_idx",
         ),
         migrations.RemoveIndex(
-            model_name="logmessage", name="secateur_lo_action_60b44a_brin",
+            model_name="logmessage",
+            name="secateur_lo_action_60b44a_brin",
         ),
         migrations.AddIndex(
             model_name="logmessage",

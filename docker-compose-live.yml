@@ -10,12 +10,39 @@ services:
     image: secateur
     env_file:
       - /etc/secateur/environment
+    environment:
+      - PGAPPNAME=app
     command: >
       sh -c "./manage.py migrate &&
-      gunicorn -b 0.0.0.0:5000 -k gthread --log-file=- --log-level info
+      gunicorn -b 0.0.0.0:5000 -k gevent --log-file=- --log-level info
       --access-logfile - --capture-output secateur.wsgi"
     ports:
       - "5000:5000"
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      secateur:
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp
+    restart: always
+    logging:
+      driver: journald
+  beat:
+    build: .
+    image: secateur
+    env_file:
+      - /etc/secateur/environment
+    environment:
+      - DJANGO_SETTINGS_MODULE=secateur.settings
+      - PGAPPNAME=beat
+#      - C_REMDEBUG=True
+    command: >
+      nice timeout 864000 celery -A secateur beat
+      -l DEBUG
+      --scheduler django_celery_beat.schedulers:DatabaseScheduler
     depends_on:
       - redis
       - postgres
@@ -35,12 +62,12 @@ services:
       - /etc/secateur/environment
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
+      - PGAPPNAME=celery
     command: >
       nice timeout 86400 celery -A secateur worker
       --without-gossip --without-mingle --without-heartbeat
       -l info
-      --scheduler django_celery_beat.schedulers:DatabaseScheduler
-      --beat --concurrency=1
+      --pool gevent --concurrency 2
     depends_on:
       - redis
       - postgres
@@ -60,11 +87,13 @@ services:
       - /etc/secateur/environment
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
+      - PGAPPNAME=blocker
     command: >
       nice timeout 86400 celery -A secateur worker -Q blocker -l info
       --without-gossip --without-mingle --without-heartbeat
-      --concurrency=6
       --prefetch-multiplier 150
+      --pool gevent
+      --concurrency 3
     depends_on:
       - redis
       - postgres
@@ -93,6 +122,7 @@ services:
       -c 'bgwriter_delay=1000ms'
       -c 'bgwriter_flush_after=2MB'
       -c 'bgwriter_lru_multiplier=4.0'
+      -c 'idle_in_transaction_session_timeout=300s'
     env_file:
       - /etc/secateur/environment
     volumes:

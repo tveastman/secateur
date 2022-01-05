@@ -30,7 +30,7 @@
           {% if user.is_authenticated %}
             <li class="nav-item dropdown">
               <a href="#" class="nav-link dropdown-toggle" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                {{ user.username }}
+                {{ user.screen_name }}
               <a>
               <div class="dropdown-menu dropdown-menu-right"  aria-labelledby="navbarDropdown">
                 {% if user.is_staff %}

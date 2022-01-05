@@ -27,19 +27,26 @@ class TwitterApiDisabled(Exception):
     pass
 
 
+def token_bucket_time() -> float:
+    # Use "days since the epoch" as the time unit for the token bucket.
+    return time.time() / 24 / 60 / 60
+
+
 def default_token_bucket_rate() -> float:
-    return 0.3
+    return 5_000
 
 
 def default_token_bucket_max() -> float:
-    return 100_000.00
+    return 50_000.00
 
 
 def default_token_bucket_value() -> float:
-    return 100_000.00
+    # No longer used but needed by an old migration.
+    return 50_000.00
 
 
 class User(AbstractUser):
+    screen_name = models.CharField(null=True, editable=False, max_length=150)
     is_twitter_api_enabled = models.BooleanField(default=True)
     account = models.ForeignKey(
         "Account", null=True, editable=False, on_delete=models.SET_NULL
@@ -47,7 +54,7 @@ class User(AbstractUser):
 
     token_bucket_rate = models.FloatField(null=True, blank=True)
     token_bucket_max = models.FloatField(null=True, blank=True)
-    token_bucket_time = models.FloatField(default=time.time)
+    token_bucket_time = models.FloatField(default=1)
     token_bucket_value = models.FloatField(default=default_token_bucket_max)
 
     @property
@@ -55,8 +62,12 @@ class User(AbstractUser):
         return utils.TokenBucket(
             time=self.token_bucket_time,
             value=self.token_bucket_value,
-            rate=self.token_bucket_rate if self.token_bucket_rate is not None else default_token_bucket_rate(),
-            max=self.token_bucket_max if self.token_bucket_max is not None else default_token_bucket_max(),
+            rate=self.token_bucket_rate
+            if self.token_bucket_rate is not None
+            else default_token_bucket_rate(),
+            max=self.token_bucket_max
+            if self.token_bucket_max is not None
+            else default_token_bucket_max(),
         )
 
     @token_bucket.setter
@@ -66,19 +77,21 @@ class User(AbstractUser):
 
     @property
     def current_tokens(self) -> int:
-        return int(self.token_bucket.value_at(time.time()))
+        return int(self.token_bucket.value_at(token_bucket_time()))
 
     def withdraw_tokens(self, value: int) -> None:
         if value > self.current_tokens:
             raise ValueError("Rate limit exceeded.")
-        self.token_bucket = self.token_bucket.withdraw(time=time.time(), value=value)
+        self.token_bucket = self.token_bucket.withdraw(
+            time=token_bucket_time(), value=value
+        )
 
     @cached_property
     def twitter_social_auth(self) -> social_django.models.UserSocialAuth:
         """Get the social_auth object for this user."""
-        return social_django.models.UserSocialAuth.objects.get(
+        return social_django.models.UserSocialAuth.objects.filter(
             user=self, provider="twitter"
-        )
+        ).order_by("-modified")[0]
 
     @cached_property
     def twitter_user_id(self) -> int:
@@ -171,8 +184,11 @@ class Account(models.Model):
     listed_count = models.IntegerField(null=True, editable=False)
 
     def __str__(self) -> str:
-        return "{}".format(
-            self.screen_name if self.screen_name is not None else f"id={self.user_id}"
+        # return "{}".format(
+        #    self.screen_name if self.screen_name is not None else f"id={self.user_id}"
+        # )
+        return f"{self.user_id}" + (
+            f" ({self.screen_name})" if self.screen_name else ""
         )
 
     @classmethod
@@ -202,7 +218,8 @@ class Account(models.Model):
             return cls.objects.none()
         if isinstance(args[0], int):
             cls.objects.bulk_create(
-                (cls(user_id=user_id) for user_id in args), ignore_conflicts=True,
+                (cls(user_id=user_id) for user_id in args),
+                ignore_conflicts=True,
             )
             return cls.objects.filter(user_id__in=args)
         elif isinstance(args[0], twitter.User):
@@ -359,7 +376,9 @@ class Relationship(models.Model):
         unique_together = (("type", "subject", "object"),)
         indexes = (
             models.Index(fields=["type", "object"]),
-            models.Index(fields=["until"], condition=Q(until__isnull=False), name="until_btree"),
+            models.Index(
+                fields=["until"], condition=Q(until__isnull=False), name="until_btree"
+            ),
             BrinIndex(fields=["updated"], autosummarize=True),
         )
 

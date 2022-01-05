@@ -121,7 +121,9 @@ class Block(LoginRequiredMixin, FormView):
         account = user.get_account_by_screen_name(form.cleaned_data["screen_name"])
         if account is None:
             messages.add_message(
-                self.request, messages.ERROR, "Account not found.",
+                self.request,
+                messages.ERROR,
+                "Account not found.",
             )
             return super().form_valid(form)
 
@@ -134,10 +136,7 @@ class Block(LoginRequiredMixin, FormView):
         bucket = user.token_bucket
         ## SAFETY GUARDS
         followers_count = account.followers_count or 0
-        if (
-            form.cleaned_data["block_followers"]
-            and followers_count > bucket.max
-        ):
+        if form.cleaned_data["block_followers"] and followers_count > bucket.max:
             messages.add_message(
                 self.request,
                 messages.ERROR,
