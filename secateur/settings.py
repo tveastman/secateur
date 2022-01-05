@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 import secrets
+import sys
 
 import dj_database_url
 
@@ -185,6 +186,7 @@ LOGGING = {
         "console": {
             "class": "logging.StreamHandler",
             "formatter": "plain_console",
+            "stream": sys.stdout,
         },
     },
     "loggers": {

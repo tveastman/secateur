@@ -1,4 +1,5 @@
 import logging
+import sys
 
 import celery
 import structlog
@@ -29,6 +30,7 @@ def receiver_setup_logging(  # type: ignore
             "handlers": {
                 "console": {
                     "class": "logging.StreamHandler",
+                    "stream": sys.stdout,
                     "formatter": "plain_console",
                 },
             },
