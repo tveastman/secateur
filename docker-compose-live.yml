@@ -93,7 +93,7 @@ services:
       --without-gossip --without-mingle --without-heartbeat
       --prefetch-multiplier 150
       --pool gevent
-      --concurrency 3
+      --concurrency 6
     depends_on:
       - redis
       - postgres
