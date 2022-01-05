@@ -1,4 +1,4 @@
-FROM python:3.8 as virtualenv
+FROM python:3.9 as virtualenv
 
 RUN pip install poetry
 RUN python -m venv /venv
@@ -14,3 +14,4 @@ COPY --chown=app . /app
 WORKDIR /app
 RUN python -m compileall . && poetry install --no-dev && python manage.py collectstatic --noinput --no-color
 
+USER app

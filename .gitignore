@@ -1,4 +1,6 @@
-.env
+/.env
+/.envrc
+
 __pycache__
 .pytest_cache
 celerybeat-schedule
