@@ -50,7 +50,7 @@ class LogMessages(LoginRequiredMixin, ListView):
                     models.LogMessage.Action.DESTROY_MUTE,
                 ]
             )
-            .order_by("-time")
+            .order_by("-id")
         )
 
 
@@ -71,7 +71,7 @@ class BlockMessages(LoginRequiredMixin, ListView):
                     models.LogMessage.Action.DESTROY_MUTE,
                 ]
             )
-            .order_by("-time")
+            .order_by("-id")
         )
 
 

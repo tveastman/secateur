@@ -631,7 +631,9 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
         models.Relationship.objects.filter(
             Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
             until__lt=now,
-            subject__user__is_twitter_api_enabled=True,
+            # I think this was making the query a lot more expensive, and I want
+            # to bump all their timestamps anyway.
+            # subject__user__is_twitter_api_enabled=True,
         )
         .select_related("object", "subject")
         .prefetch_related("subject__user_set")

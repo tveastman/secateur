@@ -33,7 +33,7 @@ def token_bucket_time() -> float:
 
 
 def default_token_bucket_rate() -> float:
-    return 5_000
+    return 2_000
 
 
 def default_token_bucket_max() -> float:
@@ -101,7 +101,13 @@ class User(AbstractUser):
     def api(self) -> twitter.Api:
         if not self.is_twitter_api_enabled:
             raise TwitterApiDisabled()
-        access_token = self.twitter_social_auth.extra_data.get("access_token", None)
+        extra_data = self.twitter_social_auth.extra_data
+        if not extra_data:
+            logger.error(
+                "Tried to get a Twitter API but User %s had no extra_data.", self
+            )
+            raise TwitterApiDisabled()
+        access_token = extra_data.get("access_token", None)
         if not access_token:
             logger.error(
                 "Tried to get a Twitter API but User %s had no access token.", self
