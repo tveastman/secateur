@@ -6,7 +6,7 @@ authors = ["Tom Eastman <tom@eastman.nz>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-Django = "^3.1.2"
+Django = "^3.2.12"
 social-auth-app-django = "^4.0.0"
 python-twitter = "^3.5"
 psycopg2-binary = "^2.8.6"
