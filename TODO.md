@@ -21,23 +21,27 @@ DONE
 - Add a page that allows you to update the list of people you follow.
 - Add mypy annotation checking
 - Upgrade to python 3.8
+- Create a token bucket rate limiting system so that no single person can queue up too many blocks at once.
 
 
 NOW
 ===
+- upgrade all dependencies
+
 
 NEXT
 ====
 
 
+
 BACKLOG
 =======
+- upgrade to postgresql 14
 - find a way to get rid of the 'until' for all secateur users who don't use it anymore or don't exist at all on twitter.
 - update to django 4
 - simplify the create-relationship task so it doesn't allow screen_name
 - Add a search bar.
 - put a 'block/mute' form on an account profile page (where a search result sends you.)
-- Create a token bucket rate limiting system so that no single person can queue up too many blocks at once.
 - add security.txt
 - Login page
 - Add a random margin to the blocking duration.
@@ -46,3 +50,7 @@ BACKLOG
 - Replace the current blocking mechanism with a 'Job' model than can be used
   to arbitrarily schedule block, unblock, mute, and unmute operations. This
   would make the whole thing a whole lot more RESTful.
+- Add opentelemetry tracing:
+  - ...to the django views
+  - ...to the celery tasks
+  - ...to the SQL queries
