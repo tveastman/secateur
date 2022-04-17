@@ -27,11 +27,11 @@ DONE
 NOW
 ===
 - upgrade all dependencies
+- upgrade to django 4
 
 
 NEXT
 ====
-- upgrade to django 4
 
 
 BACKLOG
@@ -40,7 +40,6 @@ BACKLOG
 - Make sure *all* logs are emitted as json blobs.
 - upgrade to postgresql 14
 - find a way to get rid of the 'until' for all secateur users who don't use it anymore or don't exist at all on twitter.
-- update to django 4
 - simplify the create-relationship task so it doesn't allow screen_name
 - Add a search bar.
 - put a 'block/mute' form on an account profile page (where a search result sends you.)
