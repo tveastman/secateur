@@ -273,6 +273,9 @@ category = "dev"
 optional = false
 python-versions = ">=3.7"
 
+[package.dependencies]
+tomli = {version = "*", optional = true, markers = "extra == \"toml\""}
+
 [package.extras]
 toml = ["tomli"]
 
@@ -343,30 +346,16 @@ argon2 = ["argon2-cffi (>=19.1.0)"]
 bcrypt = ["bcrypt"]
 
 [[package]]
-name = "django-bootstrap3"
-version = "14.3.0"
-description = "Bootstrap 3 support for Django projects"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.dependencies]
-Django = ">=2.2"
-
-[[package]]
 name = "django-bootstrap4"
-version = "2.3.1"
-description = "Bootstrap support for Django projects"
+version = "22.1"
+description = "Bootstrap 4 for Django"
 category = "main"
 optional = false
-python-versions = ">=3.6,<4.0"
+python-versions = ">=3.7"
 
 [package.dependencies]
-beautifulsoup4 = ">=4.8.0,<5.0.0"
-django = ">=2.2,<4.0"
-
-[package.extras]
-docs = ["sphinx (>=2.4,<3.0)", "sphinx_rtd_theme (>=0.4.3,<0.5.0)", "m2r2 (>=0.2.5,<0.3.0)"]
+beautifulsoup4 = ">=4.8.0"
+Django = ">=2.2"
 
 [[package]]
 name = "django-celery-beat"
@@ -434,7 +423,7 @@ python-dateutil = "*"
 
 [[package]]
 name = "django-structlog"
-version = "1.6.3"
+version = "2.2.0"
 description = "Structured Logging for Django"
 category = "main"
 optional = false
@@ -444,6 +433,35 @@ python-versions = "*"
 django = ">=1.11"
 django-ipware = "*"
 structlog = "*"
+
+[[package]]
+name = "django-stubs"
+version = "1.10.1"
+description = "Mypy stubs for Django"
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+
+[package.dependencies]
+django = "*"
+django-stubs-ext = ">=0.4.0"
+mypy = ">=0.930,<0.950"
+tomli = "*"
+types-pytz = "*"
+types-PyYAML = "*"
+typing-extensions = "*"
+
+[[package]]
+name = "django-stubs-ext"
+version = "0.4.0"
+description = "Monkey-patching and extensions for django-stubs"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+django = "*"
+typing-extensions = "*"
 
 [[package]]
 name = "django-timezone-field"
@@ -733,11 +751,11 @@ diagrams = ["railroad-diagrams", "jinja2"]
 
 [[package]]
 name = "pytest"
-version = "6.2.5"
+version = "7.1.1"
 description = "pytest: simple powerful testing with Python"
 category = "dev"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 
 [package.dependencies]
 atomicwrites = {version = ">=1.0", markers = "sys_platform == \"win32\""}
@@ -747,10 +765,10 @@ iniconfig = "*"
 packaging = "*"
 pluggy = ">=0.12,<2.0"
 py = ">=1.8.2"
-toml = "*"
+tomli = ">=1.0.0"
 
 [package.extras]
-testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
+testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "pygments (>=2.7.2)", "requests", "xmlschema"]
 
 [[package]]
 name = "pytest-black"
@@ -767,16 +785,15 @@ toml = "*"
 
 [[package]]
 name = "pytest-cov"
-version = "2.12.1"
+version = "3.0.0"
 description = "Pytest plugin for measuring coverage."
 category = "dev"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-coverage = ">=5.2.1"
+coverage = {version = ">=5.2.1", extras = ["toml"]}
 pytest = ">=4.6"
-toml = "*"
 
 [package.extras]
 testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtualenv"]
@@ -798,16 +815,23 @@ testing = ["django", "django-configurations (>=2.0)"]
 
 [[package]]
 name = "pytest-mypy"
-version = "0.7.0"
+version = "0.9.1"
 description = "Mypy static type checker plugin for Pytest"
 category = "dev"
 optional = false
 python-versions = ">=3.5"
 
 [package.dependencies]
+attrs = ">=19.0"
 filelock = ">=3.0"
-mypy = {version = ">=0.700", markers = "python_version >= \"3.8\""}
-pytest = ">=3.5"
+mypy = [
+    {version = ">=0.700", markers = "python_version >= \"3.8\" and python_version < \"3.9\""},
+    {version = ">=0.780", markers = "python_version >= \"3.9\""},
+]
+pytest = [
+    {version = ">=6.2", markers = "python_version >= \"3.10\""},
+    {version = ">=4.6", markers = "python_version >= \"3.6\" and python_version < \"3.10\""},
+]
 
 [[package]]
 name = "python-crontab"
@@ -1024,6 +1048,22 @@ optional = false
 python-versions = ">=3.7"
 
 [[package]]
+name = "types-pytz"
+version = "2021.3.6"
+description = "Typing stubs for pytz"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
+name = "types-pyyaml"
+version = "6.0.6"
+description = "Typing stubs for PyYAML"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "typing-extensions"
 version = "4.2.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -1107,7 +1147,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "894dac213e1bbe399ad40cce45bd1a18b6ee857042a5b2f7cbd8b31ca30beec7"
+content-hash = "2c666c463b0d5299130eac1ddcdffaa7cb7ebebbf7960ab91fe0a1242a6a329b"
 
 [metadata.files]
 amqp = [
@@ -1336,13 +1376,9 @@ django = [
     {file = "Django-3.2.13-py3-none-any.whl", hash = "sha256:b896ca61edc079eb6bbaa15cf6071eb69d6aac08cce5211583cfb41515644fdf"},
     {file = "Django-3.2.13.tar.gz", hash = "sha256:6d93497a0a9bf6ba0e0b1a29cccdc40efbfc76297255b1309b3a884a688ec4b6"},
 ]
-django-bootstrap3 = [
-    {file = "django-bootstrap3-14.3.0.tar.gz", hash = "sha256:65f77f2c7c3d7f24eb8ad6527f361580061f18e35538b5cc5560afa0d14b7ef5"},
-    {file = "django_bootstrap3-14.3.0-py3-none-any.whl", hash = "sha256:9f99479b272a3e378a83cb24f74166797dd9afee9ed62bae909546e63e9a6419"},
-]
 django-bootstrap4 = [
-    {file = "django-bootstrap4-2.3.1.tar.gz", hash = "sha256:2c199020ac38866cdf8d1c5561ce7468116b9685b455a29843c0225ef8568879"},
-    {file = "django_bootstrap4-2.3.1-py3-none-any.whl", hash = "sha256:b68f073b647b20ec7894a252a0ca4e06b7b8dafdbad995cb0cdc783d0bb4629d"},
+    {file = "django-bootstrap4-22.1.tar.gz", hash = "sha256:fc9984f7238fbcd330ec5111bf0435083caa7192b022eedd53bfa4128bee318f"},
+    {file = "django_bootstrap4-22.1-py3-none-any.whl", hash = "sha256:b6da4cb54682012ff8baa1a1e672ba30cbfae82fb3d74f4b341109074e8e239f"},
 ]
 django-celery-beat = [
     {file = "django-celery-beat-2.2.1.tar.gz", hash = "sha256:97ae5eb309541551bdb07bf60cc57cadacf42a74287560ced2d2c06298620234"},
@@ -1365,8 +1401,16 @@ django-request = [
     {file = "django_request-1.6.1-py3-none-any.whl", hash = "sha256:be85d78631c2990f07f9170588b95036db446f0a07a0865487133435c797d2f9"},
 ]
 django-structlog = [
-    {file = "django-structlog-1.6.3.tar.gz", hash = "sha256:bff1a15bb6e7c89cb1b55295d08ca93c8ba62e72e9d292d2a42d40e74dd18cfe"},
-    {file = "django_structlog-1.6.3-py3-none-any.whl", hash = "sha256:75e0717fd652d40101b809b5d3d0746e44c534f8b1eef9fb658994b293b72c1e"},
+    {file = "django-structlog-2.2.0.tar.gz", hash = "sha256:0443d39d27bf34258a375a2dfd1a0ae51f24bedce88beae55c1b69f3c09af922"},
+    {file = "django_structlog-2.2.0-py3-none-any.whl", hash = "sha256:d6eb180963c7baf381ad7035e9afc7ecb7031246cb640f16925fe72f7712a2a1"},
+]
+django-stubs = [
+    {file = "django-stubs-1.10.1.tar.gz", hash = "sha256:2ec21fc14dba392156e0ec8438e1863c86ddb295f1c8d88eecd7e0e04977c843"},
+    {file = "django_stubs-1.10.1-py3-none-any.whl", hash = "sha256:dfffa933e3c7f5cae92c860fbd6cf4ae58c4f78eed93843612f863207c9e0e1a"},
+]
+django-stubs-ext = [
+    {file = "django-stubs-ext-0.4.0.tar.gz", hash = "sha256:3104c4748c34bd741c310a3e6af90dffba46e41bccbe243896e38a708262876b"},
+    {file = "django_stubs_ext-0.4.0-py3-none-any.whl", hash = "sha256:901fc77b6338ea29fa381300ff598dd57d461a4882b756404e2aa7724f76fd7d"},
 ]
 django-timezone-field = [
     {file = "django-timezone-field-4.2.3.tar.gz", hash = "sha256:5dd5bd9249382bef8847d3e7e4c32b7be182a4b538f354130d1252ed228892f8"},
@@ -1623,23 +1667,23 @@ pyparsing = [
     {file = "pyparsing-3.0.8.tar.gz", hash = "sha256:7bf433498c016c4314268d95df76c81b842a4cb2b276fa3312cfb1e1d85f6954"},
 ]
 pytest = [
-    {file = "pytest-6.2.5-py3-none-any.whl", hash = "sha256:7310f8d27bc79ced999e760ca304d69f6ba6c6649c0b60fb0e04a4a77cacc134"},
-    {file = "pytest-6.2.5.tar.gz", hash = "sha256:131b36680866a76e6781d13f101efb86cf674ebb9762eb70d3082b6f29889e89"},
+    {file = "pytest-7.1.1-py3-none-any.whl", hash = "sha256:92f723789a8fdd7180b6b06483874feca4c48a5c76968e03bb3e7f806a1869ea"},
+    {file = "pytest-7.1.1.tar.gz", hash = "sha256:841132caef6b1ad17a9afde46dc4f6cfa59a05f9555aae5151f73bdf2820ca63"},
 ]
 pytest-black = [
     {file = "pytest-black-0.3.12.tar.gz", hash = "sha256:1d339b004f764d6cd0f06e690f6dd748df3d62e6fe1a692d6a5500ac2c5b75a5"},
 ]
 pytest-cov = [
-    {file = "pytest-cov-2.12.1.tar.gz", hash = "sha256:261ceeb8c227b726249b376b8526b600f38667ee314f910353fa318caa01f4d7"},
-    {file = "pytest_cov-2.12.1-py2.py3-none-any.whl", hash = "sha256:261bb9e47e65bd099c89c3edf92972865210c36813f80ede5277dceb77a4a62a"},
+    {file = "pytest-cov-3.0.0.tar.gz", hash = "sha256:e7f0f5b1617d2210a2cabc266dfe2f4c75a8d32fb89eafb7ad9d06f6d076d470"},
+    {file = "pytest_cov-3.0.0-py3-none-any.whl", hash = "sha256:578d5d15ac4a25e5f961c938b85a05b09fdaae9deef3bb6de9a6e766622ca7a6"},
 ]
 pytest-django = [
     {file = "pytest-django-4.5.2.tar.gz", hash = "sha256:d9076f759bb7c36939dbdd5ae6633c18edfc2902d1a69fdbefd2426b970ce6c2"},
     {file = "pytest_django-4.5.2-py3-none-any.whl", hash = "sha256:c60834861933773109334fe5a53e83d1ef4828f2203a1d6a0fa9972f4f75ab3e"},
 ]
 pytest-mypy = [
-    {file = "pytest-mypy-0.7.0.tar.gz", hash = "sha256:5a667d9a2b66bf98b3a494411f221923a6e2c3eafbe771104951aaec8985673d"},
-    {file = "pytest_mypy-0.7.0-py3-none-any.whl", hash = "sha256:e0505ace48d2b19fe686366fce6b4a2ac0d090423736bb6aa2e39554d18974b7"},
+    {file = "pytest-mypy-0.9.1.tar.gz", hash = "sha256:9ffa3bf405c12c5c6be9e92e22bebb6ab2c91b9c32f45b0f0c93af473269ab5c"},
+    {file = "pytest_mypy-0.9.1-py3-none-any.whl", hash = "sha256:a2505fcf61f1c0c51f950d4623ea8ca2daf6fb2101a5603554bad2e130202083"},
 ]
 python-crontab = [
     {file = "python-crontab-2.6.0.tar.gz", hash = "sha256:1e35ed7a3cdc3100545b43e196d34754e6551e7f95e4caebbe0e1c0ca41c2f1b"},
@@ -1707,6 +1751,14 @@ toml = [
 tomli = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
+]
+types-pytz = [
+    {file = "types-pytz-2021.3.6.tar.gz", hash = "sha256:74547fd90d8d8ab4f1eedf3a344a7d186d97486973895f81221a712e1e2cd993"},
+    {file = "types_pytz-2021.3.6-py3-none-any.whl", hash = "sha256:6805c72d51118923c5bf98633c39593d5b464d2ab49a803440e2d7ab6b8920df"},
+]
+types-pyyaml = [
+    {file = "types-PyYAML-6.0.6.tar.gz", hash = "sha256:53c4379c7c8199d4fc5098060c51d58d38283e93d7f27bb80c8abe663456317d"},
+    {file = "types_PyYAML-6.0.6-py3-none-any.whl", hash = "sha256:d3d99e0a37a2fd37f35a9e4b4f794034192dac2aea2efc84c1bcde00ed66e150"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.2.0-py3-none-any.whl", hash = "sha256:6657594ee297170d19f67d55c05852a874e7eb634f4f753dbd667855e07c1708"},

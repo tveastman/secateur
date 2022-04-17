@@ -41,7 +41,7 @@ def _twitter_retry_timeout(base: int = 900, retries: int = 0) -> int:
     # visibility timeout, which was 23 hours on redis but is only 11 hours
     # on SQS.
     visibility_timeout_hours = 11
-    max_slot = min(2 ** retries - 1, visibility_timeout_hours * 4)
+    max_slot = min(2**retries - 1, visibility_timeout_hours * 4)
     slot = random.randint(0, max_slot)
     # Each slot is a 15 minute window, pick a random second within
     # that 15 minute window.

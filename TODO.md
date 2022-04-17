@@ -31,11 +31,13 @@ NOW
 
 NEXT
 ====
-
+- upgrade to django 4
 
 
 BACKLOG
 =======
+
+- Make sure *all* logs are emitted as json blobs.
 - upgrade to postgresql 14
 - find a way to get rid of the 'until' for all secateur users who don't use it anymore or don't exist at all on twitter.
 - update to django 4
