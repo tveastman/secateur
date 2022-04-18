@@ -7,5 +7,7 @@ staticfiles
 **/.pytest_cache
 
 /.mypy_cache/
-
 .idea
+
+/doocker-compose.yml
+/docker-compose-live.yml

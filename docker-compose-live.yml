@@ -65,7 +65,7 @@ services:
     command: >
       celery -A secateur worker -l info
       --pool gevent
-      --concurrency 2
+      --concurrency 20
     depends_on:
       - redis
       - postgres
@@ -88,9 +88,8 @@ services:
       - PGAPPNAME=blocker
     command: >
       celery -A secateur worker -Q blocker -l info
-      --prefetch-multiplier 150
       --pool gevent
-      --concurrency 2
+      --concurrency 40
     depends_on:
       - redis
       - postgres
