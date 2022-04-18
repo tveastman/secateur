@@ -241,7 +241,15 @@ class Disconnect(LoginRequiredMixin, FormView):
 
         # Disable the twitter API.
         user.is_twitter_api_enabled = False
-        user.save(update_fields=["is_twitter_api_enabled"])
+        user.oauth_token = None
+        user.oauth_token_secret = None
+        user.save(
+            update_fields=[
+                "is_twitter_api_enabled",
+                "oauth_token",
+                "oauth_token_secret",
+            ]
+        )
 
         models.LogMessage.objects.create(
             time=now(), action=models.LogMessage.Action.DISCONNECT, user=user

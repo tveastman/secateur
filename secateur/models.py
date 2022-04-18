@@ -108,23 +108,13 @@ class User(AbstractUser):
     def api(self) -> twitter.Api:
         if not self.is_twitter_api_enabled:
             raise TwitterApiDisabled()
-        extra_data = self.twitter_social_auth.extra_data
-        if not extra_data:
-            logger.error(
-                "Tried to get a Twitter API but User %s had no extra_data.", self
-            )
-            raise TwitterApiDisabled()
-        access_token = extra_data.get("access_token", None)
-        if not access_token:
-            logger.error(
-                "Tried to get a Twitter API but User %s had no access token.", self
-            )
-            raise TwitterApiDisabled()
+        if not self.oauth_token:
+            raise TwitterApiDisabled(f"User {self} oauth_token not set")
         api = twitter.Api(
             consumer_key=os.environ.get("CONSUMER_KEY"),
             consumer_secret=os.environ.get("CONSUMER_SECRET"),
-            access_token_key=access_token.get("oauth_token"),
-            access_token_secret=access_token.get("oauth_token_secret"),
+            access_token_key=self.oauth_token,
+            access_token_secret=self.oauth_token_secret,
             sleep_on_rate_limit=False,
         )
         return api
