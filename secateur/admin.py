@@ -20,7 +20,7 @@ from . import models
 ## access to an admin account. They'd still be exposed if an attacker
 ## achieves code execution, but that's a higher bar than nabbing admin
 ## access credentials.
-social_django.admin.UserSocialAuthOption.exclude = ["extra_data"]
+#social_django.admin.UserSocialAuthOption.exclude = ["extra_data"]
 
 
 def update_user_details(
