@@ -40,8 +40,7 @@ services:
       - PGAPPNAME=beat
 #      - C_REMDEBUG=True
     command: >
-      nice timeout 864000 celery -A secateur beat
-      -l DEBUG
+      celery -A secateur beat -l DEBUG
       --scheduler django_celery_beat.schedulers:DatabaseScheduler
     depends_on:
       - redis
@@ -64,10 +63,9 @@ services:
       - DJANGO_SETTINGS_MODULE=secateur.settings
       - PGAPPNAME=celery
     command: >
-      nice timeout 86400 celery -A secateur worker
-      --without-gossip --without-mingle --without-heartbeat
-      -l info
-      --pool gevent --concurrency 2
+      celery -A secateur worker -l info
+      --pool gevent
+      --concurrency 2
     depends_on:
       - redis
       - postgres
@@ -89,11 +87,10 @@ services:
       - DJANGO_SETTINGS_MODULE=secateur.settings
       - PGAPPNAME=blocker
     command: >
-      nice timeout 86400 celery -A secateur worker -Q blocker -l info
-      --without-gossip --without-mingle --without-heartbeat
+      celery -A secateur worker -Q blocker -l info
       --prefetch-multiplier 150
       --pool gevent
-      --concurrency 4
+      --concurrency 2
     depends_on:
       - redis
       - postgres
