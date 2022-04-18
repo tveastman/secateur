@@ -3,6 +3,7 @@
 set -eux
 
 FILE_LIST=$(mktemp)
+SCALE_BLOCKER=1
 
 cd $(dirname $0)/..
 git ls-files > ${FILE_LIST}
@@ -12,5 +13,5 @@ ssh -t ${DEPLOY_USER}@${DEPLOY_HOST} "
    cd ${DEPLOY_DIRECTORY}
    sudo docker-compose -f docker-compose-live.yml stop celery blocker
    sudo docker-compose -f docker-compose-live.yml build --pull
-   sudo docker-compose -f docker-compose-live.yml up --detach --scale blocker=2
+   sudo docker-compose -f docker-compose-live.yml up --detach --scale blocker=${SCALE_BLOCKER}
 "
