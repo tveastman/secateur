@@ -218,6 +218,8 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
+# A fix for a timezone issue
+DJANGO_CELERY_BEAT_TZ_AWARE = False
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL", "redis://redis/1")
 if CELERY_BROKER_URL.lower().startswith("redis"):

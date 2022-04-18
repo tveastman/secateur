@@ -22,12 +22,13 @@ DONE
 - Add mypy annotation checking
 - Upgrade to python 3.8
 - Create a token bucket rate limiting system so that no single person can queue up too many blocks at once.
+- upgrade all dependencies
+- upgrade to django 4
+- upgrade to postgresql 14
 
 
 NOW
 ===
-- upgrade all dependencies
-- upgrade to django 4
 
 
 NEXT
@@ -38,7 +39,6 @@ BACKLOG
 =======
 
 - Make sure *all* logs are emitted as json blobs.
-- upgrade to postgresql 14
 - find a way to get rid of the 'until' for all secateur users who don't use it anymore or don't exist at all on twitter.
 - simplify the create-relationship task so it doesn't allow screen_name
 - Add a search bar.

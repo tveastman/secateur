@@ -59,7 +59,7 @@ services:
 #    init: true
 #    read_only: true
   postgres:
-    image: postgres:13
+    image: postgres:14
     env_file:
       - ./.env
     volumes:

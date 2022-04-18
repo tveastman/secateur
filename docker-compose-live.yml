@@ -107,7 +107,7 @@ services:
     logging:
       driver: journald
   postgres:
-    image: postgres:13
+    image: postgres:14
     command: >
       postgres
       -c 'shared_buffers=256MB'
