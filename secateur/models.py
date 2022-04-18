@@ -57,8 +57,12 @@ class User(AbstractUser):
     token_bucket_time = models.FloatField(default=1)
     token_bucket_value = models.FloatField(default=default_token_bucket_max)
 
-    oauth_token = models.CharField(max_length=255, null=True, blank=True)
-    oauth_token_secret = models.CharField(max_length=255, null=True, blank=True)
+    oauth_token = models.CharField(
+        max_length=255, null=True, blank=True, editable=False
+    )
+    oauth_token_secret = models.CharField(
+        max_length=255, null=True, blank=True, editable=False
+    )
 
     @property
     def token_bucket(self) -> utils.TokenBucket:

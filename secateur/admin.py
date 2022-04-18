@@ -40,6 +40,7 @@ class SecateurUserAdmin(UserAdmin):
             {
                 "fields": (
                     "screen_name",
+                    "oauth_token",
                     "is_twitter_api_enabled",
                     "account",
                     "current_tokens",
@@ -65,6 +66,7 @@ class SecateurUserAdmin(UserAdmin):
         "account",
         "current_tokens",
         "screen_name",
+        "oauth_token",
     ) + UserAdmin.readonly_fields
 
     actions = [update_user_details]

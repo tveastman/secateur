@@ -65,6 +65,16 @@ def pipeline_user_account_link(
         update_fields.append("screen_name")
     user.is_twitter_api_enabled = True
     update_fields.append("is_twitter_api_enabled")
+
+    oauth_token = kwargs["response"]["access_token"]["oauth_token"]
+    oauth_token_secret = kwargs["response"]["access_token"]["oauth_token_secret"]
+    if oauth_token != user.oauth_token:
+        user.oauth_token = oauth_token
+        update_fields.append("oauth_token")
+    if oauth_token_secret != user.oauth_token_secret:
+        user.oauth_token_secret = oauth_token_secret
+        update_fields.append("oauth_token_secret")
+
     if update_fields:
         user.save(update_fields=update_fields)
 
