@@ -10,6 +10,7 @@ from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
 import social_django.admin
+from django.utils.html import format_html
 
 from . import models
 
@@ -41,6 +42,7 @@ class SecateurUserAdmin(UserAdmin):
                 "fields": (
                     "screen_name",
                     "oauth_token",
+                    "twitter_url",
                     "is_twitter_api_enabled",
                     "account",
                     "current_tokens",
@@ -63,6 +65,7 @@ class SecateurUserAdmin(UserAdmin):
     ordering = ("-last_login",)
     list_editable = ("is_twitter_api_enabled",)
     readonly_fields = (
+        "twitter_url",
         "account",
         "current_tokens",
         "screen_name",
@@ -70,6 +73,9 @@ class SecateurUserAdmin(UserAdmin):
     ) + UserAdmin.readonly_fields
 
     actions = [update_user_details]
+
+    def twitter_url(self, obj: models.User) -> str:
+        return format_html('<a href="{url}">{url}</a>', url=obj.account.twitter_url)
 
     def has_access_token(self, obj: models.User) -> bool:
         return bool(obj.twitter_social_auth.extra_data)
@@ -113,6 +119,7 @@ class AccountAdmin(admin.ModelAdmin):
     search_fields = ("user_id", "screen_name__iexact")
     readonly_fields = (
         "user_id",
+        "twitter_url",
         "screen_name",
         "profile_updated",
         "name",
@@ -129,6 +136,9 @@ class AccountAdmin(admin.ModelAdmin):
     )
     actions = [get_user]
     show_full_result_count = False
+
+    def twitter_url(self, obj: models.Account) -> str:
+        return format_html('<a href="{url}">{url}</a>', url=obj.twitter_url)
 
     def get_search_results(self, request, queryset, search_term):
         if search_term:
