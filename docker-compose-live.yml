@@ -12,6 +12,7 @@ services:
       - /etc/secateur/environment
     environment:
       - PGAPPNAME=app
+      - OTEL_SERVICE_NAME=app
     command: >
       sh -c "./manage.py migrate &&
       gunicorn -b 0.0.0.0:5000 -k gevent --log-file=- --log-level info
@@ -39,6 +40,7 @@ services:
       - DJANGO_SETTINGS_MODULE=secateur.settings
       - PGAPPNAME=beat
 #      - C_REMDEBUG=True
+      - OTEL_SERVICE_NAME=beat
     command: >
       celery -A secateur beat -l DEBUG
       --scheduler django_celery_beat.schedulers:DatabaseScheduler
@@ -62,6 +64,8 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
       - PGAPPNAME=celery
+      - OTEL_SERVICE_NAME=celery
+
     command: >
       celery -A secateur worker -l info
       --pool gevent
@@ -86,6 +90,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=secateur.settings
       - PGAPPNAME=blocker
+      - OTEL_SERVICE_NAME=blocker
     command: >
       celery -A secateur worker -Q blocker -l info
       --pool gevent

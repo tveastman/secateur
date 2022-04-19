@@ -26,6 +26,10 @@ gevent = "*"
 botocore = "*"
 boto3 = "*"
 tzdata = "*"
+opentelemetry-sdk = "1.10.0"
+opentelemetry-exporter-otlp-proto-grpc = "1.10.0"
+opentelemetry-instrumentation-django = "0.29b0"
+opentelemetry-instrumentation-celery = "0.29b0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

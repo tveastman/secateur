@@ -6,5 +6,6 @@ class SecateurConfig(AppConfig):
 
     def ready(self) -> None:
         import secateur.signals
+        import secateur.otel
 
         return super().ready()

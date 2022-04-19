@@ -3,7 +3,7 @@ import sys
 
 import celery
 import structlog
-from celery.signals import setup_logging
+from celery.signals import setup_logging, worker_process_init
 from django_structlog.celery.steps import DjangoStructLogInitStep
 
 logger = structlog.get_logger(__name__)
@@ -11,6 +11,11 @@ logger = structlog.get_logger(__name__)
 app = celery.Celery("secateur")
 app.config_from_object("django.conf:settings", namespace="CELERY")
 app.steps["worker"].add(DjangoStructLogInitStep)
+
+
+@worker_process_init.connect(weak=False)
+def init_celery_tracing(*args, **kwargs):
+    import secateur.otel
 
 
 @setup_logging.connect
