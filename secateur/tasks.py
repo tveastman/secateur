@@ -130,7 +130,7 @@ def create_relationship(
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
 
-    secateur_user = models.User.objects.get(pk=secateur_user_pk)
+    secateur_user = models.User.objects.select_related('account').get(pk=secateur_user_pk)
     log = logger.bind(user=secateur_user)
     try:
         api = secateur_user.api
@@ -160,7 +160,7 @@ def create_relationship(
 
     ## CHECK IF THIS RELATIONSHIP ALREADY EXISTS
     existing_rel_qs = models.Relationship.objects.filter(
-        subject=secateur_user.account, type=type
+        subject_id=secateur_user.account_id, type=type
     )
     if screen_name:
         existing_rel_qs = existing_rel_qs.filter(object__screen_name=screen_name)

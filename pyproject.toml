@@ -9,7 +9,6 @@ python = "^3.9"
 Django = "^4.0.4"
 social-auth-app-django = "^5.0.0"
 python-twitter = "^3.5"
-psycopg2-binary = "^2.8.6"
 celery = {version = "^5.2.6", extras = ["redis,sqs"]}
 django-redis = "^5.2.0"
 gunicorn = "^20.0.4"
@@ -31,6 +30,8 @@ opentelemetry-exporter-otlp-proto-grpc = "1.10.0"
 opentelemetry-instrumentation-django = "0.29b0"
 opentelemetry-instrumentation-celery = "0.29b0"
 opentelemetry-instrumentation-requests = "0.29b0"
+opentelemetry-instrumentation-psycopg2 = "0.29b0"
+psycopg2 = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
