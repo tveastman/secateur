@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     "social_django",
     "bootstrap4",
     "request",
+    "psqlextra",
     "secateur.apps.SecateurConfig",
 ]
 
@@ -91,9 +92,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "secateur.wsgi.application"
 
+POSTGRES_EXTRA_AUTO_EXTENSION_SET_UP = False
 DATABASES = {
     "default": dj_database_url.config(default="postgres://postgres@postgres/postgres")
 }
+DATABASES["default"]["ENGINE"] = "psqlextra.backend"
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators

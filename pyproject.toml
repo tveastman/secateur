@@ -32,6 +32,7 @@ opentelemetry-instrumentation-celery = "0.29b0"
 opentelemetry-instrumentation-requests = "0.29b0"
 opentelemetry-instrumentation-psycopg2 = "0.29b0"
 psycopg2 = "^2.9.3"
+django-postgres-extra = "^2.0.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

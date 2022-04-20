@@ -2,7 +2,7 @@
 OpenTelemetry Configuration
 """
 
-#import opentelemetry
+import opentelemetry
 import opentelemetry.sdk.trace
 import opentelemetry.sdk.trace.export
 import opentelemetry.exporter.otlp.proto.grpc.trace_exporter
@@ -17,9 +17,7 @@ opentelemetry.instrumentation.celery.CeleryInstrumentor().instrument()
 opentelemetry.instrumentation.requests.RequestsInstrumentor().instrument()
 opentelemetry.instrumentation.psycopg2.Psycopg2Instrumentor().instrument()
 
-opentelemetry.trace.set_tracer_provider(
-    opentelemetry.sdk.trace.TracerProvider()
-)
+opentelemetry.trace.set_tracer_provider(opentelemetry.sdk.trace.TracerProvider())
 
 # opentelemetry.trace.get_tracer_provider().add_span_processor(
 #     opentelemetry.sdk.trace.export.BatchSpanProcessor(

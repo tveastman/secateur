@@ -13,6 +13,9 @@ from django.db.models import QuerySet, Q
 from django.utils import timezone
 from django.utils.functional import cached_property
 
+# from psqlextra.models import PostgresModel
+import psqlextra.models
+
 import twitter
 
 import social_django.models
@@ -163,7 +166,7 @@ class User(AbstractUser):
         objects.update(extra_data=None)
 
 
-class Account(models.Model):
+class Account(psqlextra.models.PostgresModel):
     """A Twitter account"""
 
     class Meta:
@@ -380,7 +383,7 @@ class Account(models.Model):
         )
 
 
-class Relationship(models.Model):
+class Relationship(psqlextra.models.PostgresModel):
     class Meta:
         unique_together = (("type", "subject", "object"),)
         indexes = (
@@ -421,7 +424,6 @@ class Relationship(models.Model):
         )
 
     @classmethod
-    @transaction.atomic
     def add_relationships(
         cls,
         type: int,
@@ -430,11 +432,11 @@ class Relationship(models.Model):
         updated: datetime,
         until: Optional[datetime] = None,
     ) -> "QuerySet[Relationship]":
-        to_create = []
+        rows = []
         for object in objects:
             for subject in subjects:
-                to_create.append(
-                    cls(
+                rows.append(
+                    dict(
                         type=type,
                         subject=subject,
                         object=object,
@@ -442,12 +444,10 @@ class Relationship(models.Model):
                         until=until,
                     )
                 )
-        cls.objects.bulk_create(to_create, ignore_conflicts=True)
+        cls.objects.bulk_upsert(
+            conflict_target=["type", "subject", "object"], rows=rows
+        )
         result = cls.objects.filter(type=type, subject__in=subjects, object__in=objects)
-        if until:
-            result.update(updated=updated, until=until)
-        else:
-            result.update(updated=updated)
         return result
 
     @classmethod
@@ -458,7 +458,7 @@ class Relationship(models.Model):
         return relationships.delete()[0]
 
 
-class LogMessage(models.Model):
+class LogMessage(psqlextra.models.PostgresModel):
     class Meta:
         indexes = (
             BrinIndex(fields=["time"], autosummarize=True),

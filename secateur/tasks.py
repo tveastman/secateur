@@ -130,7 +130,9 @@ def create_relationship(
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
 
-    secateur_user = models.User.objects.select_related('account').get(pk=secateur_user_pk)
+    secateur_user = models.User.objects.select_related("account").get(
+        pk=secateur_user_pk
+    )
     log = logger.bind(user=secateur_user)
     try:
         api = secateur_user.api
@@ -281,7 +283,9 @@ def destroy_relationship(
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
 
-    secateur_user = models.User.objects.select_related('account').get(pk=secateur_user_pk)
+    secateur_user = models.User.objects.select_related("account").get(
+        pk=secateur_user_pk
+    )
     try:
         api = secateur_user.api
     except models.TwitterApiDisabled:

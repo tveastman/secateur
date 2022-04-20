@@ -61,9 +61,7 @@ class BlockMessages(LoginRequiredMixin, ListView):
 
     def get_queryset(self) -> django.db.models.query.QuerySet:
         user = models.User.objects.get(pk=self.request.user.pk)
-        return (
-            models.LogMessage.objects.filter(user=user).order_by("-id")
-        )
+        return models.LogMessage.objects.filter(user=user).order_by("-id")
 
 
 class Search(LoginRequiredMixin, FormView):
