@@ -25,6 +25,11 @@ DONE
 - upgrade all dependencies
 - upgrade to django 4
 - upgrade to postgresql 14
+- Add opentelemetry tracing:
+  - ...to the django views
+  - ...to the celery tasks
+  - ...to the SQL queries
+- Add a random margin to the blocking duration.
 
 
 NOW
@@ -45,13 +50,8 @@ BACKLOG
 - put a 'block/mute' form on an account profile page (where a search result sends you.)
 - add security.txt
 - Login page
-- Add a random margin to the blocking duration.
 - move all the celery tasks into celery.py
 - Add a rest API
 - Replace the current blocking mechanism with a 'Job' model than can be used
   to arbitrarily schedule block, unblock, mute, and unmute operations. This
   would make the whole thing a whole lot more RESTful.
-- Add opentelemetry tracing:
-  - ...to the django views
-  - ...to the celery tasks
-  - ...to the SQL queries

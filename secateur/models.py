@@ -1,5 +1,6 @@
 import time
 import os
+from functools import lru_cache
 from typing import Optional, Union, Tuple, List, Iterable, Any, Dict
 from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
@@ -43,6 +44,11 @@ def default_token_bucket_max() -> float:
 def default_token_bucket_value() -> float:
     # No longer used but needed by an old migration.
     return 50_000.00
+
+
+@lru_cache(maxsize=128)
+def get_cached_twitter_api(**kwargs):
+    return twitter.Api(**kwargs)
 
 
 class User(AbstractUser):
@@ -110,7 +116,7 @@ class User(AbstractUser):
             raise TwitterApiDisabled()
         if not self.oauth_token:
             raise TwitterApiDisabled(f"User {self} oauth_token not set")
-        api = twitter.Api(
+        api = get_cached_twitter_api(
             consumer_key=os.environ.get("CONSUMER_KEY"),
             consumer_secret=os.environ.get("CONSUMER_SECRET"),
             access_token_key=self.oauth_token,
