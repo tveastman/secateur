@@ -64,12 +64,12 @@ def receiver_setup_logging(  # type: ignore
                     ],  # "flat_line_file", "json_file"],
                     "level": "DEBUG",
                 },
-                "urllib3": {
-                    "handlers": [
-                        "console",
-                    ],  # "flat_line_file", "json_file"],
-                    "level": "DEBUG",
-                },
+                # "urllib3": {
+                #     "handlers": [
+                #         "console",
+                #     ],  # "flat_line_file", "json_file"],
+                #     "level": "DEBUG",
+                # },
             },
         }
     )

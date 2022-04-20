@@ -210,7 +210,6 @@ class Account(psqlextra.models.PostgresModel):
         return cls.get_accounts(arg, now=now).get()
 
     @classmethod
-    @transaction.atomic
     def get_accounts(
         cls, *args: Union[int, twitter.User], now: Optional[datetime] = None
     ) -> "QuerySet[Account]":
@@ -226,52 +225,45 @@ class Account(psqlextra.models.PostgresModel):
         This method unmagically does the right thing with whatever you pass it.
         """
         if not args:
-            # If we didn't get anything, return an empty queryset.
             return cls.objects.none()
+        if now is None:
+            now = timezone.now()
+        rows = []
+        ids = []
         if isinstance(args[0], int):
-            cls.objects.bulk_create(
-                (cls(user_id=user_id) for user_id in args),
-                ignore_conflicts=True,
-            )
-            return cls.objects.filter(user_id__in=args)
+            for user_id in args:
+                rows.append(dict(user_id=user_id))
+            ids = args
         elif isinstance(args[0], twitter.User):
-            # If we're dealing with dicts, we need need to do it the boring
-            # way with a couple SQL queries per object. I'd sure love to make this
-            # cleverer.
-            if now is None:
-                now = timezone.now()
-            ids = []
             for twitter_user in args:
-                account = cls.from_twitter_user(twitter_user, now)
-                ids.append(account.user_id)
-            return cls.objects.filter(user_id__in=ids)
-        raise Exception("Couldn't handle arguments %r" % (args,))
+                rows.append(cls.dict_from_twitter_user(twitter_user, now))
+                ids.append(twitter_user.id)
+        if rows:
+            cls.objects.bulk_upsert(conflict_target=["user_id"], rows=rows)
+        return cls.objects.filter(user_id__in=ids)
 
     @classmethod
-    def from_twitter_user(
+    def dict_from_twitter_user(
         cls, user: twitter.User, now: Optional[datetime] = None
-    ) -> "Account":
-        account, account_updated = Account.objects.update_or_create(
-            user_id=user.id,
-            defaults={
-                "screen_name": user.screen_name,
-                "name": user.name,
-                "profile_updated": now,
-                "description": user.description,
-                "location": user.location,
-                "profile_image_url_https": user.profile_image_url_https,
-                "profile_banner_url": user.profile_banner_url,
-                "favourites_count": user.favourites_count,
-                "followers_count": user.followers_count,
-                "friends_count": user.friends_count,
-                "statuses_count": user.statuses_count,
-                "listed_count": user.listed_count,
-                "created_at": (
-                    parsedate_to_datetime(user.created_at) if user.created_at else None
-                ),
-            },
-        )
-        return account
+    ) -> dict:
+        return {
+            "user_id": user.id,
+            "screen_name": user.screen_name,
+            "name": user.name,
+            "profile_updated": now,
+            "description": user.description,
+            "location": user.location,
+            "profile_image_url_https": user.profile_image_url_https,
+            "profile_banner_url": user.profile_banner_url,
+            "favourites_count": user.favourites_count,
+            "followers_count": user.followers_count,
+            "friends_count": user.friends_count,
+            "statuses_count": user.statuses_count,
+            "listed_count": user.listed_count,
+            "created_at": (
+                parsedate_to_datetime(user.created_at) if user.created_at else None
+            ),
+        }
 
     @property
     def twitter_url(self) -> str:
