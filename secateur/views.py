@@ -9,6 +9,7 @@ import structlog
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db import transaction
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.timezone import now
@@ -38,7 +39,11 @@ class LogMessages(LoginRequiredMixin, ListView):
     model = models.LogMessage
     paginate_by = 50
 
+    @django.db.transaction.atomic
     def get_queryset(self) -> django.db.models.query.QuerySet:
+        with django.db.connection.cursor() as cursor:
+            cursor.execute("SET LOCAL statement_timeout = '30s'")
+
         user = models.User.objects.get(pk=self.request.user.pk)
         return (
             models.LogMessage.objects.filter(user=user)
@@ -59,7 +64,11 @@ class BlockMessages(LoginRequiredMixin, ListView):
     model = models.LogMessage
     paginate_by = 50
 
+    @django.db.transaction.atomic
     def get_queryset(self) -> django.db.models.query.QuerySet:
+        with django.db.connection.cursor() as cursor:
+            cursor.execute("SET LOCAL statement_timeout = '30s'")
+
         user = models.User.objects.get(pk=self.request.user.pk)
         return models.LogMessage.objects.filter(user=user).order_by("-id")
 

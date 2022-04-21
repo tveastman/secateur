@@ -197,6 +197,11 @@ LOGGING = {
             ],  # "flat_line_file", "json_file"],
             "level": "DEBUG",
         },
+        # LOG ALL SQL QUERIES (but you have to set debug=True as well)
+        # 'django.db.backends': {
+        #     'level': 'DEBUG',
+        #     'handlers': ['console'],
+        # }
     },
 }
 
