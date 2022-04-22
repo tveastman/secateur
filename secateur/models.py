@@ -452,9 +452,7 @@ class Relationship(psqlextra.models.PostgresModel):
 
 class LogMessage(psqlextra.models.PostgresModel):
     class Meta:
-        indexes = (
-            models.Index(name="log_user_id", fields=["user", "-id"]),
-        )
+        indexes = (models.Index(name="log_user_id", fields=["user", "-id"]),)
 
     class Action(models.IntegerChoices):
         GET_USER = 1

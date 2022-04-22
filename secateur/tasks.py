@@ -294,9 +294,7 @@ def destroy_relationship(
     except models.TwitterApiDisabled:
         logger.error("Twitter API not enabled for user: %s", secateur_user)
         models.Relationship.objects.filter(
-            type=type,
-            subject=secateur_user.account_id,
-            object=user_id
+            type=type, subject=secateur_user.account_id, object=user_id
         ).update(until=None)
         logger.error("Unsetting 'until' for relationship if it exists.")
         return
