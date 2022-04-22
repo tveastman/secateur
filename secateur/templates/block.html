@@ -14,14 +14,26 @@
 
 <p>If you don't want Secateur to block the accounts of people you follow, you can tell it not to <a href="{% url "following" %}">on this page</a>.</p>
 
+<h2>Blocking accounts using secateur</h2>
 
-<div class="alert alert-warning" role="alert">
-<p>Dear Secateur user,</p>
-<p>Secateur has gotten very popular in the last few weeks. To prevent the server overloading I've had to reduce the number
-of people you can block at a time.
-</p>
-<p>If you're being harassed you can contact me and I can increase the limit for you.</p>
-<p>I want to make sure that secateur is always available to people who need it for protection.</p>
-<p>If you can, please donate to help with the server expenses!</p>
-</div>
+    <p>
+        Secateur blocks a user and all their followers, and it can automatically unblock them later
+        after a time of your choosing. If secateur is under heavy load, then it can take a while for blocking to start.
+    </p>
+    <p>
+        There's a rate-limit that affects how many people you can block. It works just like a stamina bar in a game:
+        it refills slowly over time up to a maximum. The maximum and the speed at which it refills are things I tune
+        every once in a while depending on how overloaded the server is.
+    </p>
+    <p>
+        Important note: <b>If you change your Twitter screen name, Secateur won't work for you anymore</b> until you
+        log in again. The credentials Secateur users are tied to your Twitter username. If you change your screen name
+        secateur can't unblock or block users for you until you log into to secateur with your new screen name.
+    </p>
+    <p>Muting people is way, way slower than blocking them, and you can't mute many people. I recommend just using 'block'
+    and 'block followers' and not using mute at all on secateur (I intend to move mute to its own page later).</p>
+    <p><b>Please support secateur by donating.</b> Secateur costs me a couple hundred dollars per month to run at the
+        moment. If you can afford the cost of a cup of coffee and you've benefited from secateur, you can <a
+                href="https://ko-fi.com/tveastman">help me out</a>!</p>
+
 {% endblock %}
