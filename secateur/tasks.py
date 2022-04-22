@@ -280,6 +280,9 @@ def destroy_relationship(
     user_id: Optional[int] = None,
     screen_name: Optional[str] = None,
 ) -> None:
+    assert screen_name is None
+    assert user_id is not None
+
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
 
@@ -290,6 +293,12 @@ def destroy_relationship(
         api = secateur_user.api
     except models.TwitterApiDisabled:
         logger.error("Twitter API not enabled for user: %s", secateur_user)
+        models.Relationship.objects.filter(
+            type=type,
+            subject=secateur_user.account_id,
+            object=user_id
+        ).update(until=None)
+        logger.error("Unsetting 'until' for relationship if it exists.")
         return
     now = timezone.now()
 
@@ -670,14 +679,15 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
 @app.task()
 def bounce_until_for_disabled_accounts():
     """If a relationship expiry is due, but the Twitter API is disabled for that user, we'll just add time to it."""
-    now = timezone.now()
-    interval = datetime.timedelta(days=7 * 6)
-    result = models.Relationship.objects.filter(
-        Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
-        until__lt=now,
-        subject__user__is_twitter_api_enabled=False,
-    ).update(until=F("until") + interval)
-    logger.info("bounce_until_for_disabled_accounts", result=result)
+    # now = timezone.now()
+    # interval = datetime.timedelta(days=7 * 6)
+    # result = models.Relationship.objects.filter(
+    #     Q(type=models.Relationship.BLOCKS) | Q(type=models.Relationship.MUTES),
+    #     until__lt=now,
+    #     subject__user__is_twitter_api_enabled=False,
+    # ).update(until=F("until") + interval)
+    # logger.info("bounce_until_for_disabled_accounts", result=result)
+    pass
 
 
 @app.task()
