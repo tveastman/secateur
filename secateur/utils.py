@@ -75,6 +75,12 @@ def pipeline_user_account_link(
         user.oauth_token_secret = oauth_token_secret
         update_fields.append("oauth_token_secret")
 
+    secateur_username = f"{username}__{uid}"
+    if user.username != secateur_username:
+        logger.info("updating username", old_username=user.username, new_username=secateur_username)
+        user.username = secateur_username
+        update_fields.append("username")
+
     if update_fields:
         user.save(update_fields=update_fields)
 
