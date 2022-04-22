@@ -117,13 +117,14 @@ services:
       -c "wal_level=minimal"
       -c 'wal_writer_delay=5000'
       -c 'wal_writer_flush_after=5MB'
-      -c 'log_min_duration_statement=200'
+      -c 'log_min_duration_statement=1000'
       -c 'autovacuum_vacuum_scale_factor=0.01'
       -c 'bgwriter_lru_maxpages=2000'
       -c 'bgwriter_delay=1000ms'
       -c 'bgwriter_flush_after=2MB'
       -c 'bgwriter_lru_multiplier=4.0'
       -c 'idle_in_transaction_session_timeout=300s'
+      -c 'log_autovacuum_min_duration=0'
     env_file:
       - /etc/secateur/environment
     volumes:
