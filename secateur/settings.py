@@ -236,7 +236,7 @@ if CELERY_BROKER_URL.lower().startswith("redis"):
 elif CELERY_BROKER_URL.lower().startswith("sqs"):
     CELERY_BROKER_TRANSPORT_OPTIONS = {
         "visibility_timeout": 60 * 60 * 12,
-        "region": "ap-southeast-2",
+        "region": os.environ.get("SQS_QUEUE_REGION"),
         "polling_interval": 5.0,
         "wait_time_seconds": 20,
         "queue_name_prefix": os.environ.get("SQS_QUEUE_NAME_PREFIX"),
