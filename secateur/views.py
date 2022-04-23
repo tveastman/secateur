@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 import datetime
 import logging
 
@@ -16,12 +16,16 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 
-from . import forms, models, tasks
+from . import forms, models, tasks, otel
 
 logger = structlog.get_logger(__name__)
 
 
 class Home(TemplateView):
+    def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
+        otel.homepage_counter.add(1)
+        return super().get_context_data(**kwargs)
+
     template_name = "home.html"
 
 

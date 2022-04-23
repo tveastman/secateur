@@ -17,6 +17,7 @@ from twitter.error import TwitterError
 from . import models
 from .celery import app
 from .utils import ErrorCode, fudge_duration, chunks
+from . import otel
 
 logger = structlog.get_logger(__name__)
 
@@ -149,6 +150,7 @@ def create_relationship(
         rate_limit_key = "{}:{}:rate-limit".format(
             secateur_user.username, "create_block"
         )
+        counter = otel.twitter_block_counter
     elif type is RelationshipType.MUTE:
         action = models.LogMessage.Action.CREATE_MUTE
         past_tense_verb = "muted"
@@ -156,6 +158,7 @@ def create_relationship(
         rate_limit_key = "{}:{}:rate-limit".format(
             secateur_user.username, "create_mute"
         )
+        counter = otel.twitter_mute_counter
     else:
         raise ValueError("Don't know how to handle type %r", type)
     log = log.bind(action=action, until=until, type=type, user_id=user_id)
@@ -203,6 +206,7 @@ def create_relationship(
 
     ## CALL THE TWITTER API
     try:
+        counter.add(1)
         api_result = api_function(
             user_id=user_id,
             screen_name=screen_name,
@@ -308,7 +312,7 @@ def destroy_relationship(
             secateur_user.username, "destroy_block"
         )
         action = models.LogMessage.Action.DESTROY_BLOCK
-
+        counter = otel.twitter_unblock_counter
     elif type is RelationshipType.MUTE:
         past_tense_verb = "unmuted"
         api_function = api.DestroyMute
@@ -316,6 +320,7 @@ def destroy_relationship(
             secateur_user.username, "destroy_mute"
         )
         action = models.LogMessage.Action.DESTROY_MUTE
+        counter = otel.twitter_unmute_counter
     else:
         raise ValueError("Don't know how to handle type %r", type)
 
@@ -348,6 +353,7 @@ def destroy_relationship(
 
     ## CALL THE TWITTER API
     try:
+        counter.add(1)
         account = models.Account.get_account(
             api_function(
                 user_id=user_id,
