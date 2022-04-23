@@ -77,7 +77,11 @@ def pipeline_user_account_link(
 
     secateur_username = f"{username}__{uid}"
     if user.username != secateur_username:
-        logger.info("updating username", old_username=user.username, new_username=secateur_username)
+        logger.info(
+            "updating username",
+            old_username=user.username,
+            new_username=secateur_username,
+        )
         user.username = secateur_username
         update_fields.append("username")
 

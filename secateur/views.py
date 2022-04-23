@@ -10,6 +10,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.db.models import QuerySet
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.timezone import now
@@ -58,11 +59,32 @@ class LogMessages(LoginRequiredMixin, ListView):
 class BlockMessages(LoginRequiredMixin, ListView):
     template_name = "block-messages.html"
     model = models.LogMessage
-    paginate_by = 50
+    paginate_by = 500
 
     def get_queryset(self) -> django.db.models.query.QuerySet:
         user = models.User.objects.get(pk=self.request.user.pk)
         return models.LogMessage.objects.filter(user=user).order_by("-id")
+
+
+class Blocked(ListView):
+    template_name = "blocked.html"
+    paginate_by = 200
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = forms.Search(self.request.GET)
+        return context
+
+    def get_queryset(self) -> QuerySet[models.Relationship]:
+        form = forms.Search(self.request.GET)
+        relationships = models.Relationship.objects.select_related("object").filter(
+            subject_id=self.request.user.account_id, type=models.Relationship.BLOCKS
+        )
+        if form.is_valid():
+            relationships = relationships.filter(
+                object__screen_name__istartswith=form.cleaned_data["screen_name"]
+            )
+        return relationships
 
 
 class Search(LoginRequiredMixin, FormView):

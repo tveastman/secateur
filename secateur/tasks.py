@@ -646,7 +646,7 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
             # to bump all their timestamps anyway.
             # subject__user__is_twitter_api_enabled=True,
         )
-        .select_related("object", "subject")
+        .select_related("subject", "object")
         .prefetch_related("subject__user_set")
     )
     as_list = list(expired_blocks[:max_per_call])
@@ -659,13 +659,13 @@ def unblock_expired(now: Optional[datetime.datetime] = None) -> None:
     count: int = 0
     for expired_block in as_list:
         secateur_user = expired_block.subject.user_set.get()
-        blocked_account = expired_block.object
+        blocked_account_id = expired_block.object_id
         destroy_relationship.apply_async(
             [],
             {
                 "secateur_user_pk": secateur_user.pk,
                 "type": expired_block.type,
-                "user_id": blocked_account.user_id,
+                "user_id": blocked_account_id,
             },
             # countdown=random.randint(1, 60 * 60),
             priority=1,

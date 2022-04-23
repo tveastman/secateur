@@ -19,10 +19,6 @@ import dj_database_url
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/2.0/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", secrets.token_urlsafe(50))
 
@@ -66,8 +62,8 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.contrib.flatpages.middleware.FlatpageFallbackMiddleware",
-    "waffle.middleware.WaffleMiddleware",
     "csp.middleware.CSPMiddleware",
+    "waffle.middleware.WaffleMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
     "django_structlog.middlewares.CeleryMiddleware",
 ]
@@ -299,3 +295,7 @@ CSP_EXCLUDE_URL_PREFIXES = ("/admin/request/request/overview/",)
 # (a) hasn't used the app in a while, and (b) has no pending scheduled
 # operations (like unblocks or unmutes).
 SESSION_COOKIE_AGE = 60 * 60 * 18  # 18 hours: gotta log in every day.
+
+
+# WAFFLE SETTING
+WAFFLE_CREATE_MISSING_FLAGS = True

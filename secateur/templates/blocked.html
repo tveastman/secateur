@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+{% load humanize %}
+
+{% block title %}Blocked accounts{% endblock %}
+
+{% block content %}
+
+  <form method="GET">
+    {% bootstrap_form form layout='inline' show_help=True %}
+    {% buttons submit='Search' layout='inline' %}{% endbuttons %}
+  </form>
+
+  {% bootstrap_pagination page_obj extra=request.GET.urlencode%}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>user</th>
+        <th>name</th>
+        <th>blocked until</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for relationship in object_list %}
+        <tr>
+          <td><a href="{{ relationship.object.twitter_url }}">{{ relationship.object.screen_name }}</a></td>
+            <td>{{ relationship.object.name }}</td>
+          <td>{{ relationship.until|naturaltime }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% bootstrap_pagination page_obj extra=request.GET.urlencode %}
+
+{% endblock %}

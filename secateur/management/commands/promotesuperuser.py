@@ -6,10 +6,10 @@ class Command(BaseCommand):
     help = "Promote a user to be the Django superuser."
 
     def add_arguments(self, parser):
-        parser.add_argument("username")
+        parser.add_argument("screen_name")
 
     def handle(self, *args, **options):
-        user = User.objects.get(username=options["username"])
+        user = User.objects.get(screen_name=options["screen_name"])
         user.is_superuser = True
         user.is_staff = True
         user.is_twitter_api_enabled = True

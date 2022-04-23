@@ -30,7 +30,7 @@ class BlockAccountsForm(forms.Form):
 
 
 class Search(forms.Form):
-    screen_name = forms.CharField(help_text="Username")
+    screen_name = forms.CharField(help_text="Twitter screen name")
 
 
 class UpdateFollowing(forms.Form):

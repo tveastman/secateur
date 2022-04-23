@@ -1,6 +1,7 @@
 {% extends 'bootstrap.html' %}
 
 {% load bootstrap4 %}
+{% load waffle_tags %}
 
 {% block bootstrap4_content %}
   <header>
@@ -36,6 +37,9 @@
                 {% if user.is_staff %}
                   <a href="{% url 'admin:index' %}" class="dropdown-item">Admin</a>
                 {% endif %}
+                {%  flag "blocked" %}
+                    <a href="{% url "blocked" %}" class="dropdown-item">Blocked accounts</a>
+                {%  endflag %}
                 <a href="{% url 'following' %}" class="dropdown-item">Update follow list</a>
                 <a href="{% url 'logout' %}" class="dropdown-item">Logout</a>
                 <a href="{% url 'disconnect' %}" class="dropdown-item">Disconnect</a>
