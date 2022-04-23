@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load bootstrap4 %}
+{% load waffle_tags %}
 
 {% block title %}Secateur{% endblock %}
 {% block content %}
@@ -45,5 +46,10 @@
     </p>
 
     <p><a href='https://ko-fi.com/F1F01G6ZZ' target='_blank'><img height='36' style='border:0px;height:36px;' src='/static/img/kofi.png' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a></p>
+
+    {% flag "test_home_section" %}
+        <h2>Feature flagged section</h2>
+        <p>Hopefully only people with the test_home_section flag can see this.</p>
+    {% endflag %}
 
 {% endblock %}

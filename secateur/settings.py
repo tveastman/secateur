@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "bootstrap4",
     "request",
     "psqlextra",
+    "waffle",
     "secateur.apps.SecateurConfig",
 ]
 
@@ -65,6 +66,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django.contrib.flatpages.middleware.FlatpageFallbackMiddleware",
+    "waffle.middleware.WaffleMiddleware",
     "csp.middleware.CSPMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
     "django_structlog.middlewares.CeleryMiddleware",

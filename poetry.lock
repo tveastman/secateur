@@ -508,6 +508,14 @@ python-versions = ">=3.7,<4.0"
 pytz = "*"
 
 [[package]]
+name = "django-waffle"
+version = "2.4.1"
+description = "A feature flipper for Django."
+category = "main"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "django-xff"
 version = "1.3.0"
 description = "Django X-Forwarded-For Properly"
@@ -1405,7 +1413,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "dab594d356682183ad997e8ede189afa936d3343bee43bbf03b835e4ca89a03b"
+content-hash = "4be79eb3c15054f56697e78848826dc3d541303061aa2363032183abbee9f0b5"
 
 [metadata.files]
 amqp = [
@@ -1678,6 +1686,10 @@ django-stubs-ext = [
 django-timezone-field = [
     {file = "django-timezone-field-5.0.tar.gz", hash = "sha256:15746ed367a5a32eda76cfa2886eeec1de8cda79f519b7c5e12f87ed7cdbd663"},
     {file = "django_timezone_field-5.0-py3-none-any.whl", hash = "sha256:199f211082eeac7e83563929b8ce41399c1c0f00dfc2f36bc00bea381027eaaa"},
+]
+django-waffle = [
+    {file = "django-waffle-2.4.1.tar.gz", hash = "sha256:f88e3e6c5a6e0d89a763eb1ba039b3bb707b3e63b20359dbb584c8775df286df"},
+    {file = "django_waffle-2.4.1-py3-none-any.whl", hash = "sha256:36f63b15ba1cfb295f53638d043cc17fb40b5796aee075891dc4210779a999fb"},
 ]
 django-xff = [
     {file = "django-xff-1.3.0.tar.gz", hash = "sha256:c352f06acc8e5be9c9ffb109635ddfcc952157aee86acf9064d2457c5f818803"},
