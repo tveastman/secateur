@@ -21,7 +21,7 @@ import twitter
 import social_django.models
 from django.utils.html import format_html
 
-from . import tasks
+from . import tasks, otel
 from . import utils
 
 logger = structlog.get_logger(__name__)
@@ -101,6 +101,7 @@ class User(AbstractUser):
         self.token_bucket = self.token_bucket.withdraw(
             time=token_bucket_time(), value=value
         )
+        otel.tokens_consumed_counter.add(value)
 
     @cached_property
     def twitter_social_auth(self) -> social_django.models.UserSocialAuth:

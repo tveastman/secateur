@@ -81,3 +81,7 @@ twitter_unmute_counter = meter.create_counter(
     name="twitter_unmute",
     unit="1",
 )
+tokens_consumed_counter = meter.create_counter(
+    name="tokens_consumed",
+    unit="1",
+)
