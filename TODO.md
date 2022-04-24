@@ -33,18 +33,18 @@ DONE
 - add opentelemetry metrics
 - create a page that lists everyone you've blocked, with a search mechanism
 - find a way to get rid of the 'until' for all secateur users who don't use it anymore or don't exist at all on twitter.
+- create an 'unblock everybody' function
 
 NOW
 ===
 
+- now that the bug has hopefully been fixed, try the latest versions of opentelemetry again
 
 NEXT
 ====
-- create an 'unblock everybody' function
 
 BACKLOG
 =======
-- now that the bug has hopefully been fixed, try the latest versions of opentelemetry again
 - use the docker hub for deploys instead of building on-host?
 - Make sure *all* logs are emitted as json blobs.
 - simplify the create-relationship task so it doesn't allow screen_name
