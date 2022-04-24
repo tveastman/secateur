@@ -4,6 +4,8 @@ from django import forms
 class Disconnect(forms.Form):
     pass
 
+class UnblockEverybody(forms.Form):
+    pass
 
 class BlockAccountsForm(forms.Form):
     DURATION_CHOICES = (
@@ -30,7 +32,7 @@ class BlockAccountsForm(forms.Form):
 
 
 class Search(forms.Form):
-    screen_name = forms.CharField(help_text="Twitter screen name")
+    screen_name = forms.CharField(help_text="Twitter screen name", required=False)
 
 
 class UpdateFollowing(forms.Form):

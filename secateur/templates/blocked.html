@@ -11,6 +11,15 @@
     {% buttons submit='Search' layout='inline' %}{% endbuttons %}
   </form>
 
+    <p>
+        This is the list of everybody you've blocked with secateur, and when they're scheduled to be unblocked.
+    </p>
+
+    <p>
+        If you want to unblock everybody secateur has blocked on your behalf, you can use <a href="{%  url "unblock-everybody" %}">this page</a>.
+    </p>
+
+
   {% bootstrap_pagination page_obj extra=request.GET.urlencode%}
   <table class="table">
     <thead>

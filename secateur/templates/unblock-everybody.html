@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+
+{% block title %}Unblock everybody slowly{% endblock %}
+{% block content %}
+  <p class='lead'>
+    Do you wish to unblock everybody knows you have blocked?
+  </p>
+  <p>
+    This function <b>does not</b> unblock everybody immediately. Instead, it spaces out all the unblocks over
+    a month. In other words, it sets the "expire" time for everybody you've blocked to within the next month.
+  </p>
+  <p>
+    If you disable secateur's credentials or change your screen name, secateur won't be able to continue unblocking
+    people.
+  </p>
+
+  <form method="POST">{% csrf_token %}
+    {% bootstrap_form form layout='inline' show_help=True %}
+    <button type="submit" class="btn btn-danger btn-lg">Unblock everybody very slowly</button>
+  </form>
+
+{% endblock %}

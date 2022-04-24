@@ -10,11 +10,13 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import QuerySet, F
+from django.db.models.functions import Now, Random
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.timezone import now
 from django.views.generic import DetailView, FormView, ListView, TemplateView
+from waffle.mixins import WaffleFlagMixin
 
 from . import forms, models, tasks, otel
 
@@ -70,7 +72,8 @@ class BlockMessages(LoginRequiredMixin, ListView):
         return models.LogMessage.objects.filter(user=user).order_by("-id")
 
 
-class Blocked(ListView):
+class Blocked(WaffleFlagMixin, LoginRequiredMixin, ListView):
+    waffle_flag = "blocked"
     template_name = "blocked.html"
     paginate_by = 200
 
@@ -89,6 +92,40 @@ class Blocked(ListView):
                 object__screen_name__istartswith=form.cleaned_data["screen_name"]
             )
         return relationships
+
+
+class UnblockEverybody(WaffleFlagMixin, LoginRequiredMixin, FormView):
+    """Allow a user to set the 'blocked until' to within the next month."""
+
+    waffle_flag = "blocked"
+
+    form_class = forms.UnblockEverybody
+    template_name = "unblock-everybody.html"
+    success_url = reverse_lazy("blocked")
+
+    def form_valid(self, form: django.forms.BaseForm) -> django.http.HttpResponse:
+        # The form has nothing in it, it's just intercepting POST requests.
+        # I guess I could an 'are you sure?' boolean in the form or something.
+        user = self.request.user
+        unblock_time = datetime.timedelta(days=28)
+
+        updated = models.Relationship.objects.filter(
+            subject_id=user.account_id,
+            type__in=[models.Relationship.BLOCKS, models.Relationship.MUTES],
+            until__gt=Now() + unblock_time
+        ).update(
+            until=Now() + (Random() * datetime.timedelta(days=28))
+        )
+
+        messages.add_message(
+            self.request,
+            messages.INFO,
+            f"You've scheduled the "
+            f"unblocking of {updated} accounts within the next 28 days."
+        )
+
+        return super().form_valid(form)
+
 
 
 class Search(LoginRequiredMixin, FormView):
