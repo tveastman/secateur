@@ -30,7 +30,9 @@ DONE
   - ...to the celery tasks
   - ...to the SQL queries
 - Add a random margin to the blocking duration.
-
+- add opentelemetry metrics
+- create a page that lists everyone you've blocked, with a search mechanism
+- find a way to get rid of the 'until' for all secateur users who don't use it anymore or don't exist at all on twitter.
 
 NOW
 ===
@@ -38,13 +40,12 @@ NOW
 
 NEXT
 ====
-
+- create an 'unblock everybody' function
 
 BACKLOG
 =======
 
 - Make sure *all* logs are emitted as json blobs.
-- find a way to get rid of the 'until' for all secateur users who don't use it anymore or don't exist at all on twitter.
 - simplify the create-relationship task so it doesn't allow screen_name
 - Add a search bar.
 - put a 'block/mute' form on an account profile page (where a search result sends you.)
