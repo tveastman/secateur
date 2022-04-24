@@ -26,12 +26,12 @@ opentelemetry.trace.set_tracer_provider(opentelemetry.sdk.trace.TracerProvider()
 #     )
 # )
 
-if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
-    opentelemetry.trace.get_tracer_provider().add_span_processor(
-        opentelemetry.sdk.trace.export.BatchSpanProcessor(
-            opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter()
-        )
-    )
+# if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
+#     opentelemetry.trace.get_tracer_provider().add_span_processor(
+#         opentelemetry.sdk.trace.export.BatchSpanProcessor(
+#             opentelemetry.exporter.otlp.proto.grpc.trace_exporter.OTLPSpanExporter()
+#         )
+#     )
 
 ## metrics
 
@@ -40,13 +40,21 @@ import opentelemetry.sdk._metrics.export
 import opentelemetry.exporter.otlp.proto.grpc._metric_exporter
 
 
+if os.environ.get("EXPORT_METRICS"):
+    metric_exporter = (
+        opentelemetry.exporter.otlp.proto.grpc._metric_exporter.OTLPMetricExporter(
+            endpoint="http://otel:4317",
+        )
+    )
+else:
+    metric_exporter = opentelemetry.sdk._metrics.export.ConsoleMetricExporter()
+
 opentelemetry._metrics.set_meter_provider(
     opentelemetry.sdk._metrics.MeterProvider(
         metric_readers=[
             opentelemetry.sdk._metrics.export.PeriodicExportingMetricReader(
-                opentelemetry.sdk._metrics.export.ConsoleMetricExporter()
-                # opentelemetry.exporter.otlp.proto.grpc._metric_exporter.OTLPMetricExporter()
-            )
+                metric_exporter
+            ),
         ]
     )
 )
