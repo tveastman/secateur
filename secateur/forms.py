@@ -4,8 +4,10 @@ from django import forms
 class Disconnect(forms.Form):
     pass
 
+
 class UnblockEverybody(forms.Form):
     pass
+
 
 class BlockAccountsForm(forms.Form):
     DURATION_CHOICES = (

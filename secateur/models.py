@@ -130,12 +130,8 @@ class User(AbstractUser):
         return api
 
     def get_account_by_screen_name(self, screen_name: str) -> "Optional[Account]":
-        queryset = Account.objects.filter(screen_name__iexact=screen_name)
-        if queryset:
-            return queryset.get()
-        else:
-            logger.debug("Fetching user %s from Twitter API.", screen_name)
-            return tasks.get_user(self.pk, screen_name=screen_name)
+        logger.debug("Fetching user %s from Twitter API.", screen_name)
+        return tasks.get_user(self.pk, screen_name=screen_name)
 
     @classmethod
     def remove_unneeded_credentials(cls) -> None:
@@ -470,6 +466,7 @@ class LogMessage(psqlextra.models.PostgresModel):
         LOG_IN = 12
         LOG_OUT = 13
         DISCONNECT = 14
+        UNBLOCK_EVERYBODY = 15
 
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE, db_index=False)
     time = models.DateTimeField()
@@ -546,6 +543,10 @@ class LogMessage(psqlextra.models.PostgresModel):
                 self.account.name,
                 self.account.twitter_url,
                 self.account.screen_name,
+            )
+        elif self.action == self.Action.UNBLOCK_EVERYBODY:
+            return format_html(
+                "Rescheduled all expiries to unblock everybody.",
             )
         else:
             return format_html("{}", self.action)

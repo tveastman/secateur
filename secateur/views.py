@@ -112,20 +112,21 @@ class UnblockEverybody(WaffleFlagMixin, LoginRequiredMixin, FormView):
         updated = models.Relationship.objects.filter(
             subject_id=user.account_id,
             type__in=[models.Relationship.BLOCKS, models.Relationship.MUTES],
-            until__gt=Now() + unblock_time
-        ).update(
-            until=Now() + (Random() * datetime.timedelta(days=28))
+            until__gt=Now() + unblock_time,
+        ).update(until=Now() + (Random() * datetime.timedelta(days=28)))
+
+        models.LogMessage.objects.create(
+            time=now(), action=models.LogMessage.Action.UNBLOCK_EVERYBODY, user=user
         )
 
         messages.add_message(
             self.request,
             messages.INFO,
             f"You've scheduled the "
-            f"unblocking of {updated} accounts within the next 28 days."
+            f"unblocking of {updated} accounts within the next 28 days.",
         )
 
         return super().form_valid(form)
-
 
 
 class Search(LoginRequiredMixin, FormView):
