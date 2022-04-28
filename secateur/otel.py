@@ -85,3 +85,11 @@ tokens_consumed_counter = meter.create_counter(
     name="tokens_consumed",
     unit="1",
 )
+login_counter = meter.create_counter(
+    name="login",
+    unit="1",
+)
+signup_counter = meter.create_counter(
+    name="signup",
+    unit="1",
+)

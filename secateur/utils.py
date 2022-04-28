@@ -7,9 +7,12 @@ from datetime import timedelta
 
 import structlog
 
+
 import secateur.models
+import secateur.otel
 
 import twitter
+
 
 logger = structlog.get_logger(__name__)
 
@@ -87,6 +90,10 @@ def pipeline_user_account_link(
 
     if update_fields:
         user.save(update_fields=update_fields)
+
+    if kwargs.get('is_new'):
+        secateur.otel.signup_counter.add(1)
+    secateur.otel.login_counter.add(1)
 
 
 @dataclass(frozen=True)
