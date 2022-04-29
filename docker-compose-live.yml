@@ -158,9 +158,6 @@ services:
     image: amazon/aws-otel-collector
     env_file:
       - /etc/secateur/aws-otel-collector
-    volumes:
-      - /etc/secateur/config.yaml:/otel-local-config.yaml
-    command: --config otel-local-config.yaml
     networks:
       secateur:
     read_only: true
