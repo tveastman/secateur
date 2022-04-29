@@ -12,6 +12,7 @@ import opentelemetry.instrumentation.django
 import opentelemetry.instrumentation.celery
 import opentelemetry.instrumentation.requests
 import opentelemetry.instrumentation.psycopg2
+import opentelemetry.sdk._metrics.point
 
 opentelemetry.instrumentation.django.DjangoInstrumentor().instrument()
 opentelemetry.instrumentation.celery.CeleryInstrumentor().instrument()
@@ -38,16 +39,35 @@ if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
 import opentelemetry.sdk._metrics
 import opentelemetry.sdk._metrics.export
 import opentelemetry.exporter.otlp.proto.grpc._metric_exporter
+import opentelemetry.sdk._metrics.point
+
+
+class DeltaConsoleMetricExporter(
+    opentelemetry.sdk._metrics.export.ConsoleMetricExporter
+):
+    @property
+    def preferred_temporality(
+        self,
+    ) -> opentelemetry.sdk._metrics.point.AggregationTemporality:
+        return opentelemetry.sdk._metrics.point.AggregationTemporality.DELTA
+
+
+class DeltaOTLPMetricExporter(
+    opentelemetry.exporter.otlp.proto.grpc._metric_exporter.OTLPMetricExporter
+):
+    @property
+    def preferred_temporality(
+        self,
+    ) -> opentelemetry.sdk._metrics.point.AggregationTemporality:
+        return opentelemetry.sdk._metrics.point.AggregationTemporality.DELTA
 
 
 if os.environ.get("METRICS_EXPORT_ENDPOINT"):
-    metric_exporter = (
-        opentelemetry.exporter.otlp.proto.grpc._metric_exporter.OTLPMetricExporter(
-            endpoint=os.environ.get("METRICS_EXPORT_ENDPOINT"),
-        )
+    metric_exporter = DeltaOTLPMetricExporter(
+        endpoint=os.environ.get("METRICS_EXPORT_ENDPOINT"),
     )
 else:
-    metric_exporter = opentelemetry.sdk._metrics.export.ConsoleMetricExporter()
+    metric_exporter = DeltaConsoleMetricExporter()
 
 opentelemetry._metrics.set_meter_provider(
     opentelemetry.sdk._metrics.MeterProvider(
