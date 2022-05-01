@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.db.models import QuerySet, F
+from django.db.models import QuerySet, F, Q
 from django.db.models.functions import Now, Random
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -109,11 +109,14 @@ class UnblockEverybody(WaffleFlagMixin, LoginRequiredMixin, FormView):
         user = self.request.user
         unblock_time = datetime.timedelta(days=28)
 
-        updated = models.Relationship.objects.filter(
-            subject_id=user.account_id,
-            type__in=[models.Relationship.BLOCKS, models.Relationship.MUTES],
-            until__gt=Now() + unblock_time,
-        ).update(until=Now() + (Random() * datetime.timedelta(days=28)))
+        updated = (
+            models.Relationship.objects.filter(
+                subject_id=user.account_id,
+                type__in=[models.Relationship.BLOCKS, models.Relationship.MUTES],
+            )
+            .filter(Q(until__isnull=True) | Q(until__gt=Now() + unblock_time))
+            .update(until=Now() + (Random() * datetime.timedelta(days=28)))
+        )
 
         models.LogMessage.objects.create(
             time=now(), action=models.LogMessage.Action.UNBLOCK_EVERYBODY, user=user
