@@ -94,7 +94,7 @@ class Blocked(WaffleFlagMixin, LoginRequiredMixin, ListView):
         return relationships
 
 
-class UnblockEverybody(WaffleFlagMixin, LoginRequiredMixin, FormView):
+class UnblockEverybody(LoginRequiredMixin, WaffleFlagMixin, FormView):
     """Allow a user to set the 'blocked until' to within the next month."""
 
     waffle_flag = "blocked"
