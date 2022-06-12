@@ -78,7 +78,7 @@ class SecateurUserAdmin(UserAdmin):
         return format_html('<a href="{url}">{url}</a>', url=obj.account.twitter_url)
 
     def has_access_token(self, obj: models.User) -> bool:
-        return bool(obj.twitter_social_auth.extra_data)
+        return bool(obj.oauth_token)
 
     has_access_token.boolean = True  # type: ignore
 
