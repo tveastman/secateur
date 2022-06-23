@@ -197,8 +197,8 @@ class Block(LoginRequiredMixin, FormView):
             messages.add_message(
                 self.request,
                 messages.ERROR,
-                "Sorry, {} has too many followers to block them all (max is {} for now)".format(
-                    account, user.token_bucket_max
+                "Sorry, {} has too many followers to block them all (max is {:0.0f} for now)".format(
+                    account, bucket.max
                 ),
             )
             return super().form_valid(form)
