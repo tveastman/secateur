@@ -179,7 +179,7 @@ class Account(psqlextra.models.PostgresModel):
     # TWITTER PROFILE FIELDS
     screen_name = models.CharField(max_length=30, null=True, editable=False)
     name = models.CharField(max_length=200, null=True, editable=False)
-    description = models.CharField(max_length=200, null=True, editable=False)
+    description = models.CharField(max_length=250, null=True, editable=False)
     location = models.CharField(max_length=200, null=True, editable=False)
     profile_image_url_https = models.CharField(
         max_length=200, null=True, editable=False
