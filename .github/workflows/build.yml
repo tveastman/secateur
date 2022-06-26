@@ -1,0 +1,10 @@
+name: Build Secateur
+on: [push]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps: 
+      - uses: actions/checkout@v3
+      - run: pip install poetry
+      - run: poetry install
+      - run: poetry run black --check .
