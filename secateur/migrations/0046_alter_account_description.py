@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('secateur', '0045_remove_relationship_secateur_re_type_2db0bf_idx_and_more'),
+        ("secateur", "0045_remove_relationship_secateur_re_type_2db0bf_idx_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='account',
-            name='description',
+            model_name="account",
+            name="description",
             field=models.CharField(editable=False, max_length=250, null=True),
         ),
     ]
