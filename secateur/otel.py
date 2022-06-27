@@ -62,22 +62,22 @@ class DeltaOTLPMetricExporter(
         return opentelemetry.sdk._metrics.point.AggregationTemporality.DELTA
 
 
-metric_exporters = []
-metric_exporter_endpoint = os.environ.get("METRICS_EXPORT_ENDPOINT")
-if metric_exporter_endpoint:
-    metric_exporters.append(
+_metric_exporters = []
+_metric_exporter_endpoint = os.environ.get("METRICS_EXPORT_ENDPOINT")
+if _metric_exporter_endpoint:
+    _metric_exporters.append(
         DeltaOTLPMetricExporter(
             endpoint=metric_exporter_endpoint,
         )
     )
-if os.environ.get("METRICS_EXPORT_CONSOLE") or not metric_exporter_endpoint:
-    metric_exporters.append(DeltaConsoleMetricExporter())
+if os.environ.get("METRICS_EXPORT_CONSOLE") or not _metric_exporter_endpoint:
+    _metric_exporters.append(DeltaConsoleMetricExporter())
 
 opentelemetry._metrics.set_meter_provider(
     opentelemetry.sdk._metrics.MeterProvider(
         metric_readers=[
             opentelemetry.sdk._metrics.export.PeriodicExportingMetricReader(exporter)
-            for exporter in metric_exporters
+            for exporter in _metric_exporters
         ]
     )
 )
