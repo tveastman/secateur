@@ -67,7 +67,7 @@ _metric_exporter_endpoint = os.environ.get("METRICS_EXPORT_ENDPOINT")
 if _metric_exporter_endpoint:
     _metric_exporters.append(
         DeltaOTLPMetricExporter(
-            endpoint=metric_exporter_endpoint,
+            endpoint=_metric_exporter_endpoint,
         )
     )
 if os.environ.get("METRICS_EXPORT_CONSOLE") or not _metric_exporter_endpoint:
