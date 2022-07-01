@@ -25,4 +25,5 @@ jobs:
       - run: pip install poetry
       - run: poetry install
       - run: poetry run pytest
-        env: DATABASE_URL=postgres://postgres@localhost/postgres
+        env:
+          DATABASE_URL: postgres://postgres@localhost/postgres
