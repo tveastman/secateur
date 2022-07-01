@@ -1,5 +1,5 @@
 name: Release Secateur
-on: [release]
+on: [release.published]
 jobs:
   publish-container:
     runs-on: ubuntu-latest
