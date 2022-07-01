@@ -11,3 +11,17 @@ jobs:
       - run: pip install poetry
       - run: poetry install
       - run: poetry run black --check .
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - run: pip install poetry
+      - run: poetry install
+      - run: poetry run pytest
