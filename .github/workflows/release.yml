@@ -1,7 +1,9 @@
 name: Release Secateur
 env:
   REGISTRY: ghcr.io
-on: [release.published]
+on:
+  release:
+    types: [published]
 jobs:
   publish-container:
     runs-on: ubuntu-latest
