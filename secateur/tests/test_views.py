@@ -11,10 +11,7 @@ def test_home(client: django.test.client.Client) -> None:
 
 
 def test_block(client: django.test.client.Client) -> None:
-    with mock.patch("request.models.Request.from_http_request"):
-        r = client.get("/block/")
-    assert r.status_code == 302
-    assert r.headers["Location"] == "/login/twitter/?next=/block/"
+    _check_redirect_when_not_logged_in(client, 'block')
 
 
 @pytest.mark.django_db
@@ -27,10 +24,7 @@ def test_block_with_user(client: django.test.client.Client) -> None:
 
 
 def test_log_messages(client: django.test.client.Client) -> None:
-    with mock.patch("request.models.Request.from_http_request"):
-        r = client.get("/log-messages/")
-    assert r.status_code == 302
-    assert r.headers["Location"] == "/login/twitter/?next=/log-messages/"
+    _check_redirect_when_not_logged_in(client, 'log-messages')
 
 
 def test_imports() -> None:
@@ -49,3 +43,9 @@ def _test_user() -> models.User():
     user.save()
     return user
 
+
+def _check_redirect_when_not_logged_in(client: django.test.client.Client, path: str) -> None:
+    with mock.patch("request.models.Request.from_http_request"):
+        r = client.get(f"/{path}/")
+    assert r.status_code == 302
+    assert r.headers["Location"] == f"/login/twitter/?next=/{path}/"
