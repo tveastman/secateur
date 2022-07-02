@@ -25,6 +25,13 @@ def test_block_with_user(client: django.test.client.Client) -> None:
     assert r.status_code == 200
 
 
+def test_log_messages(client: django.test.client.Client) -> None:
+    with mock.patch("request.models.Request.from_http_request"):
+        r = client.get("/log-messages/")
+    assert r.status_code == 302
+    assert r.headers["Location"] == "/login/twitter/?next=/log-messages/"
+
+
 def test_imports() -> None:
     import secateur.wsgi
     import secateur.apps
