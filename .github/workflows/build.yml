@@ -29,6 +29,7 @@ jobs:
           python-version: 3.9
       - run: pip install poetry
       - run: poetry install
+      - run: poetry run python manage.py migrate
       - run: poetry run pytest
         env:
           DATABASE_URL: postgres://postgres@localhost/postgres
