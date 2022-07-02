@@ -1,6 +1,7 @@
 import pytest
 from unittest import mock
 import django.test.client
+from secateur import models
 
 
 def test_home(client: django.test.client.Client) -> None:
