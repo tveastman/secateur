@@ -62,9 +62,10 @@ def test_disconnect(client: django.test.client.Client) -> None:
     _check_redirect_when_not_logged_in(client, "disconnect")
 
 
-# Behaves differently
-# def test_disconnected(client: django.test.client.Client) -> None:
-#     _check_redirect_when_not_logged_in(client, "disconnected")
+def test_disconnected(client: django.test.client.Client) -> None:
+    with mock.patch("request.models.Request.from_http_request"):
+        r = client.get("/disconnected/")
+    assert r.status_code == 200
 
 
 def test_following(client: django.test.client.Client) -> None:
