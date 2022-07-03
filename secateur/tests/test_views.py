@@ -33,11 +33,12 @@ class TestBlock(TestCase):
         assert r.status_code == 200
 
 
-@pytest.mark.django_db
-@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
-def test_blocked(client: django.test.client.Client) -> None:
-    with override_flag("blocked", active=True):
-        _check_redirect_when_not_logged_in(client, "blocked")
+class TestBlocked(TestCase):
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    def test_blocked(self) -> None:
+        with override_flag("blocked", active=True):
+            r = self.client.get("/blocked/")
+            self.assertRedirects(r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False)
 
 
 @pytest.mark.django_db
