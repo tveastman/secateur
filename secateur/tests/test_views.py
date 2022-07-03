@@ -61,12 +61,10 @@ def test_block_messages(client: django.test.client.Client) -> None:
     _check_redirect_when_not_logged_in(client, "block-messages")
 
 
-@pytest.mark.django_db
-def test_logout(client: django.test.client.Client) -> None:
-    with mock.patch("request.models.Request.from_http_request"):
-        r = client.get("/logout/")
-    assert r.status_code == 302
-    assert r.headers["Location"] == "/"
+class TestLogout(TestCase):
+    def test_logout(self) -> None:
+        r = self.client.get("/logout/")
+        self.assertRedirects(r, "/", fetch_redirect_response=False)
 
 
 def test_disconnect(client: django.test.client.Client) -> None:
