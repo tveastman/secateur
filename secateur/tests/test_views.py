@@ -39,11 +39,10 @@ class TestBlock(TestCase):
 )
 class TestBlocked(TestCase):
     def test_blocked(self) -> None:
-        with override_flag("blocked", active=True):
-            r = self.client.get("/blocked/")
-            self.assertRedirects(
-                r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False
-            )
+        r = self.client.get("/blocked/")
+        self.assertRedirects(
+            r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False
+        )
 
     def test_blocked_toggled_off(self) -> None:
         with override_flag("blocked", active=False):
@@ -56,13 +55,12 @@ class TestBlocked(TestCase):
 )
 class TestUnblockEverybody(TestCase):
     def test_unblock_everybody(self) -> None:
-        with override_flag("blocked", active=True):
-            r = self.client.get("/unblock-everybody/")
-            self.assertRedirects(
-                r,
-                "/login/twitter/?next=/unblock-everybody/",
-                fetch_redirect_response=False,
-            )
+        r = self.client.get("/unblock-everybody/")
+        self.assertRedirects(
+            r,
+            "/login/twitter/?next=/unblock-everybody/",
+            fetch_redirect_response=False,
+        )
 
     def test_unblock_everybody_toggled_off(self) -> None:
         with override_flag("bloccked", active=False):
