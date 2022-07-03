@@ -41,11 +41,12 @@ class TestBlocked(TestCase):
             self.assertRedirects(r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False)
 
 
-@pytest.mark.django_db
-@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
-def test_unblock_everybody(client: django.test.client.Client) -> None:
-    with override_flag("blocked", active=True):
-        _check_redirect_when_not_logged_in(client, "unblock-everybody")
+class TestUnblockEverybody(TestCase):
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    def test_unblock_everybody(self) -> None:
+        with override_flag("blocked", active=True):
+            r = self.client.get("/unblock-everybody/")
+            self.assertRedirects(r, "/login/twitter/?next=/unblock-everybody/", fetch_redirect_response=False)
 
 
 def test_search(client: django.test.client.Client) -> None:
