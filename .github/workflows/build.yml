@@ -21,9 +21,14 @@ jobs:
           - 5432:5432
         env:
           POSTGRES_HOST_AUTH_METHOD: trust
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
 
     env:
       DATABASE_URL: postgres://postgres@localhost/postgres
+      REDIS_LOCATION: redis://localhost/2
 
     steps:
       - uses: actions/checkout@v3
