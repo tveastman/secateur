@@ -177,14 +177,14 @@ class Account(psqlextra.models.PostgresModel):
     profile_updated = models.DateTimeField(null=True, editable=False)
 
     # TWITTER PROFILE FIELDS
-    screen_name = models.CharField(max_length=30, null=True, editable=False)
+    screen_name = models.CharField(max_length=100, null=True, editable=False)
     name = models.CharField(max_length=200, null=True, editable=False)
-    description = models.CharField(max_length=250, null=True, editable=False)
-    location = models.CharField(max_length=200, null=True, editable=False)
+    description = models.CharField(max_length=1000, null=True, editable=False)
+    location = models.CharField(max_length=1000, null=True, editable=False)
     profile_image_url_https = models.CharField(
-        max_length=200, null=True, editable=False
+        max_length=1000, null=True, editable=False
     )
-    profile_banner_url = models.CharField(max_length=200, null=True, editable=False)
+    profile_banner_url = models.CharField(max_length=1000, null=True, editable=False)
     created_at = models.DateTimeField(null=True, editable=False)
     favourites_count = models.IntegerField(null=True, editable=False)
     followers_count = models.IntegerField(null=True, editable=False)
