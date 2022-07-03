@@ -44,17 +44,17 @@ class TestBlocked(TestCase):
             self.assertRedirects(
                 r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False
             )
-    
+
     def test_blocked_toggled_off(self) -> None:
         with override_flag("blocked", active=False):
             r = self.client.get("/blocked/")
             assert r.status_code == 404
 
 
+@override_settings(
+    CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+)
 class TestUnblockEverybody(TestCase):
-    @override_settings(
-        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
-    )
     def test_unblock_everybody(self) -> None:
         with override_flag("blocked", active=True):
             r = self.client.get("/unblock-everybody/")
@@ -63,6 +63,11 @@ class TestUnblockEverybody(TestCase):
                 "/login/twitter/?next=/unblock-everybody/",
                 fetch_redirect_response=False,
             )
+
+    def test_unblock_everybody_toggled_off(self) -> None:
+        with override_flag("bloccked", active=False):
+            r = self.client.get("/unblock-everybody/")
+            assert r.status_code == 404
 
 
 class TestSearch(TestCase):
