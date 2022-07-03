@@ -2,6 +2,7 @@ import pytest
 from unittest import mock
 import django.test.client
 from secateur import models
+from waffle.testutils import override_flag
 
 
 def test_home(client: django.test.client.Client) -> None:
@@ -29,13 +30,17 @@ def test_block_with_user(client: django.test.client.Client) -> None:
         r = client.get("/block/")
     assert r.status_code == 200
 
-# Missing?
-# def test_blocked(client: django.test.client.Client) -> None:
-#     _check_redirect_when_not_logged_in(client, "blocked")
+
+@pytest.mark.django_db
+def test_blocked(client: django.test.client.Client) -> None:
+    with override_flag("blocked", active=True):
+        _check_redirect_when_not_logged_in(client, "blocked")
 
 
+@pytest.mark.django_db
 def test_unblock_everybody(client: django.test.client.Client) -> None:
-    _check_redirect_when_not_logged_in(client, "unblock-everybody")
+    with override_flag("blocked", active=True):
+        _check_redirect_when_not_logged_in(client, "unblock-everybody")
 
 
 def test_search(client: django.test.client.Client) -> None:
