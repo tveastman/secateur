@@ -1,7 +1,7 @@
 import pytest
 from unittest import mock
 import django.test.client
-from django.test import override_settings
+from django.test import override_settings, TestCase
 from secateur import models
 from waffle.testutils import override_flag
 
@@ -19,18 +19,18 @@ def test_admin(client: django.test.client.Client) -> None:
     assert r.headers["Location"] == "/admin/login/?next=/admin/"
 
 
-def test_block(client: django.test.client.Client) -> None:
-    _check_redirect_when_not_logged_in(client, "block")
+class TestBlock(TestCase):
+    def test_block(self) -> None:
+        r = self.client.get("/block/")
+        self.assertRedirects(r, "/login/twitter/?next=/block/", fetch_redirect_response=False)
 
 
-@pytest.mark.django_db
-@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
-def test_block_with_user(client: django.test.client.Client) -> None:
-    u = _test_user()
-    client.force_login(u)
-    with mock.patch("request.models.Request.from_http_request"):
-        r = client.get("/block/")
-    assert r.status_code == 200
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    def test_block_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/block/")
+        assert r.status_code == 200
 
 
 @pytest.mark.django_db
