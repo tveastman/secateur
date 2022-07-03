@@ -72,8 +72,7 @@ class BlockMessages(LoginRequiredMixin, ListView):
         return models.LogMessage.objects.filter(user=user).order_by("-id")
 
 
-class Blocked(WaffleFlagMixin, LoginRequiredMixin, ListView):
-    waffle_flag = "blocked"
+class Blocked(LoginRequiredMixin, ListView):
     template_name = "blocked.html"
     paginate_by = 200
 
@@ -94,10 +93,8 @@ class Blocked(WaffleFlagMixin, LoginRequiredMixin, ListView):
         return relationships
 
 
-class UnblockEverybody(LoginRequiredMixin, WaffleFlagMixin, FormView):
+class UnblockEverybody(LoginRequiredMixin, FormView):
     """Allow a user to set the 'blocked until' to within the next month."""
-
-    waffle_flag = "blocked"
 
     form_class = forms.UnblockEverybody
     template_name = "unblock-everybody.html"
