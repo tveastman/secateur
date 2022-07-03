@@ -1,6 +1,3 @@
-import pytest
-from unittest import mock
-import django.test.client
 from django.test import override_settings, TestCase
 from secateur import models
 from waffle.testutils import override_flag
