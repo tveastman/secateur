@@ -11,3 +11,27 @@ jobs:
       - run: pip install poetry
       - run: poetry install
       - run: poetry run black --check .
+
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+
+    env:
+      DATABASE_URL: postgres://postgres@localhost/postgres
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.9
+      - run: pip install poetry
+      - run: poetry install
+      - run: poetry run python manage.py migrate
+      - run: poetry run pytest
+      
