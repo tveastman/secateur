@@ -22,6 +22,9 @@ jobs:
         env:
           POSTGRES_HOST_AUTH_METHOD: trust
 
+    env:
+      DATABASE_URL: postgres://postgres@localhost/postgres
+
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -31,5 +34,3 @@ jobs:
       - run: poetry install
       - run: poetry run python manage.py migrate
       - run: poetry run pytest
-        env:
-          DATABASE_URL: postgres://postgres@localhost/postgres
