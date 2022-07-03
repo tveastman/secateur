@@ -22,10 +22,13 @@ def test_admin(client: django.test.client.Client) -> None:
 class TestBlock(TestCase):
     def test_block(self) -> None:
         r = self.client.get("/block/")
-        self.assertRedirects(r, "/login/twitter/?next=/block/", fetch_redirect_response=False)
+        self.assertRedirects(
+            r, "/login/twitter/?next=/block/", fetch_redirect_response=False
+        )
 
-
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
     def test_block_with_user(self) -> None:
         u = _test_user()
         self.client.force_login(u)
@@ -34,19 +37,29 @@ class TestBlock(TestCase):
 
 
 class TestBlocked(TestCase):
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
     def test_blocked(self) -> None:
         with override_flag("blocked", active=True):
             r = self.client.get("/blocked/")
-            self.assertRedirects(r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False)
+            self.assertRedirects(
+                r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False
+            )
 
 
 class TestUnblockEverybody(TestCase):
-    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
     def test_unblock_everybody(self) -> None:
         with override_flag("blocked", active=True):
             r = self.client.get("/unblock-everybody/")
-            self.assertRedirects(r, "/login/twitter/?next=/unblock-everybody/", fetch_redirect_response=False)
+            self.assertRedirects(
+                r,
+                "/login/twitter/?next=/unblock-everybody/",
+                fetch_redirect_response=False,
+            )
 
 
 def test_search(client: django.test.client.Client) -> None:
