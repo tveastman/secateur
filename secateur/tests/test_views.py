@@ -6,17 +6,18 @@ from secateur import models
 from waffle.testutils import override_flag
 
 
-def test_home(client: django.test.client.Client) -> None:
-    with mock.patch("request.models.Request.from_http_request") as m:
-        r = client.get("/")
-    assert r.status_code == 200
+class TestHome(TestCase):
+    def test_home(self) -> None:
+        r = self.client.get("/")
+        assert r.status_code == 200
 
 
-def test_admin(client: django.test.client.Client) -> None:
-    with mock.patch("request.models.Request.from_http_request"):
-        r = client.get("/admin/")
-    assert r.status_code == 302
-    assert r.headers["Location"] == "/admin/login/?next=/admin/"
+class TestAdmin(TestCase):
+    def test_admin(self) -> None:
+        r = self.client.get("/admin/")
+        self.assertRedirects(
+            r, "/admin/login/?next=/admin/", fetch_redirect_response=False
+        )
 
 
 class TestBlock(TestCase):
@@ -62,16 +63,28 @@ class TestUnblockEverybody(TestCase):
             )
 
 
-def test_search(client: django.test.client.Client) -> None:
-    _check_redirect_when_not_logged_in(client, "search")
+class TestSearch(TestCase):
+    def test_search(self) -> None:
+        r = self.client.get("/search/")
+        self.assertRedirects(
+            r, "/login/twitter/?next=/search/", fetch_redirect_response=False
+        )
 
 
-def test_log_messages(client: django.test.client.Client) -> None:
-    _check_redirect_when_not_logged_in(client, "log-messages")
+class TestLogMessages(TestCase):
+    def test_log_messages(self) -> None:
+        r = self.client.get("/log-messages/")
+        self.assertRedirects(
+            r, "/login/twitter/?next=/log-messages/", fetch_redirect_response=False
+        )
 
 
-def test_block_messages(client: django.test.client.Client) -> None:
-    _check_redirect_when_not_logged_in(client, "block-messages")
+class TestBlockMessages(TestCase):
+    def test_block_messages(self) -> None:
+        r = self.client.get("/block-messages/")
+        self.assertRedirects(
+            r, "/login/twitter/?next=/block-messages/", fetch_redirect_response=False
+        )
 
 
 class TestLogout(TestCase):
@@ -80,22 +93,34 @@ class TestLogout(TestCase):
         self.assertRedirects(r, "/", fetch_redirect_response=False)
 
 
-def test_disconnect(client: django.test.client.Client) -> None:
-    _check_redirect_when_not_logged_in(client, "disconnect")
+class TestDisconnect(TestCase):
+    def test_disconnect(self) -> None:
+        r = self.client.get("/disconnect/")
+        self.assertRedirects(
+            r, "/login/twitter/?next=/disconnect/", fetch_redirect_response=False
+        )
 
 
-def test_disconnected(client: django.test.client.Client) -> None:
-    with mock.patch("request.models.Request.from_http_request"):
-        r = client.get("/disconnected/")
-    assert r.status_code == 200
+class TestDisconnected(TestCase):
+    def test_disconnected(self) -> None:
+        r = self.client.get("/disconnected/")
+        assert r.status_code == 200
 
 
-def test_following(client: django.test.client.Client) -> None:
-    _check_redirect_when_not_logged_in(client, "following")
+class TestFollowing(TestCase):
+    def test_following(self) -> None:
+        r = self.client.get("/following/")
+        self.assertRedirects(
+            r, "/login/twitter/?next=/following/", fetch_redirect_response=False
+        )
 
 
-def test_update_following(client: django.test.client.Client) -> None:
-    _check_redirect_when_not_logged_in(client, "update-following")
+class TestUpdateFollowing(TestCase):
+    def test_update_following(self) -> None:
+        r = self.client.get("/update-following/")
+        self.assertRedirects(
+            r, "/login/twitter/?next=/update-following/", fetch_redirect_response=False
+        )
 
 
 def test_imports() -> None:
@@ -109,12 +134,3 @@ def _test_user() -> models.User():
     user = models.User(account=account)
     user.save()
     return user
-
-
-def _check_redirect_when_not_logged_in(
-    client: django.test.client.Client, path: str
-) -> None:
-    with mock.patch("request.models.Request.from_http_request"):
-        r = client.get(f"/{path}/")
-    assert r.status_code == 302
-    assert r.headers["Location"] == f"/login/twitter/?next=/{path}/"
