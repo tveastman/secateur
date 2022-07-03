@@ -34,16 +34,21 @@ class TestBlock(TestCase):
         assert r.status_code == 200
 
 
+@override_settings(
+    CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+)
 class TestBlocked(TestCase):
-    @override_settings(
-        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
-    )
     def test_blocked(self) -> None:
         with override_flag("blocked", active=True):
             r = self.client.get("/blocked/")
             self.assertRedirects(
                 r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False
             )
+    
+    def test_blocked_toggled_off(self) -> None:
+        with override_flag("blocked", active=False):
+            r = self.client.get("/blocked/")
+            assert r.status_code == 404
 
 
 class TestUnblockEverybody(TestCase):
