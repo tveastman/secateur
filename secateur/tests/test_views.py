@@ -1,6 +1,7 @@
 import pytest
 from unittest import mock
 import django.test.client
+from django.test import override_settings
 from secateur import models
 from waffle.testutils import override_flag
 
@@ -23,6 +24,7 @@ def test_block(client: django.test.client.Client) -> None:
 
 
 @pytest.mark.django_db
+@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
 def test_block_with_user(client: django.test.client.Client) -> None:
     u = _test_user()
     client.force_login(u)
@@ -32,12 +34,14 @@ def test_block_with_user(client: django.test.client.Client) -> None:
 
 
 @pytest.mark.django_db
+@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
 def test_blocked(client: django.test.client.Client) -> None:
     with override_flag("blocked", active=True):
         _check_redirect_when_not_logged_in(client, "blocked")
 
 
 @pytest.mark.django_db
+@override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}})
 def test_unblock_everybody(client: django.test.client.Client) -> None:
     with override_flag("blocked", active=True):
         _check_redirect_when_not_logged_in(client, "unblock-everybody")
