@@ -44,6 +44,12 @@ class TestBlocked(TestCase):
             r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False
         )
 
+    def test_blocked_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/blocked/")
+        assert r.status_code == 200
+
 
 @override_settings(
     CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
@@ -57,6 +63,12 @@ class TestUnblockEverybody(TestCase):
             fetch_redirect_response=False,
         )
 
+    def test_unblock_everybody_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/unblock-everybody/")
+        assert r.status_code == 200
+
 
 class TestSearch(TestCase):
     def test_search(self) -> None:
@@ -64,6 +76,15 @@ class TestSearch(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/search/", fetch_redirect_response=False
         )
+
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_search_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/search/")
+        assert r.status_code == 200
 
 
 class TestLogMessages(TestCase):
@@ -73,6 +94,15 @@ class TestLogMessages(TestCase):
             r, "/login/twitter/?next=/log-messages/", fetch_redirect_response=False
         )
 
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_log_messages_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/log-messages/")
+        assert r.status_code == 200
+
 
 class TestBlockMessages(TestCase):
     def test_block_messages(self) -> None:
@@ -81,9 +111,24 @@ class TestBlockMessages(TestCase):
             r, "/login/twitter/?next=/block-messages/", fetch_redirect_response=False
         )
 
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_block_messages_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/block-messages/")
+        assert r.status_code == 200
+
 
 class TestLogout(TestCase):
     def test_logout(self) -> None:
+        r = self.client.get("/logout/")
+        self.assertRedirects(r, "/", fetch_redirect_response=False)
+
+    def test_logout_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
         r = self.client.get("/logout/")
         self.assertRedirects(r, "/", fetch_redirect_response=False)
 
@@ -95,9 +140,27 @@ class TestDisconnect(TestCase):
             r, "/login/twitter/?next=/disconnect/", fetch_redirect_response=False
         )
 
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_disconnect_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/disconnect/")
+        assert r.status_code == 200
+
 
 class TestDisconnected(TestCase):
     def test_disconnected(self) -> None:
+        r = self.client.get("/disconnected/")
+        assert r.status_code == 200
+
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_disconnected_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
         r = self.client.get("/disconnected/")
         assert r.status_code == 200
 
@@ -109,6 +172,15 @@ class TestFollowing(TestCase):
             r, "/login/twitter/?next=/following/", fetch_redirect_response=False
         )
 
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_following_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/following/")
+        assert r.status_code == 200
+
 
 class TestUpdateFollowing(TestCase):
     def test_update_following(self) -> None:
@@ -116,6 +188,15 @@ class TestUpdateFollowing(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/update-following/", fetch_redirect_response=False
         )
+
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_update_following_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/update-following/")
+        assert r.status_code == 200
 
 
 def test_imports() -> None:
