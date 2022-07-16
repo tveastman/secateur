@@ -7,6 +7,21 @@ class TestHome(TestCase):
     def test_home(self) -> None:
         r = self.client.get("/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'home.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
+
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_home_with_user(self) -> None:
+        u = _test_user()
+        self.client.force_login(u)
+        r = self.client.get("/")
+        assert r.status_code == 200
+        self.assertTemplateUsed(r, 'home.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 class TestAdmin(TestCase):
@@ -15,6 +30,35 @@ class TestAdmin(TestCase):
         self.assertRedirects(
             r, "/admin/login/?next=/admin/", fetch_redirect_response=False
         )
+        self.assertTemplateNotUsed(r, 'admin/index.html')
+        self.assertTemplateNotUsed(r, 'admin/base_site.html')
+        self.assertTemplateNotUsed(r, 'admin/base.html')
+
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_admin_with_user(self) -> None:
+        r = self.client.get("/admin/")
+        self.assertRedirects(
+            r, "/admin/login/?next=/admin/", fetch_redirect_response=False
+        )
+        self.assertTemplateNotUsed(r, 'admin/index.html')
+        self.assertTemplateNotUsed(r, 'admin/base_site.html')
+        self.assertTemplateNotUsed(r, 'admin/base.html')
+
+    @override_settings(
+        CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
+    )
+    def test_admin_with_admin_user(self) -> None:
+        u = _test_user()
+        u.is_staff = True
+        u.save()
+        self.client.force_login(u)
+        r = self.client.get("/admin/")
+        assert r.status_code == 200
+        self.assertTemplateUsed(r, 'admin/index.html')
+        self.assertTemplateUsed(r, 'admin/base_site.html')
+        self.assertTemplateUsed(r, 'admin/base.html')
 
 
 class TestBlock(TestCase):
@@ -23,6 +67,9 @@ class TestBlock(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/block/", fetch_redirect_response=False
         )
+        self.assertTemplateNotUsed(r, 'block.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
@@ -32,6 +79,9 @@ class TestBlock(TestCase):
         self.client.force_login(u)
         r = self.client.get("/block/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'block.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 @override_settings(
@@ -43,12 +93,18 @@ class TestBlocked(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/blocked/", fetch_redirect_response=False
         )
+        self.assertTemplateNotUsed(r, 'blocked.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     def test_blocked_with_user(self) -> None:
         u = _test_user()
         self.client.force_login(u)
         r = self.client.get("/blocked/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'blocked.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 @override_settings(
@@ -62,12 +118,18 @@ class TestUnblockEverybody(TestCase):
             "/login/twitter/?next=/unblock-everybody/",
             fetch_redirect_response=False,
         )
+        self.assertTemplateNotUsed(r, 'unblock-everybody.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     def test_unblock_everybody_with_user(self) -> None:
         u = _test_user()
         self.client.force_login(u)
         r = self.client.get("/unblock-everybody/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'unblock-everybody.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 class TestSearch(TestCase):
@@ -76,6 +138,9 @@ class TestSearch(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/search/", fetch_redirect_response=False
         )
+        self.assertTemplateNotUsed(r, 'search.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
@@ -85,6 +150,9 @@ class TestSearch(TestCase):
         self.client.force_login(u)
         r = self.client.get("/search/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'search.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 class TestLogMessages(TestCase):
@@ -93,6 +161,9 @@ class TestLogMessages(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/log-messages/", fetch_redirect_response=False
         )
+        self.assertTemplateNotUsed(r, 'log-messages.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
@@ -102,6 +173,9 @@ class TestLogMessages(TestCase):
         self.client.force_login(u)
         r = self.client.get("/log-messages/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'log-messages.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 class TestBlockMessages(TestCase):
@@ -110,6 +184,9 @@ class TestBlockMessages(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/block-messages/", fetch_redirect_response=False
         )
+        self.assertTemplateNotUsed(r, 'block-messages.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
@@ -119,18 +196,27 @@ class TestBlockMessages(TestCase):
         self.client.force_login(u)
         r = self.client.get("/block-messages/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'block-messages.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 class TestLogout(TestCase):
     def test_logout(self) -> None:
         r = self.client.get("/logout/")
         self.assertRedirects(r, "/", fetch_redirect_response=False)
+        self.assertTemplateNotUsed(r, 'logout.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     def test_logout_with_user(self) -> None:
         u = _test_user()
         self.client.force_login(u)
         r = self.client.get("/logout/")
         self.assertRedirects(r, "/", fetch_redirect_response=False)
+        self.assertTemplateNotUsed(r, 'logout.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
 
 class TestDisconnect(TestCase):
@@ -139,6 +225,9 @@ class TestDisconnect(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/disconnect/", fetch_redirect_response=False
         )
+        self.assertTemplateNotUsed(r, 'disconnect.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
@@ -148,12 +237,18 @@ class TestDisconnect(TestCase):
         self.client.force_login(u)
         r = self.client.get("/disconnect/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'disconnect.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 class TestDisconnected(TestCase):
     def test_disconnected(self) -> None:
         r = self.client.get("/disconnected/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'disconnected.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
@@ -163,6 +258,9 @@ class TestDisconnected(TestCase):
         self.client.force_login(u)
         r = self.client.get("/disconnected/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'disconnected.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 class TestFollowing(TestCase):
@@ -171,6 +269,9 @@ class TestFollowing(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/following/", fetch_redirect_response=False
         )
+        self.assertTemplateNotUsed(r, 'following.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
@@ -180,6 +281,9 @@ class TestFollowing(TestCase):
         self.client.force_login(u)
         r = self.client.get("/following/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'following.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 class TestUpdateFollowing(TestCase):
@@ -188,6 +292,9 @@ class TestUpdateFollowing(TestCase):
         self.assertRedirects(
             r, "/login/twitter/?next=/update-following/", fetch_redirect_response=False
         )
+        self.assertTemplateNotUsed(r, 'update-following.html')
+        self.assertTemplateNotUsed(r, 'base.html')
+        self.assertTemplateNotUsed(r, 'bootstrap.html')
 
     @override_settings(
         CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
@@ -197,6 +304,9 @@ class TestUpdateFollowing(TestCase):
         self.client.force_login(u)
         r = self.client.get("/update-following/")
         assert r.status_code == 200
+        self.assertTemplateUsed(r, 'update-following.html')
+        self.assertTemplateUsed(r, 'base.html')
+        self.assertTemplateUsed(r, 'bootstrap.html')
 
 
 def test_imports() -> None:
