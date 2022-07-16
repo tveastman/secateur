@@ -17,6 +17,8 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 from waffle.mixins import WaffleFlagMixin
+from twitter.error import TwitterError
+from .utils import ErrorCode
 
 from . import forms, models, tasks, otel
 
@@ -216,6 +218,22 @@ class Block(LoginRequiredMixin, FormView):
                 "You don't want to block your own account or followers.",
             )
             return super().form_valid(form)
+
+        if form.cleaned_data["block_followers"] or form.cleaned_data["mute_followers"]:
+            try:
+                # TODO: This is not at all MVC. Move this check.
+                user.api.GetFollowers(user_id=account.user_id)
+            except TwitterError as e:
+                if ErrorCode.from_exception(e) == ErrorCode.NOT_AUTHORIZED:
+                    messages.add_message(
+                        self.request,
+                        messages.INFO,
+                        "That account appears to have blocked you, so we can't get their follower list."
+                        "You can still block or mute them, but not their followers.",
+                    )
+                    return super().form_valid(form)
+                else:
+                    raise
 
         ## RATE LIMIT CHECK
         tokens_required: int = 0
