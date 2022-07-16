@@ -318,6 +318,13 @@ class Disconnect(LoginRequiredMixin, FormView):
 class Disconnected(TemplateView):
     template_name = "disconnected.html"
 
+    def get(
+        self, request: django.http.HttpRequest, *args: Any, **kwargs: Any
+    ) -> django.http.HttpResponse:
+        if request.user.is_authenticated:
+            return django.http.HttpResponseRedirect("/disconnect/")
+        return super().get(request, *args, **kwargs)
+
 
 class Following(LoginRequiredMixin, ListView):
     template_name = "following.html"
