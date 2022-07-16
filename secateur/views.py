@@ -228,7 +228,7 @@ class Block(LoginRequiredMixin, FormView):
                     messages.add_message(
                         self.request,
                         messages.INFO,
-                        "That account appears to have blocked you, so we can't get their follower list."
+                        "That account appears to have blocked you, so Secateur can't get their follower list."
                         "You can still block or mute them, but not their followers.",
                     )
                     return super().form_valid(form)
