@@ -17,6 +17,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 from waffle.mixins import WaffleFlagMixin
+from waffle import flag_is_active
 from twitter.error import TwitterError
 from .utils import ErrorCode
 
@@ -219,21 +220,25 @@ class Block(LoginRequiredMixin, FormView):
             )
             return super().form_valid(form)
 
-        if form.cleaned_data["block_followers"] or form.cleaned_data["mute_followers"]:
-            try:
-                # TODO: This is not at all MVC. Move this check.
-                user.api.GetFollowers(user_id=account.user_id)
-            except TwitterError as e:
-                if ErrorCode.from_exception(e) == ErrorCode.NOT_AUTHORIZED:
-                    messages.add_message(
-                        self.request,
-                        messages.INFO,
-                        "That account appears to have blocked you, so Secateur can't get their follower list."
-                        "You can still block or mute them, but not their followers.",
-                    )
-                    return super().form_valid(form)
-                else:
-                    raise
+        if flag_is_active(self.request, "check_not_blocked"):
+            if (
+                form.cleaned_data["block_followers"]
+                or form.cleaned_data["mute_followers"]
+            ):
+                try:
+                    # TODO: This is not at all MVC. Move this check.
+                    user.api.GetFollowers(user_id=account.user_id)
+                except TwitterError as e:
+                    if ErrorCode.from_exception(e) == ErrorCode.NOT_AUTHORIZED:
+                        messages.add_message(
+                            self.request,
+                            messages.INFO,
+                            "That account appears to have blocked you, so Secateur can't get their follower list."
+                            "You can still block or mute them, but not their followers.",
+                        )
+                        return super().form_valid(form)
+                    else:
+                        raise
 
         ## RATE LIMIT CHECK
         tokens_required: int = 0
