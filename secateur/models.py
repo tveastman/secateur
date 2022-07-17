@@ -162,6 +162,18 @@ class User(AbstractUser):
         logger.info("Removing oauth_credentials for: %r", objects)
         objects.update(extra_data=None)
 
+    def is_blocked_by(
+        self, user_id: Optional[int] = None, screen_name: Optional[str] = None
+    ) -> bool:
+        try:
+            self.api.GetFollowers(user_id=user_id, screen_name=screen_name)
+        except twitter.error.TwitterError as e:
+            if utils.ErrorCode.from_exception(e) == utils.ErrorCode.NOT_AUTHORIZED:
+                return True
+            else:
+                raise
+        return False
+
 
 class Account(psqlextra.models.PostgresModel):
     """A Twitter account"""
