@@ -12,6 +12,7 @@ from django.db import models, transaction
 from django.db.models import QuerySet, Q
 from django.utils import timezone
 from django.utils.functional import cached_property
+from cachetools.func import ttl_cache
 
 # from psqlextra.models import PostgresModel
 import psqlextra.models
@@ -162,6 +163,7 @@ class User(AbstractUser):
         logger.info("Removing oauth_credentials for: %r", objects)
         objects.update(extra_data=None)
 
+    @ttl_cache(ttl=900)
     def is_blocked_by(
         self, user_id: Optional[int] = None, screen_name: Optional[str] = None
     ) -> bool:
