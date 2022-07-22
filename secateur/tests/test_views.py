@@ -257,10 +257,10 @@ class TestDisconnected(TestCase):
         u = _test_user()
         self.client.force_login(u)
         r = self.client.get("/disconnected/")
-        assert r.status_code == 200
-        self.assertTemplateUsed(r, "disconnected.html")
-        self.assertTemplateUsed(r, "base.html")
-        self.assertTemplateUsed(r, "bootstrap.html")
+        self.assertRedirects(r, "/disconnect/", fetch_redirect_response=False)
+        self.assertTemplateNotUsed(r, "disconnected.html")
+        self.assertTemplateNotUsed(r, "base.html")
+        self.assertTemplateNotUsed(r, "bootstrap.html")
 
 
 class TestFollowing(TestCase):
