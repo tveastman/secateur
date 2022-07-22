@@ -1,6 +1,6 @@
 import pytest
 
-from .utils import TokenBucket, chunks
+from secateur.utils import TokenBucket, chunks
 
 
 def test_token_bucket() -> None:
