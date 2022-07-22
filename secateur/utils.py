@@ -29,6 +29,7 @@ class ErrorCode(Enum):
     ACCOUNT_TEMPORARILY_LOCKED = 326
 
     NOT_AUTHORIZED = "Not authorized."
+    BLOCKED = 136
 
     @classmethod
     def from_exception(

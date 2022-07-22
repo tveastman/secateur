@@ -166,9 +166,9 @@ class User(AbstractUser):
         self, user_id: Optional[int] = None, screen_name: Optional[str] = None
     ) -> bool:
         try:
-            self.api.GetFollowers(user_id=user_id, screen_name=screen_name)
+            self.api.GetUserTimeline(user_id=user_id, screen_name=screen_name)
         except twitter.error.TwitterError as e:
-            if utils.ErrorCode.from_exception(e) == utils.ErrorCode.NOT_AUTHORIZED:
+            if utils.ErrorCode.from_exception(e) == utils.ErrorCode.BLOCKED:
                 return True
             else:
                 raise
