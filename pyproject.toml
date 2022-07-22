@@ -36,7 +36,6 @@ django-postgres-extra = "^2.0.5"
 django-waffle = "^2.4.1"
 # Pinned until a later update to otel stuff fixes compatibility?
 protobuf = "^3.20"
-cachetools = "^5.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
