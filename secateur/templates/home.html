@@ -26,16 +26,16 @@
 
   <h2>The basics</h2>
   <ol>
-      <li><strong>Log in</strong> to secateur. Logging in connects Secateur to your Twitter account and gives it permission to block or unblock users on your behalf. </li>
+      <li><strong><a href="{% url "social:begin" "twitter" %}">Log in</a></strong> to Secateur. Logging in connects Secateur to your Twitter account and gives it permission to block or unblock users on your behalf. </li>
       {#  <li>If you're logging in for the <strong>first time</strong>, you will also have to contact the <a href="/contact/">administrator</a> to ask them to enable your account. This is a safeguard while the project is young.</li>#}
       <li>If you don't want Secateur to block the accounts of people you follow. You can <a href="{% url "following" %}">update the list of people you follow on this page.</a></li>
-      <li>Use the <strong>'Block Accounts'</strong> page to select whether to block or mute a user and/or their followers, and select a time period (in weeks).</li>
-      <li>All operations Secateur takes on your behalf are logged on the 'Log' page.</li>
+      <li>Use the <strong>'<a href="{% url "block-accounts" %}">Block Accounts</a>'</strong> page to select whether to block or mute a user and/or their followers, and select a time period (in weeks).</li>
+      <li>All operations Secateur takes on your behalf are logged on the '<a href="{% url "log-messages" %}">Log</a>' page.</li>
   </ol>
   <p>As you can see, the user interface at the moment is still entirely bare-bones. It will grow more usable and flexible over time.</p>
 
   <h2>Disconnecting</h2>
-  <p>To immediately prevent Secateur from acting on your behalf, use the 'Disconnect' link.</p>
+  <p>To immediately prevent Secateur from acting on your behalf, use the '<a href="{% url "disconnect" %}">Disconnect</a>' page.</p>
 
   <h2>Support</h2>
 
