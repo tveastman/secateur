@@ -50,6 +50,7 @@ class SecateurUserAdmin(UserAdmin):
                     "token_bucket_rate",
                     "token_bucket_time",
                     "token_bucket_value",
+                    "max_until",
                 )
             },
         ),
@@ -70,6 +71,7 @@ class SecateurUserAdmin(UserAdmin):
         "current_tokens",
         "screen_name",
         "oauth_token",
+        "max_until",
     ) + UserAdmin.readonly_fields
 
     actions = [update_user_details]

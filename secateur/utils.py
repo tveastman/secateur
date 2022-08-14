@@ -4,6 +4,7 @@ from enum import Enum
 import logging
 import random
 from datetime import timedelta
+from django.utils import timezone
 
 import structlog
 
@@ -77,6 +78,8 @@ def pipeline_user_account_link(
     if oauth_token_secret != user.oauth_token_secret:
         user.oauth_token_secret = oauth_token_secret
         update_fields.append("oauth_token_secret")
+        user.max_until = timezone.now()
+        update_fields.append("max_until")
 
     secateur_username = f"{username}__{uid}"
     if user.username != secateur_username:

@@ -739,8 +739,8 @@ def update_user_details(secateur_user: "models.User") -> None:
 
 
 @app.task
-def remove_unneeded_credentials() -> None:
-    models.User.remove_unneeded_credentials()
+def remove_all_unneeded_credentials() -> None:
+    models.User.remove_all_unneeded_credentials()
 
 
 @app.task

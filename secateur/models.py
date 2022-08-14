@@ -72,6 +72,7 @@ class User(AbstractUser):
     oauth_token_secret = models.CharField(
         max_length=255, null=True, blank=True, editable=False
     )
+    max_until = models.DateTimeField(null=True, editable=False)
 
     @property
     def token_bucket(self) -> utils.TokenBucket:
@@ -132,6 +133,51 @@ class User(AbstractUser):
     def get_account_by_screen_name(self, screen_name: str) -> "Optional[Account]":
         logger.debug("Fetching user %s from Twitter API.", screen_name)
         return tasks.get_user(self.pk, screen_name=screen_name)
+
+    def remove_unneeded_credentials(self):
+        days_since_login = 28
+
+        if self.oauth_token is None and self.oauth_token_secret is None:
+            self.max_until = None
+            self.save(update_fields=["max_until"])
+            return
+
+        if timezone.now() - timedelta(days=days_since_login) < self.last_login:
+            return
+
+        max_until = Relationship.objects.filter(
+            subject_id=self.account_id,
+            until__isnull=False,
+        ).aggregate(models.Max("until"))["until__max"]
+
+        if max_until:
+            self.max_until = max_until
+            self.save(update_fields=["max_until"])
+            logger.info(
+                "Keeping credentials at least until",
+                username=self.username,
+                max_until=max_until,
+            )
+        else:
+            self.max_until = None
+            self.oauth_token = None
+            self.oauth_token_secret = None
+            logger.info("Erasing OAuth credentials", username=self.username)
+            self.save(update_fields=["max_until", "oauth_token", "oauth_token_secret"])
+
+    @classmethod
+    def remove_all_unneeded_credentials(cls):
+        days_since_login = 28
+        for user in cls.objects.filter(
+            max_until__lt=timezone.now(),
+            oauth_token__isnull=False,
+            oauth_token_secret__isnull=False,
+            last_login__lt=timezone.now() - timedelta(days=days_since_login),
+        ):
+            logger.debug(
+                "Checking if we can remove credentials", username=user.username
+            )
+            user.remove_unneeded_credentials()
 
 
 class Account(psqlextra.models.PostgresModel):
