@@ -347,11 +347,11 @@ class Relationship(psqlextra.models.PostgresModel):
     class Meta:
         unique_together = (("type", "subject", "object"),)
         indexes = (
-            # models.Index(fields=["type", "object"]),
             models.Index(
-                fields=["until"], condition=Q(until__isnull=False), name="until_btree"
+                fields=["until", "subject"],
+                condition=Q(until__isnull=False),
+                name="until_btree",
             ),
-            # BrinIndex(fields=["updated"], autosummarize=True),
         )
 
     FOLLOWS = 1
