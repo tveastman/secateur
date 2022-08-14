@@ -148,27 +148,11 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.user.get_username",
     "social_core.pipeline.user.create_user",
     "social_core.pipeline.social_auth.associate_user",
-    "social_core.pipeline.social_auth.load_extra_data",
     "social_core.pipeline.user.user_details",
     ## 'debug' puts PII in your log file, use with care.
     # "social_core.pipeline.debug.debug",
     "secateur.utils.pipeline_user_account_link",
 )
-
-# LOGGING
-# LOGGING = {
-#     "version": 1,
-#     "disable_existing_loggers": False,
-#     "handlers": {"console": {"class": "logging.StreamHandler"}},
-#     "root": {"level": "INFO", "handlers": ["console"]},
-#     "loggers": {
-#         "secateur": {"level": "DEBUG"},
-#         "django": {"level": "INFO", "propagate": True},
-#         "requests_oauthlib": {"level": "INFO"},
-#         "urllib3": {"level": "INFO"},
-#         "oauthlib": {"level": "INFO"},
-#     },
-# }
 
 import structlog
 

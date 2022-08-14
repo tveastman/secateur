@@ -49,7 +49,7 @@ def default_token_bucket_value() -> float:
     return 50_000.00
 
 
-@lru_cache(maxsize=128)
+@lru_cache(maxsize=2048)
 def get_cached_twitter_api(**kwargs):
     return twitter.Api(**kwargs)
 
@@ -132,35 +132,6 @@ class User(AbstractUser):
     def get_account_by_screen_name(self, screen_name: str) -> "Optional[Account]":
         logger.debug("Fetching user %s from Twitter API.", screen_name)
         return tasks.get_user(self.pk, screen_name=screen_name)
-
-    @classmethod
-    def remove_unneeded_credentials(cls) -> None:
-        """Remove the oauth credentials we don't need.
-
-        We only need to keep the oauth credentials for users who are (a) logged
-        in, or (b) have pending scheduled operations (like unblocks or unmutes).
-
-        We can determine who's logged in by enforcing a max cookie age and
-        looking at User.last_login, and we can see scheduled unblocks in the
-        database. So we can remove the oauth creds from everyone else, reducing
-        our exposure... Anyone who logged in to secateur but hasn't used it
-        won't have credentials floating around in it.
-        """
-        delta = timedelta(days=1)
-        threshold = timezone.now() - delta
-        # exclude the ones that have already had their credentials removed.
-        objects = social_django.models.UserSocialAuth.objects.exclude(extra_data=None)
-        # include only "twitter" ones (shoudl be all of them)
-        objects = objects.filter(provider="twitter")
-        # Exclude any with pending unblock operations
-        objects = objects.exclude(
-            user__account__relationship_subject_set__until__isnull=False
-        )
-        # exclude anyone who's logged in recently
-        objects = objects.exclude(user__last_login__gt=threshold)
-        # Finally, remove the extra_data from them.
-        logger.info("Removing oauth_credentials for: %r", objects)
-        objects.update(extra_data=None)
 
 
 class Account(psqlextra.models.PostgresModel):
