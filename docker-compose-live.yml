@@ -33,6 +33,10 @@ services:
       driver: journald
     labels:
      - traefik.http.routers.secateur.rule=Host(`secateur.app`)
+     - traefik.http.routers.secateur.middlewares=test-ratelimit
+     - "traefik.http.middlewares.test-ratelimit.ratelimit.average=60"
+     - "traefik.http.middlewares.test-ratelimit.ratelimit.burst=120"
+     - "traefik.http.middlewares.test-ratelimit.ratelimit.period=1m"
      - traefik.http.routers.secateur.tls=true
      - traefik.http.routers.secateur.tls.certresolver=myresolver
      - traefik.enable=true
