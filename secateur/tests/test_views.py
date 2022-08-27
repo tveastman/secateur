@@ -1,9 +1,23 @@
 from django.test import override_settings, TestCase
 from secateur import models
 from waffle.testutils import override_flag
+from pytest import fixture
+import json
 
 
-class TestHome(TestCase):
+class ViewTestCase(TestCase):
+    @fixture(autouse=True)
+    def fixture(self, caplog) -> None:
+        caplog.set_level("DEBUG")
+        self._caplog = caplog
+
+    def tearDown(self) -> None:
+        super().tearDown()
+        for log in self._caplog.messages:
+            assert json.loads(log)
+
+
+class TestHome(ViewTestCase):
     def test_home(self) -> None:
         r = self.client.get("/")
         assert r.status_code == 200
@@ -24,7 +38,7 @@ class TestHome(TestCase):
         self.assertTemplateUsed(r, "bootstrap.html")
 
 
-class TestAdmin(TestCase):
+class TestAdmin(ViewTestCase):
     def test_admin(self) -> None:
         r = self.client.get("/admin/")
         self.assertRedirects(
@@ -61,7 +75,7 @@ class TestAdmin(TestCase):
         self.assertTemplateUsed(r, "admin/base.html")
 
 
-class TestBlock(TestCase):
+class TestBlock(ViewTestCase):
     def test_block(self) -> None:
         r = self.client.get("/block/")
         self.assertRedirects(
@@ -87,7 +101,7 @@ class TestBlock(TestCase):
 @override_settings(
     CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
 )
-class TestBlocked(TestCase):
+class TestBlocked(ViewTestCase):
     def test_blocked(self) -> None:
         r = self.client.get("/blocked/")
         self.assertRedirects(
@@ -110,7 +124,7 @@ class TestBlocked(TestCase):
 @override_settings(
     CACHES={"default": {"BACKEND": "django.core.cache.backends.dummy.DummyCache"}}
 )
-class TestUnblockEverybody(TestCase):
+class TestUnblockEverybody(ViewTestCase):
     def test_unblock_everybody(self) -> None:
         r = self.client.get("/unblock-everybody/")
         self.assertRedirects(
@@ -132,7 +146,7 @@ class TestUnblockEverybody(TestCase):
         self.assertTemplateUsed(r, "bootstrap.html")
 
 
-class TestSearch(TestCase):
+class TestSearch(ViewTestCase):
     def test_search(self) -> None:
         r = self.client.get("/search/")
         self.assertRedirects(
@@ -155,7 +169,7 @@ class TestSearch(TestCase):
         self.assertTemplateUsed(r, "bootstrap.html")
 
 
-class TestLogMessages(TestCase):
+class TestLogMessages(ViewTestCase):
     def test_log_messages(self) -> None:
         r = self.client.get("/log-messages/")
         self.assertRedirects(
@@ -178,7 +192,7 @@ class TestLogMessages(TestCase):
         self.assertTemplateUsed(r, "bootstrap.html")
 
 
-class TestBlockMessages(TestCase):
+class TestBlockMessages(ViewTestCase):
     def test_block_messages(self) -> None:
         r = self.client.get("/block-messages/")
         self.assertRedirects(
@@ -201,7 +215,7 @@ class TestBlockMessages(TestCase):
         self.assertTemplateUsed(r, "bootstrap.html")
 
 
-class TestLogout(TestCase):
+class TestLogout(ViewTestCase):
     def test_logout(self) -> None:
         r = self.client.get("/logout/")
         self.assertRedirects(r, "/", fetch_redirect_response=False)
@@ -219,7 +233,7 @@ class TestLogout(TestCase):
         self.assertTemplateNotUsed(r, "bootstrap.html")
 
 
-class TestDisconnect(TestCase):
+class TestDisconnect(ViewTestCase):
     def test_disconnect(self) -> None:
         r = self.client.get("/disconnect/")
         self.assertRedirects(
@@ -242,7 +256,7 @@ class TestDisconnect(TestCase):
         self.assertTemplateUsed(r, "bootstrap.html")
 
 
-class TestDisconnected(TestCase):
+class TestDisconnected(ViewTestCase):
     def test_disconnected(self) -> None:
         r = self.client.get("/disconnected/")
         assert r.status_code == 200
@@ -263,7 +277,7 @@ class TestDisconnected(TestCase):
         self.assertTemplateNotUsed(r, "bootstrap.html")
 
 
-class TestFollowing(TestCase):
+class TestFollowing(ViewTestCase):
     def test_following(self) -> None:
         r = self.client.get("/following/")
         self.assertRedirects(
@@ -286,7 +300,7 @@ class TestFollowing(TestCase):
         self.assertTemplateUsed(r, "bootstrap.html")
 
 
-class TestUpdateFollowing(TestCase):
+class TestUpdateFollowing(ViewTestCase):
     def test_update_following(self) -> None:
         r = self.client.get("/update-following/")
         self.assertRedirects(

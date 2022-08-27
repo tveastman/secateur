@@ -199,6 +199,7 @@ structlog.configure(
         structlog.processors.UnicodeDecoder(),
         structlog.processors.ExceptionPrettyPrinter(),
         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+        structlog.processors.JSONRenderer(),
     ],
     context_class=structlog.threadlocal.wrap_dict(dict),
     logger_factory=structlog.stdlib.LoggerFactory(),
