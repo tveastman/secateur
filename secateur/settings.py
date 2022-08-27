@@ -154,57 +154,8 @@ SOCIAL_AUTH_PIPELINE = (
     "secateur.utils.pipeline_user_account_link",
 )
 
-import structlog
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "plain_console": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.dev.ConsoleRenderer(colors=False),
-        },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "plain_console",
-            "stream": sys.stdout,
-        },
-    },
-    "loggers": {
-        "secateur": {
-            "handlers": [
-                "console",
-            ],  # "flat_line_file", "json_file"],
-            "level": "DEBUG",
-        },
-        # LOG ALL SQL QUERIES (but you have to set debug=True as well)
-        # 'django.db.backends': {
-        #     'level': 'DEBUG',
-        #     'handlers': ['console'],
-        # }
-    },
-}
-
-structlog.configure(
-    processors=[
-        structlog.stdlib.filter_by_level,
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.processors.ExceptionPrettyPrinter(),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    context_class=structlog.threadlocal.wrap_dict(dict),
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=structlog.stdlib.BoundLogger,
-    cache_logger_on_first_use=True,
-)
+LOGGING = None
+import secateur.logging
 
 # A fix for a timezone issue
 DJANGO_CELERY_BEAT_TZ_AWARE = False
