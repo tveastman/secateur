@@ -2,6 +2,7 @@
 OpenTelemetry Configuration
 """
 import os
+from typing import Iterable
 
 import opentelemetry
 import opentelemetry.sdk.trace
@@ -115,4 +116,26 @@ login_counter = meter.create_counter(
 signup_counter = meter.create_counter(
     name="signup",
     unit="1",
+)
+
+
+def _api_cache_hit_rate() -> Iterable[opentelemetry._metrics.observation.Observation]:
+    import secateur.models
+
+    cache_info = secateur.models.get_cached_twitter_api.cache_info()
+    return [
+        opentelemetry._metrics.observation.Observation(
+            cache_info.hits,
+            {"type": "hits"},
+        ),
+        opentelemetry._metrics.observation.Observation(
+            cache_info.misses,
+            {"type": "misses"},
+        ),
+    ]
+
+
+meter.create_observable_counter(
+    name="api_cache.stats",
+    callbacks=[_api_cache_hit_rate],
 )
