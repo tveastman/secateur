@@ -2,23 +2,9 @@ import twitter.models
 from django.test import TestCase
 from django.utils import timezone
 from secateur import models
-from pytest import fixture
-import json
 
 
-class ModelTestCase(TestCase):
-    @fixture(autouse=True)
-    def fixture(self, caplog) -> None:
-        caplog.set_level("DEBUG")
-        self._caplog = caplog
-
-    def tearDown(self) -> None:
-        super().tearDown()
-        for log in self._caplog.messages:
-            assert json.loads(log)
-
-
-class TestAccounts(ModelTestCase):
+class TestAccounts(TestCase):
     def test_get_accounts_no_args(self):
         assert list(models.Account.get_accounts()) == []
 
@@ -69,7 +55,7 @@ class TestAccounts(ModelTestCase):
         assert list(a2.mutes) == [a3]
 
 
-class TestAddRelationships(ModelTestCase):
+class TestAddRelationships(TestCase):
     def test_some_combinations(self):
         now = timezone.now()
         users = list(models.Account.get_accounts(*range(10)).order_by("user_id"))
