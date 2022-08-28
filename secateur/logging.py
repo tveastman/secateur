@@ -9,6 +9,7 @@ pre_chain = [
     # Add the log level and a timestamp to the event_dict if the log entry
     # is not from structlog.
     structlog.stdlib.add_log_level,
+    structlog.stdlib.add_logger_name,
     # Add extra attributes of LogRecord objects to the event dictionary
     # so that values passed in the extra parameter of log methods pass
     # through to log output.
@@ -49,6 +50,7 @@ logging.config.dictConfig(
                 "level": "DEBUG",
                 "class": "logging.StreamHandler",
                 "formatter": "plain",
+                "stream": "ext://sys.stdout",
             },
         },
         "loggers": {
@@ -57,12 +59,22 @@ logging.config.dictConfig(
                 "level": "DEBUG",
                 "propagate": True,
             },
+            # Squelch the noisy ones, but I might miss useful info when debugging.
+            "celery": {"level": "WARNING"},
+            "django_structlog": {"level": "WARNING"},
+            "django": {"level": "INFO", "propagate": True},
+            "requests_oauthlib": {"level": "INFO"},
+            "urllib3": {"level": "INFO"},
+            "oauthlib": {"level": "INFO"},
+            "botocore": {"level": "INFO"},
+            "opentelemetry": {"level": "INFO"},
         },
     }
 )
 structlog.configure(
     processors=[
         structlog.stdlib.add_log_level,
+        structlog.stdlib.add_logger_name,
         structlog.stdlib.PositionalArgumentsFormatter(),
         timestamper,
         structlog.processors.StackInfoRenderer(),
