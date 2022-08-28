@@ -185,6 +185,7 @@ CELERY_TASK_ROUTES = {
     "secateur.tasks.create_relationship": {"queue": "blocker"},
     "secateur.tasks.create_relationships": {"queue": "blocker"},
     "secateur.tasks.destroy_relationship": {"queue": "blocker"},
+    "secateur.tasks.mem_top": {"queue": "blocker"},
 }
 
 

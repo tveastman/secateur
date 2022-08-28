@@ -748,3 +748,14 @@ def clear_sessions() -> None:
     from django.core import management
 
     management.call_command("clearsessions", verbosity=0)
+
+
+@app.task
+def mem_top() -> None:
+    """Log memory usage statistics, to see if it'll help track down the upwards-creeping RAM usage."""
+    import platform
+    import mem_top
+
+    info = mem_top.mem_top(width=100, limit=30)
+    hostname = platform.node()
+    logger.info("mem_top", mem_top=info, hostname=hostname)
