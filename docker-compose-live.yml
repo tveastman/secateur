@@ -101,6 +101,7 @@ services:
       - PGAPPNAME=blocker
       - OTEL_SERVICE_NAME=blocker
     command: >
+      timeout --verbose --kill-after=5m 8h
       celery -A secateur worker -Q blocker -l info
       --pool gevent
       --concurrency 40
