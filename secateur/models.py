@@ -49,7 +49,7 @@ def default_token_bucket_value() -> float:
     return 50_000.00
 
 
-@lru_cache(maxsize=2048)
+@lru_cache(maxsize=1024)
 def get_cached_twitter_api(**kwargs):
     return twitter.Api(**kwargs)
 
