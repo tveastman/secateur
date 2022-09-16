@@ -121,7 +121,7 @@ services:
     image: postgres:14
     command: >
       postgres
-      -c 'shared_buffers=256MB'
+      -c 'shared_buffers=512MB'
       -c 'synchronous_commit=off'
       -c "max_wal_senders=0"
       -c "wal_level=minimal"
@@ -135,6 +135,7 @@ services:
       -c 'bgwriter_lru_multiplier=4.0'
       -c 'idle_in_transaction_session_timeout=300s'
       -c 'log_autovacuum_min_duration=0'
+      -c 'max_connections=300'
     env_file:
       - /etc/secateur/environment
     volumes:
