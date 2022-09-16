@@ -114,7 +114,12 @@ def create_relationships(
             ),
             throw=True,
         )
-    logger.debug("Finished create_relationships()", user_ids=user_ids)
+    logger.debug(
+        "Finished create_relationships()",
+        type=type,
+        secateur_user_pk=secateur_user_pk,
+        len_user_ids=len(user_ids),
+    )
 
 
 @app.task(bind=True, max_retries=15, ignore_result=True)
@@ -134,7 +139,7 @@ def create_relationship(
     secateur_user = models.User.objects.select_related("account").get(
         pk=secateur_user_pk
     )
-    log = logger.bind(user=secateur_user)
+    log = logger.bind(user=secateur_user.username, function="create_relationship")
     try:
         api = secateur_user.api
     except models.TwitterApiDisabled:
@@ -161,7 +166,14 @@ def create_relationship(
         counter = otel.twitter_mute_counter
     else:
         raise ValueError("Don't know how to handle type %r", type)
-    log = log.bind(action=action, until=until, type=type, user_id=user_id)
+
+    log = log.bind(
+        action=action.name,
+        until=str(until) if until else until,
+        type=type.name,
+        user_id=user_id,
+        screen_name=screen_name,
+    )
 
     ## CHECK IF THIS RELATIONSHIP ALREADY EXISTS
     existing_rel_qs = models.Relationship.objects.filter(
@@ -175,29 +187,20 @@ def create_relationship(
     updated_existing = existing_rel_qs.update(until=until)
     if updated_existing:
         log.info(
-            "%s has already %s %s.",
-            secateur_user.account,
-            past_tense_verb,
-            existing_rel_qs.get().object,
+            "already_blocked",
         )
         return
 
     assert secateur_user.account is not None
     if secateur_user.account.follows(user_id=user_id, screen_name=screen_name):
-        log.info(
-            "%s follows %s and so %s won't be %s.",
-            secateur_user.account,
-            user_id,
-            user_id,
-            past_tense_verb,
-        )
+        log.info("user follows account")
         return
 
     ## CHECK CACHED RATE LIMIT
     rate_limited = cache.get(rate_limit_key)
     if rate_limited:
         time_remaining = (rate_limited - now).total_seconds()
-        log.debug("Locally cached rate limit exceeded", time_remaining=time_remaining)
+        log.debug("local rate limit exceeded", time_remaining=time_remaining)
         self.retry(
             countdown=_twitter_retry_timeout(
                 base=time_remaining + 5, retries=self.request.retries
@@ -215,7 +218,7 @@ def create_relationship(
         )
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
-            log.warning("API rate limit exceeded.")
+            log.warning("rate limit exceeded")
             cache.set(
                 rate_limit_key, now + datetime.timedelta(seconds=15 * 60), 15 * 60
             )
@@ -235,35 +238,29 @@ def create_relationship(
             # gone wrong that's going to take invervention to fix.
             secateur_user.is_twitter_api_enabled = False
             secateur_user.save(update_fields=["is_twitter_api_enabled"])
-            logger.warning(
-                "Received %s, disabling Twitter API for user %s",
-                ErrorCode.from_exception(e),
-                secateur_user,
+            log.warning(
+                "Received error code, disabling twitter api",
+                error_code=str(ErrorCode.from_exception(e)),
             )
+            return
+        elif ErrorCode.from_exception(e) == ErrorCode.USER_NOT_FOUND:
+            log.info("user not found")
             return
         else:
             log.exception(
-                "Error during create_relationship, secateur_user=%s, type=%s, user_id=%s",
-                secateur_user,
-                type,
-                user_id,
+                "error during create_relationship",
             )
             raise
 
     ## UPDATE DATABASE
     account = models.Account.get_account(api_result)
-    log = log.bind(account=account)
+    log = log.bind(account_id=account.user_id, account_screen_name=account.screen_name)
     models.Relationship.add_relationships(
         type=type,
         subjects=[secateur_user.account],
         objects=[account],
         updated=now,
         until=until,
-    )
-    log_message = "{} {}{}".format(
-        past_tense_verb,
-        account,
-        " until {}".format(until.strftime("%-d %B")) if until else "",
     )
     models.LogMessage.objects.create(
         user=secateur_user,
@@ -272,7 +269,7 @@ def create_relationship(
         account=account,
         until=until,
     )
-    log.info(f"{secateur_user} has {log_message}")
+    log.info("create relationship complete")
 
 
 @app.task(bind=True, max_retries=5, ignore_result=True)
@@ -557,14 +554,16 @@ def _block_multiple(
     secateur_user_pk: int,
     duration: datetime.timedelta,
 ) -> None:
-
     secateur_user = models.User.objects.get(pk=secateur_user_pk)
+    log = logger.bind(
+        function="_block_multiple", type=type, secateur_user=secateur_user.username
+    )
     already_blocked_ids = set(
         models.Relationship.objects.filter(
             subject=secateur_user.account, type=type, object__in=accounts
         ).values_list("object_id", flat=True)
     )
-    logger.debug(
+    log.debug(
         "_block_multiple(): filtering out already blocked accounts.",
         len_accounts=len(accounts),
         len_already_blocked_ids=len(already_blocked_ids),
