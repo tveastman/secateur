@@ -12,6 +12,6 @@ rsync -av --files-from=${FILE_LIST} . ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_DIR
 ssh -t ${DEPLOY_USER}@${DEPLOY_HOST} "
    cd ${DEPLOY_DIRECTORY}
    sudo docker-compose -f docker-compose-live.yml stop celery blocker
-   sudo docker-compose -f docker-compose-live.yml build --pull
+   sudo DOCKER_BUILDKIT=1 docker-compose -f docker-compose-live.yml build --pull
    sudo docker-compose -f docker-compose-live.yml up --detach --scale blocker=${SCALE_BLOCKER}
 "
