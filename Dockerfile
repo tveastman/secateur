@@ -1,4 +1,4 @@
-FROM python:3.9 as virtualenv
+FROM python:3.10
 
 # install poetry
 ENV POETRY_HOME=/opt/poetry \
