@@ -1,13 +1,9 @@
-data
-.env
-.git
-staticfiles
-**/__pycache__
-**/*.pyc
-**/.pytest_cache
+**
 
-/.mypy_cache/
-.idea
-
-/doocker-compose.yml
-/docker-compose-live.yml
+!/LICENSE
+!/manage.py
+!/poetry.lock
+!/pyproject.toml
+!/secateur/**/*.py
+!/secateur/static
+!/secateur/templates
