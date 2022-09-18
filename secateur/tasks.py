@@ -8,6 +8,7 @@ from typing import Optional, Callable, List, Iterable
 
 import celery
 import structlog
+import requests.exceptions
 from django.db import transaction
 from django.core.cache import cache
 from django.db.models import Q, F
@@ -216,6 +217,9 @@ def create_relationship(
             include_entities=False,
             skip_status=True,
         )
+    except requests.exceptions.ConnectionError as e:
+        log.exception("connection error")
+        return
     except TwitterError as e:
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             log.warning("rate limit exceeded")

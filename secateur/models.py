@@ -5,6 +5,7 @@ from typing import Optional, Union, Tuple, List, Iterable, Any, Dict
 from datetime import datetime, timedelta
 from email.utils import parsedate_to_datetime
 
+import requests
 import structlog
 from django.contrib.auth.models import AbstractUser
 from django.contrib.postgres.indexes import BrinIndex
@@ -49,9 +50,15 @@ def default_token_bucket_value() -> float:
     return 50_000.00
 
 
-@lru_cache(maxsize=1024)
+@lru_cache(maxsize=32)
 def get_cached_twitter_api(**kwargs):
-    return twitter.Api(**kwargs)
+    api = twitter.Api(**kwargs)
+    # patch the API session object to use a larger connection pool and allow a retry
+    https_adapter = requests.adapters.HTTPAdapter(
+        pool_connections=40, pool_maxsize=40, max_retries=1
+    )
+    api._session.mount("https://", https_adapter)
+    return api
 
 
 class User(AbstractUser):

@@ -1,6 +1,9 @@
+import pytest
 import twitter.models
 from django.test import TestCase
 from django.utils import timezone
+
+import secateur.models
 from secateur import models
 
 
@@ -76,3 +79,14 @@ class TestAddRelationships(TestCase):
             updated=new_now,
         )
         assert len(result) == 2
+
+
+def test_api_pool_size():
+    api = secateur.models.get_cached_twitter_api(
+        consumer_key="a",
+        consumer_secret="b",
+        access_token_key="c",
+        access_token_secret="d",
+    )
+    assert api._session.adapters["https://"]._pool_maxsize == 40
+    # pytest.fail()

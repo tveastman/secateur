@@ -3,7 +3,7 @@
 set -eux
 
 FILE_LIST=$(mktemp)
-SCALE_BLOCKER=4
+SCALE_BLOCKER=1
 
 cd $(dirname $0)/..
 git ls-files > ${FILE_LIST}
