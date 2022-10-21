@@ -2,7 +2,7 @@ import logging.config
 import structlog
 
 # TODO: Make this configurable.
-use_console_renderer = False
+use_console_renderer = True
 
 timestamper = structlog.processors.TimeStamper(fmt="%Y-%m-%d %H:%M:%S")
 pre_chain = [

@@ -132,9 +132,15 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 AUTH_USER_MODEL = "secateur.User"
 
 # DJANGO SOCIAL AUTH TWITTER SUPPORT
-AUTHENTICATION_BACKENDS = ("social_core.backends.twitter.TwitterOAuth",)
-SOCIAL_AUTH_TWITTER_KEY = os.environ.get("CONSUMER_KEY")
-SOCIAL_AUTH_TWITTER_SECRET = os.environ.get("CONSUMER_SECRET")
+AUTHENTICATION_BACKENDS = (
+    # "social_core.backends.twitter.TwitterOAuth",
+    "secateur.twitter.TwitterOauth2",
+)
+SOCIAL_AUTH_TWITTER2_SCOPE = [
+    "users.read", "tweet.read", "offline.access"
+]
+SOCIAL_AUTH_TWITTER2_KEY = os.environ.get("CONSUMER_KEY")
+SOCIAL_AUTH_TWITTER2_SECRET = os.environ.get("CONSUMER_SECRET")
 LOGIN_URL = "/login/twitter/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
@@ -150,7 +156,7 @@ SOCIAL_AUTH_PIPELINE = (
     "social_core.pipeline.social_auth.associate_user",
     "social_core.pipeline.user.user_details",
     ## 'debug' puts PII in your log file, use with care.
-    # "social_core.pipeline.debug.debug",
+    "social_core.pipeline.debug.debug",
     "secateur.utils.pipeline_user_account_link",
 )
 
