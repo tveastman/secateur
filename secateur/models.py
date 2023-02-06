@@ -38,11 +38,11 @@ def token_bucket_time() -> float:
 
 
 def default_token_bucket_rate() -> float:
-    return 2_000
+    return 10_000
 
 
 def default_token_bucket_max() -> float:
-    return 50_000.00
+    return 100_000.00
 
 
 def default_token_bucket_value() -> float:
