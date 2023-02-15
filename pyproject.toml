@@ -6,7 +6,7 @@ authors = ["Tom Eastman <tom@eastman.nz>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-Django = "^4.0.4"
+Django = "^4.1.7"
 social-auth-app-django = "^5.0.0"
 python-twitter = "^3.5"
 celery = {version = "^5.2.6", extras = ["redis,sqs"]}
