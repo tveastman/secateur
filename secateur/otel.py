@@ -18,7 +18,7 @@ import opentelemetry.sdk._metrics.point
 opentelemetry.instrumentation.django.DjangoInstrumentor().instrument()
 opentelemetry.instrumentation.celery.CeleryInstrumentor().instrument()
 opentelemetry.instrumentation.requests.RequestsInstrumentor().instrument()
-opentelemetry.instrumentation.psycopg2.Psycopg2Instrumentor().instrument()
+# opentelemetry.instrumentation.psycopg2.Psycopg2Instrumentor().instrument()
 
 opentelemetry.trace.set_tracer_provider(opentelemetry.sdk.trace.TracerProvider())
 
