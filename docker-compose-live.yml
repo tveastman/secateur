@@ -104,7 +104,7 @@ services:
       timeout --verbose --kill-after=5m 8h
       celery -A secateur worker -Q blocker -l info
       --pool gevent
-      --concurrency 40
+      --concurrency 80
     depends_on:
       - redis
       - postgres
