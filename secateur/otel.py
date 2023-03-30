@@ -38,9 +38,11 @@ import opentelemetry.sdk.metrics.export
 import opentelemetry.exporter.otlp.proto.grpc.metric_exporter
 
 
-_metric_exporters = [
-    opentelemetry.exporter.otlp.proto.grpc.metric_exporter.OTLPMetricExporter()
-]
+_metric_exporters = []
+if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
+    _metric_exporters.append(
+        opentelemetry.exporter.otlp.proto.grpc.metric_exporter.OTLPMetricExporter()
+    )
 if os.environ.get("METRICS_EXPORT_CONSOLE"):
     _metric_exporters.append(opentelemetry.sdk.metrics.export.ConsoleMetricExporter())
 

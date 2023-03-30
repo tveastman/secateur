@@ -156,18 +156,18 @@ uvloop = ["uvloop (>=0.15.2)"]
 
 [[package]]
 name = "boto3"
-version = "1.26.102"
+version = "1.26.103"
 description = "The AWS SDK for Python"
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "boto3-1.26.102-py3-none-any.whl", hash = "sha256:043f8981d10c4e7c48736df4381dac557b46c5b369b0a450d8f3d7f5fdd24db5"},
-    {file = "boto3-1.26.102.tar.gz", hash = "sha256:b00f416832bc59863b96175045d2ebe067d9222289bce677c48fd72c006eaaad"},
+    {file = "boto3-1.26.103-py3-none-any.whl", hash = "sha256:c02dd0c4bc5adf70f49361141dba61d8795433a1b60d24e0a8a6bee912b267ee"},
+    {file = "boto3-1.26.103.tar.gz", hash = "sha256:7fa84b8ca6fbb544e4093ad8d91729c61e3526040759c7c3dbaaa34f1862e0b0"},
 ]
 
 [package.dependencies]
-botocore = ">=1.29.102,<1.30.0"
+botocore = ">=1.29.103,<1.30.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.6.0,<0.7.0"
 
@@ -176,14 +176,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.29.102"
+version = "1.29.103"
 description = "Low-level, data-driven core of boto 3."
 category = "main"
 optional = false
 python-versions = ">= 3.7"
 files = [
-    {file = "botocore-1.29.102-py3-none-any.whl", hash = "sha256:4bae8f502507da18ff37c61cb18745cfb11d87a61dd0ea27e346adadff92aa3f"},
-    {file = "botocore-1.29.102.tar.gz", hash = "sha256:58b11c630d2044ea732ba4c403d29fab51e954465f9b3f7099cbf5ac0ce7ab47"},
+    {file = "botocore-1.29.103-py3-none-any.whl", hash = "sha256:e020173473b254c913a03c16bef179751095a6331f113d5206ae7d47340abfc2"},
+    {file = "botocore-1.29.103.tar.gz", hash = "sha256:30bd3fffc878cd5724c0e9a18629210da7f1efbcb6e668213a79153cc2dfd474"},
 ]
 
 [package.dependencies]
@@ -655,15 +655,19 @@ dev = ["PyTest", "PyTest (<5)", "PyTest-Cov", "PyTest-Cov (<2.6)", "bump2version
 
 [[package]]
 name = "dj-database-url"
-version = "0.5.0"
+version = "1.3.0"
 description = "Use Database URLs in your Django Application."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "dj-database-url-0.5.0.tar.gz", hash = "sha256:4aeaeb1f573c74835b0686a2b46b85990571159ffc21aa57ecd4d1e1cb334163"},
-    {file = "dj_database_url-0.5.0-py2.py3-none-any.whl", hash = "sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9"},
+    {file = "dj-database-url-1.3.0.tar.gz", hash = "sha256:87be5f7c4c83d9b3d8ce94b834f96cea14b3986f3629aac097afdd9318d7b098"},
+    {file = "dj_database_url-1.3.0-py3-none-any.whl", hash = "sha256:80a115bd7675c9fe14a900b2f8b5c8b1822b5a279b333bf9b2804de681656c7c"},
 ]
+
+[package.dependencies]
+Django = ">=3.2"
+typing-extensions = ">=3.10.0.0"
 
 [[package]]
 name = "django"
@@ -812,20 +816,24 @@ python-dateutil = "*"
 
 [[package]]
 name = "django-structlog"
-version = "3.0.1"
+version = "5.0.1"
 description = "Structured Logging for Django"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = ">=3.7"
 files = [
-    {file = "django-structlog-3.0.1.tar.gz", hash = "sha256:7195a24133fcf9d6817b7afbd32f4b3b47e8a66c08ec5b148b1d5736281bb144"},
-    {file = "django_structlog-3.0.1-py3-none-any.whl", hash = "sha256:179c1d63e9792fa925de8991c052634176ca06e106993ca61fb721f8358d5ff6"},
+    {file = "django-structlog-5.0.1.tar.gz", hash = "sha256:2ae2ca4239292a662d1bd6c7656c704fcfd9545b2e39a9501fd1e23800b1a1c4"},
+    {file = "django_structlog-5.0.1-py3-none-any.whl", hash = "sha256:f7d1209e4e48d807d3c6e7212a4c96d572a03d3e0ade7a3c9053b49bc70b33b8"},
 ]
 
 [package.dependencies]
-django = ">=1.11"
+asgiref = ">=3.6.0"
+django = ">=3.2"
 django-ipware = "*"
 structlog = ">=21.4.0"
+
+[package.extras]
+celery = ["celery (>=5.1)"]
 
 [[package]]
 name = "django-stubs"
@@ -884,14 +892,14 @@ pytz = "*"
 
 [[package]]
 name = "django-waffle"
-version = "2.7.0"
+version = "3.0.0"
 description = "A feature flipper for Django."
 category = "main"
 optional = false
 python-versions = "*"
 files = [
-    {file = "django-waffle-2.7.0.tar.gz", hash = "sha256:da1b76d4ca42b5c59c798ffec022a6209eb3dd2eb8fe0ce30da6dd9d9a5a5e24"},
-    {file = "django_waffle-2.7.0-py3-none-any.whl", hash = "sha256:3f4bd5e265c27ff3346b8379f5165a43e0791c515c8c08e7a94faf6281c758db"},
+    {file = "django-waffle-3.0.0.tar.gz", hash = "sha256:3acef6692cb745ed8109f0a3076c5a27da38a716deb70d64c5fb404d65ccd910"},
+    {file = "django_waffle-3.0.0-py3-none-any.whl", hash = "sha256:dd8bcc62269b35000a05a7d87e8a000136b6b1568952e2e707ef450717b1cd9f"},
 ]
 
 [[package]]
@@ -1691,34 +1699,25 @@ wcwidth = "*"
 
 [[package]]
 name = "protobuf"
-version = "3.20.3"
-description = "Protocol Buffers"
+version = "4.22.1"
+description = ""
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "protobuf-3.20.3-cp310-cp310-manylinux2014_aarch64.whl", hash = "sha256:f4bd856d702e5b0d96a00ec6b307b0f51c1982c2bf9c0052cf9019e9a544ba99"},
-    {file = "protobuf-3.20.3-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:9aae4406ea63d825636cc11ffb34ad3379335803216ee3a856787bcf5ccc751e"},
-    {file = "protobuf-3.20.3-cp310-cp310-win32.whl", hash = "sha256:28545383d61f55b57cf4df63eebd9827754fd2dc25f80c5253f9184235db242c"},
-    {file = "protobuf-3.20.3-cp310-cp310-win_amd64.whl", hash = "sha256:67a3598f0a2dcbc58d02dd1928544e7d88f764b47d4a286202913f0b2801c2e7"},
-    {file = "protobuf-3.20.3-cp36-cp36m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:899dc660cd599d7352d6f10d83c95df430a38b410c1b66b407a6b29265d66469"},
-    {file = "protobuf-3.20.3-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:e64857f395505ebf3d2569935506ae0dfc4a15cb80dc25261176c784662cdcc4"},
-    {file = "protobuf-3.20.3-cp37-cp37m-manylinux2014_aarch64.whl", hash = "sha256:d9e4432ff660d67d775c66ac42a67cf2453c27cb4d738fc22cb53b5d84c135d4"},
-    {file = "protobuf-3.20.3-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:74480f79a023f90dc6e18febbf7b8bac7508420f2006fabd512013c0c238f454"},
-    {file = "protobuf-3.20.3-cp37-cp37m-win32.whl", hash = "sha256:b6cc7ba72a8850621bfec987cb72623e703b7fe2b9127a161ce61e61558ad905"},
-    {file = "protobuf-3.20.3-cp37-cp37m-win_amd64.whl", hash = "sha256:8c0c984a1b8fef4086329ff8dd19ac77576b384079247c770f29cc8ce3afa06c"},
-    {file = "protobuf-3.20.3-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:de78575669dddf6099a8a0f46a27e82a1783c557ccc38ee620ed8cc96d3be7d7"},
-    {file = "protobuf-3.20.3-cp38-cp38-manylinux2014_aarch64.whl", hash = "sha256:f4c42102bc82a51108e449cbb32b19b180022941c727bac0cfd50170341f16ee"},
-    {file = "protobuf-3.20.3-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:44246bab5dd4b7fbd3c0c80b6f16686808fab0e4aca819ade6e8d294a29c7050"},
-    {file = "protobuf-3.20.3-cp38-cp38-win32.whl", hash = "sha256:c02ce36ec760252242a33967d51c289fd0e1c0e6e5cc9397e2279177716add86"},
-    {file = "protobuf-3.20.3-cp38-cp38-win_amd64.whl", hash = "sha256:447d43819997825d4e71bf5769d869b968ce96848b6479397e29fc24c4a5dfe9"},
-    {file = "protobuf-3.20.3-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:398a9e0c3eaceb34ec1aee71894ca3299605fa8e761544934378bbc6c97de23b"},
-    {file = "protobuf-3.20.3-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:bf01b5720be110540be4286e791db73f84a2b721072a3711efff6c324cdf074b"},
-    {file = "protobuf-3.20.3-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:daa564862dd0d39c00f8086f88700fdbe8bc717e993a21e90711acfed02f2402"},
-    {file = "protobuf-3.20.3-cp39-cp39-win32.whl", hash = "sha256:819559cafa1a373b7096a482b504ae8a857c89593cf3a25af743ac9ecbd23480"},
-    {file = "protobuf-3.20.3-cp39-cp39-win_amd64.whl", hash = "sha256:03038ac1cfbc41aa21f6afcbcd357281d7521b4157926f30ebecc8d4ea59dcb7"},
-    {file = "protobuf-3.20.3-py2.py3-none-any.whl", hash = "sha256:a7ca6d488aa8ff7f329d4c545b2dbad8ac31464f1d8b1c87ad1346717731e4db"},
-    {file = "protobuf-3.20.3.tar.gz", hash = "sha256:2e3427429c9cffebf259491be0af70189607f365c2f41c7c3764af6f337105f2"},
+    {file = "protobuf-4.22.1-cp310-abi3-win32.whl", hash = "sha256:85aa9acc5a777adc0c21b449dafbc40d9a0b6413ff3a4f77ef9df194be7f975b"},
+    {file = "protobuf-4.22.1-cp310-abi3-win_amd64.whl", hash = "sha256:8bc971d76c03f1dd49f18115b002254f2ddb2d4b143c583bb860b796bb0d399e"},
+    {file = "protobuf-4.22.1-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:5917412347e1da08ce2939eb5cd60650dfb1a9ab4606a415b9278a1041fb4d19"},
+    {file = "protobuf-4.22.1-cp37-abi3-manylinux2014_aarch64.whl", hash = "sha256:9e12e2810e7d297dbce3c129ae5e912ffd94240b050d33f9ecf023f35563b14f"},
+    {file = "protobuf-4.22.1-cp37-abi3-manylinux2014_x86_64.whl", hash = "sha256:953fc7904ef46900262a26374b28c2864610b60cdc8b272f864e22143f8373c4"},
+    {file = "protobuf-4.22.1-cp37-cp37m-win32.whl", hash = "sha256:6e100f7bc787cd0a0ae58dbf0ab8bbf1ee7953f862b89148b6cf5436d5e9eaa1"},
+    {file = "protobuf-4.22.1-cp37-cp37m-win_amd64.whl", hash = "sha256:87a6393fa634f294bf24d1cfe9fdd6bb605cbc247af81b9b10c4c0f12dfce4b3"},
+    {file = "protobuf-4.22.1-cp38-cp38-win32.whl", hash = "sha256:e3fb58076bdb550e75db06ace2a8b3879d4c4f7ec9dd86e4254656118f4a78d7"},
+    {file = "protobuf-4.22.1-cp38-cp38-win_amd64.whl", hash = "sha256:651113695bc2e5678b799ee5d906b5d3613f4ccfa61b12252cfceb6404558af0"},
+    {file = "protobuf-4.22.1-cp39-cp39-win32.whl", hash = "sha256:67b7d19da0fda2733702c2299fd1ef6cb4b3d99f09263eacaf1aa151d9d05f02"},
+    {file = "protobuf-4.22.1-cp39-cp39-win_amd64.whl", hash = "sha256:b8700792f88e59ccecfa246fa48f689d6eee6900eddd486cdae908ff706c482b"},
+    {file = "protobuf-4.22.1-py3-none-any.whl", hash = "sha256:3e19dcf4adbf608924d3486ece469dd4f4f2cf7d2649900f0efcd1a84e8fd3ba"},
+    {file = "protobuf-4.22.1.tar.gz", hash = "sha256:dce7a55d501c31ecf688adb2f6c3f763cf11bc0be815d1946a84d74772ab07a7"},
 ]
 
 [[package]]
@@ -2082,14 +2081,14 @@ social-auth-core = ">=4.1.0"
 
 [[package]]
 name = "social-auth-core"
-version = "4.4.0"
+version = "4.4.1"
 description = "Python social authentication made simple."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "social-auth-core-4.4.0.tar.gz", hash = "sha256:359f6be5bb2d4caef6500eb6e1b40821a40dde9add8d339d539b1adbba2c9bf7"},
-    {file = "social_auth_core-4.4.0-py3-none-any.whl", hash = "sha256:89536f218fa1a769caeaa56ef90f965ea50a81b9a7e3e5a2c5a61b832df11bde"},
+    {file = "social-auth-core-4.4.1.tar.gz", hash = "sha256:29f5ea3174162797ccb9b849f7a38a9490bfb920304ecd9b7f63c6c3a5ceb7a3"},
+    {file = "social_auth_core-4.4.1-py3-none-any.whl", hash = "sha256:cff78e0707ed0f6bdd3beec6ce713591875492b98272ea6298cc173912e3234b"},
 ]
 
 [package.dependencies]
@@ -2176,14 +2175,14 @@ files = [
 
 [[package]]
 name = "types-pytz"
-version = "2023.2.0.1"
+version = "2023.3.0.0"
 description = "Typing stubs for pytz"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-pytz-2023.2.0.1.tar.gz", hash = "sha256:2dd8a7667740e89ced9da99e4749327bde4c1d78b45c5c38217a296f4564b2b6"},
-    {file = "types_pytz-2023.2.0.1-py3-none-any.whl", hash = "sha256:9422758e1d506fa4b75bc3679b5cbc9ce218696a9178788464b074ff6b986e0a"},
+    {file = "types-pytz-2023.3.0.0.tar.gz", hash = "sha256:ecdc70d543aaf3616a7e48631543a884f74205f284cefd6649ddf44c6a820aac"},
+    {file = "types_pytz-2023.3.0.0-py3-none-any.whl", hash = "sha256:4fc2a7fbbc315f0b6630e0b899fd6c743705abe1094d007b0e612d10da15e0f3"},
 ]
 
 [[package]]
@@ -2449,4 +2448,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "cd5381ea41618a00e4624edbc16fcf751dc4f3501981a17a142d92ba783e9616"
+content-hash = "13a9e000118a3e6325bf938068d24a95405f74d726c4fd8685e5bc8b9c635681"

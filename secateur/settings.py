@@ -235,3 +235,5 @@ SESSION_COOKIE_AGE = 60 * 60 * 18  # 18 hours: gotta log in every day.
 
 # WAFFLE SETTING
 WAFFLE_CREATE_MISSING_FLAGS = True
+
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
