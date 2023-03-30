@@ -2,7 +2,7 @@
 OpenTelemetry Configuration
 """
 import os
-from typing import Iterable
+from typing import Iterable, Dict
 
 import opentelemetry
 import opentelemetry.sdk.trace
@@ -13,7 +13,9 @@ import opentelemetry.instrumentation.django
 import opentelemetry.instrumentation.celery
 import opentelemetry.instrumentation.requests
 import opentelemetry.instrumentation.psycopg2
-import opentelemetry.sdk._metrics.point
+from opentelemetry.sdk.metrics._internal.aggregation import AggregationTemporality
+import opentelemetry.sdk.metrics._internal
+
 
 opentelemetry.instrumentation.django.DjangoInstrumentor().instrument()
 opentelemetry.instrumentation.celery.CeleryInstrumentor().instrument()
@@ -21,12 +23,6 @@ opentelemetry.instrumentation.requests.RequestsInstrumentor().instrument()
 # opentelemetry.instrumentation.psycopg2.Psycopg2Instrumentor().instrument()
 
 opentelemetry.trace.set_tracer_provider(opentelemetry.sdk.trace.TracerProvider())
-
-# opentelemetry.trace.get_tracer_provider().add_span_processor(
-#     opentelemetry.sdk.trace.export.BatchSpanProcessor(
-#         opentelemetry.sdk.trace.export.ConsoleSpanExporter()
-#     )
-# )
 
 if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
     opentelemetry.trace.get_tracer_provider().add_span_processor(
@@ -37,52 +33,26 @@ if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT"):
 
 ## metrics
 
-import opentelemetry.sdk._metrics
-import opentelemetry.sdk._metrics.export
-import opentelemetry.exporter.otlp.proto.grpc._metric_exporter
-import opentelemetry.sdk._metrics.point
+import opentelemetry.metrics
+import opentelemetry.sdk.metrics.export
+import opentelemetry.exporter.otlp.proto.grpc.metric_exporter
 
 
-class DeltaConsoleMetricExporter(
-    opentelemetry.sdk._metrics.export.ConsoleMetricExporter
-):
-    @property
-    def preferred_temporality(
-        self,
-    ) -> opentelemetry.sdk._metrics.point.AggregationTemporality:
-        return opentelemetry.sdk._metrics.point.AggregationTemporality.DELTA
+_metric_exporters = [
+    opentelemetry.exporter.otlp.proto.grpc.metric_exporter.OTLPMetricExporter()
+]
+if os.environ.get("METRICS_EXPORT_CONSOLE"):
+    _metric_exporters.append(opentelemetry.sdk.metrics.export.ConsoleMetricExporter())
 
-
-class DeltaOTLPMetricExporter(
-    opentelemetry.exporter.otlp.proto.grpc._metric_exporter.OTLPMetricExporter
-):
-    @property
-    def preferred_temporality(
-        self,
-    ) -> opentelemetry.sdk._metrics.point.AggregationTemporality:
-        return opentelemetry.sdk._metrics.point.AggregationTemporality.DELTA
-
-
-_metric_exporters = []
-_metric_exporter_endpoint = os.environ.get("METRICS_EXPORT_ENDPOINT")
-if _metric_exporter_endpoint:
-    _metric_exporters.append(
-        DeltaOTLPMetricExporter(
-            endpoint=_metric_exporter_endpoint,
-        )
-    )
-if os.environ.get("METRICS_EXPORT_CONSOLE") or not _metric_exporter_endpoint:
-    _metric_exporters.append(DeltaConsoleMetricExporter())
-
-opentelemetry._metrics.set_meter_provider(
-    opentelemetry.sdk._metrics.MeterProvider(
+opentelemetry.metrics.set_meter_provider(
+    opentelemetry.sdk.metrics.MeterProvider(
         metric_readers=[
-            opentelemetry.sdk._metrics.export.PeriodicExportingMetricReader(exporter)
+            opentelemetry.sdk.metrics.export.PeriodicExportingMetricReader(exporter)
             for exporter in _metric_exporters
         ]
     )
 )
-meter = opentelemetry._metrics.get_meter(__name__)
+meter = opentelemetry.metrics.get_meter(__name__)
 
 homepage_counter = meter.create_counter(
     name="homepage",
@@ -116,26 +86,4 @@ login_counter = meter.create_counter(
 signup_counter = meter.create_counter(
     name="signup",
     unit="1",
-)
-
-
-def _api_cache_hit_rate() -> Iterable[opentelemetry._metrics.observation.Observation]:
-    import secateur.models
-
-    cache_info = secateur.models.get_cached_twitter_api.cache_info()
-    return [
-        opentelemetry._metrics.observation.Observation(
-            cache_info.hits,
-            {"type": "hits"},
-        ),
-        opentelemetry._metrics.observation.Observation(
-            cache_info.misses,
-            {"type": "misses"},
-        ),
-    ]
-
-
-meter.create_observable_counter(
-    name="api_cache.stats",
-    callbacks=[_api_cache_hit_rate],
 )

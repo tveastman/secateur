@@ -4,6 +4,8 @@
 !/manage.py
 !/poetry.lock
 !/pyproject.toml
-!/secateur/**/*.py
 !/secateur/static
 !/secateur/templates
+!/secateur/migrations
+!/secateur/management
+!/secateur/**/*.py
