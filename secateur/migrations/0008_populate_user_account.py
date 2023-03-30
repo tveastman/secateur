@@ -25,7 +25,6 @@ def user_account_null(apps: Any, schema_editor: Any) -> None:
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("social_django", "0008_partial_timestamp"),
         ("secateur", "0007_user_account"),

@@ -5,7 +5,6 @@ import psqlextra.manager.manager
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("secateur", "0040_user_oauth_token_user_oauth_token_secret"),
     ]

@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("secateur", "0048_remove_relationship_until_btree_and_more"),
     ]

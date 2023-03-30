@@ -5,7 +5,6 @@ import time
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("secateur", "0009_auto_20200222_1947"),
     ]

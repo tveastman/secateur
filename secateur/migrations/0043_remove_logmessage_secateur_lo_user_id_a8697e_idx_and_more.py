@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("secateur", "0042_remove_logmessage_secateur_lo_time_9f1798_brin_and_more"),
     ]

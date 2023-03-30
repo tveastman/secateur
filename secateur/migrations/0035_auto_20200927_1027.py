@@ -5,7 +5,6 @@ import secateur.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("secateur", "0034_auto_20200903_1015"),
     ]

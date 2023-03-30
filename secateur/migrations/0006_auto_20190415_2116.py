@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [("secateur", "0005_user_is_twitter_api_enabled")]
 
     operations = [

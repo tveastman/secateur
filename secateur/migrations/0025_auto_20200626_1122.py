@@ -5,7 +5,6 @@ import secateur.models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("secateur", "0024_remove_logmessage_message"),
     ]

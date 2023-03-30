@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("secateur", "0041_alter_account_managers_alter_logmessage_managers_and_more"),
     ]
