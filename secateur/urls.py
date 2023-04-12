@@ -23,7 +23,9 @@ from . import views
 urlpatterns = [
     path("", views.Home.as_view(), name="home"),
     path("admin/", admin.site.urls),
-    path("block/", views.Block.as_view(), name="block-accounts"),
+
+    # path("block/", views.Block.as_view(), name="block-accounts"),
+    path("block/", views.Suspended.as_view(), name="block-accounts"),
     path("blocked/", views.Blocked.as_view(), name="blocked"),
     path(
         "unblock-everybody/", views.UnblockEverybody.as_view(), name="unblock-everybody"

@@ -33,6 +33,11 @@ class Home(TemplateView):
     template_name = "home.html"
 
 
+class Suspended(TemplateView):
+    template_name = "suspended.html"
+
+
+
 class Account(DetailView):
     template_name = "account.html"
     model = models.Account

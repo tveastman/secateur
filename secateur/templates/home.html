@@ -8,6 +8,25 @@
     Use Secateur if you want to temporarily block or mute a Twitter account <em>and</em> all its followers.
   </p>
 
+  <div class="alert alert-warning" role="alert">
+    <h4 class="alert-heading">Secateur has been suspended by Twitter.</h4>
+    <p>
+        Secateur has been suspended and for the time being doesn't work. You can't log in, block, or unblock anyone.
+    </p>
+
+    <p>
+        I (Tom), might be able to get it working again, but I doubt it. I don't think Twitter's new developer API
+        credentials will work for what Secateur does.
+    </p>
+
+    <p>
+        Over the past four years, it's been my privilege and pleasure to, in my own small way, make Twitter a safer
+        and better place for people. I hope Secateur has been of use to you, and I'm sorry that it probably can't continue
+        to do so.
+    </p>
+
+  </div>
+
   {% if user.is_authenticated %}
     {% if not user.is_twitter_api_enabled %}
       <div class="alert alert-warning" role="alert">

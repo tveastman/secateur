@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% load bootstrap4 %}
+{% load waffle_tags %}
+
+{% block title %}Secateur{% endblock %}
+{% block content %}
+  <p class='lead'>
+    Secateur has been suspended.
+  </p>
+  <div class="alert alert-warning" role="alert">
+    <h4 class="alert-heading">Secateur has been suspended by Twitter.</h4>
+    <p>
+        Secateur has been suspended and for the time being doesn't work. You can't log in, block, or unblock anyone.
+    </p>
+
+    <p>
+        I (Tom), might be able to get it working again, but I doubt it. I don't think Twitter's new developer API
+        credentials will work for what Secateur does.
+    </p>
+
+    <p>
+        Over the past four years, it's been my privilege and pleasure to, in my own small way, make Twitter a safer
+        and better place for people. I hope Secateur has been of use to you, and I'm sorry that it probably can't continue
+        to do so.
+    </p>
+
+  </div>
+
+    <p>
+      If you've used Secateur and it's really helped you out, please consider <a href="https://ko-fi.com/tveastman">using Ko-Fi to help donate
+      to the running costs.</a>
+    </p>
+
+    <p><a href="https://www.patreon.com/tveastman">I've launched a patreon!</a> If you use Secateur regularly, and you've recommended it to others, you can really
+      help just by donating a dollar a month to help pay for the server costs and keep it running.
+    </p>
+
+    <p>
+        <a href='https://ko-fi.com/tveastman' target='_blank'>
+            <img height='36' style='border:0px;height:36px;' src='/static/img/kofi.png' border='0' alt='Buy Me a Coffee at ko-fi.com' />
+        </a>
+        <a href="https://www.patreon.com/bePatron?u=576672"><img src="/static/img/become-a-patron.png" alt="Become a patron"/></a>
+    </p>
+
+{% endblock %}
