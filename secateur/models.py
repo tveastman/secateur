@@ -134,6 +134,7 @@ class User(AbstractUser):
             access_token_key=self.oauth_token,
             access_token_secret=self.oauth_token_secret,
             sleep_on_rate_limit=False,
+            timeout=30,
         )
         return api
 

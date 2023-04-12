@@ -9,6 +9,7 @@ from typing import Optional, Callable, List, Iterable
 import celery
 import structlog
 import requests.exceptions
+import opentelemetry.trace
 from django.db import transaction
 from django.core.cache import cache
 from django.db.models import Q, F
@@ -21,6 +22,7 @@ from .utils import ErrorCode, fudge_duration, chunks
 from . import otel
 
 logger = structlog.get_logger(__name__)
+tracer = opentelemetry.trace.get_tracer(__name__)
 
 
 # These have to match the ones for the Relationship model.
@@ -103,6 +105,10 @@ def create_relationships(
 
     It might do strange wrong things on errors.
     """
+    current_span = opentelemetry.trace.get_current_span()
+    current_span.set_attributes(
+        dict(secateur_user_pk=secateur_user_pk, type=str(type), until=str(until))
+    )
     for user_id in user_ids:
         create_relationship.apply(
             [],
@@ -137,13 +143,26 @@ def create_relationship(
     if screen_name is None and user_id is None:
         raise ValueError("Must provide either user_id or screen_name.")
 
+    current_span = opentelemetry.trace.get_current_span()
+
     secateur_user = models.User.objects.select_related("account").get(
         pk=secateur_user_pk
     )
     log = logger.bind(user=secateur_user.username, function="create_relationship")
+    current_span.set_attributes(
+        dict(
+            secateur_user__username=secateur_user.username,
+            secateur_user__id=secateur_user.id,
+            type=str(type),
+            target_user_id=user_id,
+            target_until=str(until),
+        )
+    )
+
     try:
         api = secateur_user.api
-    except models.TwitterApiDisabled:
+    except models.TwitterApiDisabled as e:
+        current_span.record_exception(e)
         log.error("Twitter API not enabled")
         return
     now = timezone.now()
@@ -218,9 +237,11 @@ def create_relationship(
             skip_status=True,
         )
     except requests.exceptions.ConnectionError as e:
+        current_span.record_exception(e)
         log.exception("connection error")
         return
     except TwitterError as e:
+        current_span.record_exception(e)
         if ErrorCode.from_exception(e) == ErrorCode.RATE_LIMITED_EXCEEDED:
             log.warning("rate limit exceeded")
             cache.set(
@@ -273,6 +294,7 @@ def create_relationship(
         account=account,
         until=until,
     )
+    current_span.set_attributes(dict(target_screen_name=account.screen_name))
     log.info("create relationship complete")
 
 

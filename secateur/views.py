@@ -6,6 +6,7 @@ import django.db.models
 import django.forms
 import django.http
 import structlog
+import opentelemetry.trace
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -21,6 +22,7 @@ from waffle.mixins import WaffleFlagMixin
 from . import forms, models, tasks, otel
 
 logger = structlog.get_logger(__name__)
+tracer = opentelemetry.trace.get_tracer(__name__)
 
 
 class Home(TemplateView):
