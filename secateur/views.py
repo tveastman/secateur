@@ -18,6 +18,7 @@ from django.utils import timezone
 from django.utils.timezone import now
 from django.views.generic import DetailView, FormView, ListView, TemplateView
 from waffle.mixins import WaffleFlagMixin
+from waffle import flag_is_active
 
 from . import forms, models, tasks, otel
 
@@ -223,6 +224,19 @@ class Block(LoginRequiredMixin, FormView):
                 "You don't want to block your own account or followers.",
             )
             return super().form_valid(form)
+
+        if flag_is_active(self.request, "check_not_blocked"):
+            if (
+                form.cleaned_data["block_followers"]
+                or form.cleaned_data["mute_followers"]
+            ) and user.is_blocked_by(user_id=account.user_id):
+                messages.add_message(
+                    self.request,
+                    messages.INFO,
+                    "That account appears to have blocked you, so Secateur can't get their follower list. "
+                    "You can still block or mute them, but not their followers.",
+                )
+                return super().form_valid(form)
 
         ## RATE LIMIT CHECK
         tokens_required: int = 0
